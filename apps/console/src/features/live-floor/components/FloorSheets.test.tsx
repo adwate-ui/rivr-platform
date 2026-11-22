@@ -63,18 +63,20 @@ describe('The player sheet (console v3)', () => {
     // The floor opens the member's record too, to view (the owner, 22 Nov).
     expect(floorSheet.getByRole('button', { name: 'Open member record' })).toBeDefined();
     cleanup();
-    renderFloorScreen(FloorWithBonus, { ...FLOOR, role: 'cashier' });
+    renderFloorScreen(FloorWithBonus, { ...FLOOR, role: 'host' });
     await screen.findByRole('group', { name: 'Table 1 NLH 50/100' }, { timeout: 5000 });
     fireEvent.click(screen.getByRole('radio', { name: 'Seats' }));
     fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     expect(within(await sheet('Kabir Sethi')).queryByText(/^Bonus by hand for /)).toBeNull();
   });
 
-  it('offers the member record only to staff who may open Members, so a cashier is not sent to a refusal (audit F-025)', async () => {
-    await renderFloor({ ...FLOOR, role: 'cashier' });
+  it('offers a cashier the member record and Bonus by hand, as they view Members and handle Bonus (the owner, 22 Nov)', async () => {
+    renderFloorScreen(FloorWithBonus, { ...FLOOR, role: 'cashier' });
+    await screen.findByRole('group', { name: 'Table 1 NLH 50/100' }, { timeout: 5000 });
+    fireEvent.click(screen.getByRole('radio', { name: 'Seats' }));
     fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
-    const player = await sheet('Kabir Sethi');
-    expect(within(player).queryByRole('button', { name: 'Open member record' })).toBeNull();
+    const player = within(await sheet('Kabir Sethi'));
+    expect([player.getByRole('button', { name: 'Open member record' }), player.getByText('Bonus by hand for m-s2')]).toHaveLength(2);
   });
 
   it('shows the call time left with its bar, Set call time, Move and the member record', async () => {

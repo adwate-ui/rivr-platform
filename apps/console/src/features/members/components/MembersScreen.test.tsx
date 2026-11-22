@@ -107,6 +107,16 @@ describe('Members (console v3)', () => {
     expect(screen.queryByRole('button', { name: /^Lift / })).toBeNull();
   });
 
+  it('gives a cashier every part to view and the Bonus to handle, but no Bonus from a file (the owner, 22 Nov)', async () => {
+    renderAs('cashier', 'm1', 'bonus');
+    expect(await screen.findByRole('heading', { name: 'Add Bonus' }, { timeout: 5000 })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'Use Bonus' })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'Missed Bonus use' })).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Tier and break' })).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Account' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Bonus from a file' })).toBeNull();
+  });
+
   it('keeps the Account part from a host, and goes back to the list from the record', async () => {
     const { onNavigate } = renderAs('host', 'm1', 'account');
     expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();

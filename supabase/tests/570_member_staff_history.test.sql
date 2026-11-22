@@ -74,7 +74,7 @@ select is((select count(*)::integer from public.member_staff_history('00000000-0
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
 select is((select count(*)::integer from his_changes), 0, 'a host reads none');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is((select count(*)::integer from his_changes), 0, 'nor does a cashier');
+select isnt((select count(*)::integer from his_changes), 0, 'a cashier reads them, as floor and up do (the owner, 22 Nov)');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select is((select count(*)::integer from his_changes), 0, 'nor a member');
 reset role;

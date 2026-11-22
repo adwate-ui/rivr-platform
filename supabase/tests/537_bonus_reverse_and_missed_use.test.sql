@@ -1,7 +1,7 @@
 -- Bonus reversed, and a use added after the fact (#1077, the owner, 18 Nov). 101 Vikram, a super admin, reverses Bonus given
 -- to 211 Ishaan and adds a use a seat missed: the whole of a reversal comes back even if part was spent, the balance may go
--- below nothing, Bonus given next pays it first, and none is used at a buy-in meanwhile. 103 a floor manager, 104 a cashier
--- and e9 (staff of another venue) may do neither; nor may Vikram on his own record.
+-- below nothing, Bonus given next pays it first, and none is used at a buy-in meanwhile. 103 a floor manager and e9 (staff
+-- of another venue) may do neither; nor may Vikram on his own record. Cashiers may, since 22 Nov (601).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -74,7 +74,7 @@ insert into ids select 'fresh', s.id from s;
 insert into ids values ('use', gen_random_uuid()), ('use2', gen_random_uuid());
 select is(pg_temp.balance(), 300000::bigint, 'Ishaan holds ₹3,000 of Bonus');
 
--- Who may: a super admin alone, at the venue.
+-- Who may: super admins and cashiers (bonus.correct, the owner, 22 Nov), at the venue.
 select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.reverse_bonus((select id from ids where name = 'a'), 'Given by mistake') $$, '42501', null,
   'a floor manager reverses no Bonus');
@@ -82,8 +82,6 @@ select throws_ok($$ select public.add_bonus_use((select id from ids where name =
   '42501', null, 'nor adds a use');
 select is_empty($$ select 1 from public.bonus_use_seats('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211') $$,
   'nor sees the seats to add one to');
-select pg_temp.as_user('00000000-0000-4000-8000-000000000104');
-select throws_ok($$ select public.reverse_bonus((select id from ids where name = 'a'), 'Given by mistake') $$, '42501', null, 'nor a cashier');
 select pg_temp.as_user('00000000-0000-4000-8000-0000000000e9');
 select throws_ok($$ select public.reverse_bonus((select id from ids where name = 'a'), 'Given by mistake') $$, '42501', null,
   'nor staff of another venue');

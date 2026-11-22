@@ -72,13 +72,13 @@ describe('UseBonus (the owner, 20 Nov)', () => {
   it('says a refusal about the amount under it, and keeps what was typed', async () => {
     renderForm(refusal('RVVCP'));
     useChips('500', 'Chips for the cash game');
-    expect(await screen.findByText('More than this visit allows. Type less.')).toBeDefined();
+    expect(await screen.findByText('More than the limit allows. Type less.')).toBeDefined();
     expect(chipsField().getAttribute('aria-invalid')).toBe('true');
     expect(reasonField().getAttribute('aria-invalid')).toBeNull();
     expect(chipsField()).toHaveProperty('value', '500');
     // Typing again takes the refusal away.
     fireEvent.change(chipsField(), { target: { value: '450' } });
-    expect(screen.queryByText('More than this visit allows. Type less.')).toBeNull();
+    expect(screen.queryByText('More than the limit allows. Type less.')).toBeNull();
   });
 
   it('says more than they hold under the amount, and a short reason under the reason', async () => {
@@ -92,10 +92,10 @@ describe('UseBonus (the owner, 20 Nov)', () => {
     expect(reasonField().getAttribute('aria-invalid')).toBe('true');
   });
 
-  it('says when the member is not checked in, and when it is their own record', async () => {
-    const { sent } = renderForm(refusal('RVNIN'));
+  it('says when it is their own record, and a refusal is final for that press', async () => {
+    const { sent } = renderForm(refusal('RVOWN'));
     useChips('500', 'Chips for the cash game');
-    expect(await screen.findByText('Not checked in. Check them in first.')).toBeDefined();
+    expect(await screen.findByText('Not on your own record. Ask someone else who can.')).toBeDefined();
     expect(chipsField().getAttribute('aria-invalid')).toBeNull();
     // A refusal is final for that press: pressing again is a new request.
     fireEvent.click(screen.getByRole('button', { name: 'Use Bonus' }));
@@ -104,10 +104,6 @@ describe('UseBonus (the owner, 20 Nov)', () => {
     const [first, second] = requestIdsOf(sent);
     expect(first).toEqual(expect.any(String));
     expect(first).not.toBe(second);
-    cleanup();
-    renderForm(refusal('RVOWN'));
-    useChips('500', 'Chips for the cash game');
-    expect(await screen.findByText('Not on your own record. Ask someone else who can.')).toBeDefined();
   });
 
   it('keeps the request id when the line dropped, so pressing again never uses twice', async () => {

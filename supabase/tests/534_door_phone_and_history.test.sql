@@ -1,5 +1,5 @@
--- The Door's phone number and History (#1073, the owner, 18 Nov): floor, admin and super admin see a member's mobile on
--- the Door; hosts and cashiers do not. History reads a member's hours since their last reset. 103 Aditya is an admin, 108
+-- The Door's phone number and History (#1073, the owner, 18 Nov): floor, admin, super admin and, since 22 Nov, cashiers see
+-- a member's mobile on the Door; hosts do not. History reads a member's hours since their last reset. 103 Aditya is an admin, 108
 -- Karan a host, 104 a cashier made a floor manager here for the floor's case. 211 Ishaan plays.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -26,8 +26,9 @@ grant select on his to authenticated;
 
 select ok(exists (select 1 from public.role_permission where role = 'floor' and permission = 'members.phone')
           and exists (select 1 from public.role_permission where role = 'admin' and permission = 'members.phone')
-          and not exists (select 1 from public.role_permission where role in ('host', 'cashier') and permission = 'members.phone'),
-  'floor and admin hold members.phone; hosts and cashiers do not');
+          and exists (select 1 from public.role_permission where role = 'cashier' and permission = 'members.phone')
+          and not exists (select 1 from public.role_permission where role = 'host' and permission = 'members.phone'),
+  'floor, admin and cashier hold members.phone; hosts do not');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is((select phone from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}')
@@ -36,8 +37,8 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
 select is((select phone is null from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}')
            where member_id = '00000000-0000-4000-8000-000000000211'), true, 'a host sees the row without the mobile');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is((select phone is null from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}')
-           where member_id = '00000000-0000-4000-8000-000000000211'), true, 'and so does a cashier');
+select is((select phone from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}')
+           where member_id = '00000000-0000-4000-8000-000000000211'), (select phone from his), 'a cashier sees the mobile (the owner, 22 Nov)');
 reset role;
 update public.staff set role = 'floor' where user_id = '00000000-0000-4000-8000-000000000104' and venue_id = '00000000-0000-4000-8000-000000000001';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');

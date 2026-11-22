@@ -33,9 +33,9 @@ export interface RecordAccess {
   readonly withdrawDeparture: boolean;
   /** Resets the member's counted hours: super admins (redesign RD-36). */
   readonly resetHours: boolean;
-  /** Super admins, admins and floor managers add Bonus by hand on the record (bonus.give). */
+  /** Super admins, admins, floor managers and cashiers add Bonus by hand on the record (bonus.give). */
   readonly giveBonus: boolean;
-  /** A super admin reverses a Bonus given and adds a use a seat missed (#1077). */
+  /** Super admins and cashiers (bonus.correct) reverse a Bonus given and add a use a seat missed (#1077; the owner, 22 Nov). */
   readonly correctBonus: boolean;
   /** The floor and up (members.phone) see every part, to view, where they may not change it (the owner, 22 Nov). */
   readonly viewsAll: boolean;

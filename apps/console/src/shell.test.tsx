@@ -44,15 +44,15 @@ describe('the console frame', () => {
     expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
   });
 
-  it('says what a role can search for: members for the floor, who open Members to view (the owner, 22 Nov), none for a cashier (audit F-037)', async () => {
+  it('says what a role can search for: members for the floor, who open Members to view (the owner, 22 Nov), none for marketing (audit F-037)', async () => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Rohan Das', role: 'floor' }]);
     renderAt('/settings');
     expect(await screen.findByRole('button', { name: 'Search members, screens, actions' })).toBeDefined();
     cleanup();
     signIn();
-    answerStaff([{ ...CLUB, full_name: 'Isha Rao', role: 'cashier' }]);
-    renderAt('/settings');
+    answerStaff([{ ...CLUB, full_name: 'Isha Rao', role: 'marketing' }]);
+    renderAt('/promotions');
     expect(await screen.findByRole('button', { name: 'Search screens and actions' })).toBeDefined();
   });
 

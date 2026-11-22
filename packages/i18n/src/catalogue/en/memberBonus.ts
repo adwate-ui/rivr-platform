@@ -32,7 +32,7 @@ export const memberBonus = {
   plus: '+{chips}',
   minus: '−{chips}',
   /**
-   * Bonus chips added by hand: super admins, admins and floor managers (the owner, 9 Nov), whole fifties from 50 to 1,00,000, with a reason the
+   * Bonus chips added by hand: super admins, admins and floor managers (the owner, 9 Nov), and cashiers (decision 0709), whole fifties from 50 to 1,00,000, with a reason the
    * member's history shows and the audit log keeps. `{chips}` is the number, as `1,500`.
    */
   give: {
@@ -60,13 +60,13 @@ export const memberBonus = {
     },
   },
   /**
-   * Bonus used without a seat (the owner, 20 Nov), by those who add it by hand: while the member is checked in, whole
+   * Bonus used without a seat (the owner, 20 Nov), by those who add it by hand, checked in or not (the owner, 22 Nov): whole
    * fifties, never more than they hold or their visit's limit, with a reason. `{chips}` is the number, as `1,500`.
    */
   use: {
     title: 'Use Bonus',
     chips: 'Bonus',
-    chipsHint: 'Whole fifties, while checked in.',
+    chipsHint: 'Whole fifties.',
     reason: 'Reason',
     /** The member sees no reason for a use, as for a use added. */
     reasonHint: 'Kept on the record and in Activity.',
@@ -78,18 +78,19 @@ export const memberBonus = {
       own_record: 'Not on your own record. Ask someone else who can.',
       invalid_chips: 'Give whole fifties from 50 to 1,00,000.',
       invalid_reason: 'Give a reason of 3 to 200 characters.',
-      not_checked_in: 'Not checked in. Check them in first.',
+      /** A member on a break from play uses no Bonus (decision 0053). */
+      on_break: 'This member is on a break from play. Not used.',
       /** More than the Bonus in force, or some is owed. */
       bonus_short: 'More than their Bonus. Type less.',
-      /** More than the visit's limit leaves (bonus.visit_cap). */
-      visit_cap: 'More than this visit allows. Type less.',
+      /** More than the limit leaves (bonus.visit_cap): the visit's, or with none open, the share of what is held (decision 0710). */
+      visit_cap: 'More than the limit allows. Type less.',
       paused: 'Frozen, or promotions stopped. Try once released.',
       busy: 'Too many at once. Try again shortly.',
       unavailable: 'Not used. Try again.',
     },
   },
   /**
-   * A super admin reverses a Bonus given from its row (#1077, the owner, 18 Nov): all of it comes back, even if used, less
+   * A super admin or a cashier reverses a Bonus given from its row (#1077, the owner, 18 Nov; decision 0709): all of it comes back, even if used, less
    * what expired. `{chips}` is `2,000`; `what` reads `2,000 given 18 Nov 2026 · Welcome bonus`.
    */
   reverse: {
@@ -109,7 +110,7 @@ export const memberBonus = {
     openHint: 'Reverse',
     failures: {
       not_allowed: 'Not in your role. Ask an admin.',
-      own_record: 'Not on your own record. Ask another super admin.',
+      own_record: 'Not on your own record. Ask someone else who can.',
       invalid_chips: 'Give whole fifties from 50 to 1,00,000.',
       invalid: 'Give a reason of 3 to 200 characters.',
       nothing_left: 'Nothing left to take back. It expired.',
@@ -119,7 +120,7 @@ export const memberBonus = {
     },
   },
   /**
-   * A super admin adds a Bonus use a seat missed (#1077): any seat of the member's, whole fifties and a reason. It
+   * A super admin or a cashier adds a Bonus use a seat missed (#1077, decision 0709): any seat of the member's, whole fifties and a reason. It
    * counts on that seat's day, with no visit limit. `seatLine` reads `Table 5 · seat 7 · 18 Nov 2026, 22:10`.
    */
   missedUse: {
@@ -137,9 +138,11 @@ export const memberBonus = {
     added: '{chips} Bonus use added.',
     failures: {
       not_allowed: 'Not in your role. Ask an admin.',
-      own_record: 'Not on your own record. Ask another super admin.',
+      own_record: 'Not on your own record. Ask someone else who can.',
       invalid_chips: 'Give whole fifties from 50 to 1,00,000.',
       invalid: 'Pick a seat and give a reason.',
+      /** A cashier's use past the Bonus in force, or with some owed: a super admin's alone goes below zero (decision 0709). */
+      bonus_short: 'More than their Bonus. Type less, or ask a super admin.',
       nothing_left: 'Nothing left to take back. It expired.',
       paused: 'Frozen, or promotions stopped. Try once released.',
       busy: 'Too many at once. Try again shortly.',

@@ -145,7 +145,7 @@ describe('Bonus', () => {
       .toEqual({ p_member_id: MEMBER, p_chips: 200, p_reason: 'Chips for the bar', p_request_id: 'u9' });
     // The member's balance and histories (under memberBonus), the door and Players visits.
     expect(readAgain.mock.calls.map(([filters]) => filters?.queryKey?.slice(2))).toEqual([['bonus', VENUE, MEMBER], ['door-board', VENUE], ['player-visits', VENUE]]);
-    const refusals = [['RVNIN', 'not_checked_in'], ['RVBON', 'bonus_short'], ['RVVCP', 'visit_cap'], ['RVCHP', 'invalid_chips'], ['22023', 'invalid_reason'],
+    const refusals = [['RVBRK', 'on_break'], ['RVBON', 'bonus_short'], ['RVVCP', 'visit_cap'], ['RVCHP', 'invalid_chips'], ['22023', 'invalid_reason'],
       ['RVOWN', 'own_record'], ['42501', 'not_allowed'], ['RVMBR', 'paused'], ['RVRAT', 'busy'], ['XX000', 'unavailable']] as const;
     for (const [code, failure] of refusals) {
       const refused = clientFor({ '/rpc/use_bonus': { status: 400, body: { code, message: 'no' } } });
@@ -175,7 +175,7 @@ describe('Bonus', () => {
       .toEqual({ p_session_id: 's7', p_chips: 1500, p_reason: 'Missed at the seat', p_request_id: 'u1' });
   });
 
-  it('says why a reversal or a missed use is refused', async () => {
+  it('says why a reversal or a missed use is refused, and a cashier\'s missed use past the Bonus held', async () => {
     let outcome: unknown;
     const refusals = [['RVOWN', 'own_record'], ['42501', 'not_allowed'], ['22023', 'invalid'], ['RVCHP', 'invalid_chips'], ['RVNIL', 'nothing_left'],
       ['RVKIL', 'paused'], ['RVRAT', 'busy'], ['XX000', 'unavailable']] as const;
@@ -188,6 +188,10 @@ describe('Bonus', () => {
       await act(async () => { outcome = await hooks.result.current.add.mutateAsync({ sessionId: 's7', chips: 75, reason: 'Missed', requestId: 'u2' }); });
       expect(outcome).toEqual({ ok: false, error: failure });
     }
+    const short = clientFor({ '/rpc/add_bonus_use': { status: 400, body: { code: 'RVBON', message: 'no' } } });
+    const add = renderHook(() => useAddBonusUse(VENUE, MEMBER), { wrapper: short.wrapper });
+    await act(async () => { outcome = await add.result.current.mutateAsync({ sessionId: 's7', chips: 75, reason: 'Missed', requestId: 'u3' }); });
+    expect(outcome).toEqual({ ok: false, error: 'bonus_short' });
   });
 
   it('reads a reversal as a line of its own kind', async () => {

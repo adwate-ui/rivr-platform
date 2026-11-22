@@ -5,7 +5,9 @@
 -- ₹100, sits, is undone and leaves. The cap's base is the Bonus held at the visit's first Bonus use (decision 0706): Mihir
 -- (213) sits with none, is given ₹2,000 and uses ₹500; Vihaan (212) sits with none, is given more, and buys in at his next
 -- seating; Naveen (254) holds a note from a seat before the ruling, which his seat's undo takes. Yash (214) came in
--- yesterday and is still at his seat past 06:00 when he uses Bonus: Players visits holds it once.
+-- yesterday and is still at his seat past 06:00 when he uses Bonus: Players visits holds it once. No check-in is needed (the
+-- owner, 22 Nov): Ishaan (211) uses Bonus with no visit open, then takes a break and uses none; Neel uses some once more
+-- after he has left.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -38,10 +40,26 @@ select lives_ok($$ select private.credit_bonus('00000000-0000-4000-8000-00000000
                     'Welcome', null, 'bonus.hand:596-' || m) from unnest(array['215', '216', '217']) m $$,
   'Ritika, Kunal and Neel are each given ₹1,000');
 
--- Who, and when.
+-- Who, and when: checked in or not (the owner, 22 Nov).
+select lives_ok($$ select private.credit_bonus('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 50000,
+                    'Welcome', null, 'bonus.hand:596-211') $$, 'Ishaan is given ₹500');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select pg_temp.use('215', 100, '59600000-0000-4000-8000-000000000001') $$, 'RVNIN', null,
-  'not checked in: refused');
+select is(pg_temp.use('211', 100, '59600000-0000-4000-8000-000000000001'), '59600000-0000-4000-8000-000000000001'::uuid,
+  'not checked in: used all the same');
+select is(pg_temp.use('211', 100, '59600000-0000-4000-8000-000000000001'), '59600000-0000-4000-8000-000000000001'::uuid,
+  'and the same request again is the same use, not taken for a file''s');
+reset role;
+select results_eq($$ select visit_id, session_id, amount_paise, private.bonus_in_force(member_id, now()) from public.bonus_redemption
+                     where id = '59600000-0000-4000-8000-000000000001' $$,
+  $$ values (null::uuid, null::uuid, 10000::bigint, 40000::bigint) $$, 'tied to no visit or seat, and drawn from his Bonus');
+-- Never while on a break (decision 0053): the check-in a use once needed refused him.
+select pg_temp.as_person((select user_id::text from public.member where id = '00000000-0000-4000-8000-000000000211'));
+select isnt(public.take_break(1), null, 'Ishaan takes a 24-hour break');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select pg_temp.use('211', 100, '59600000-0000-4000-8000-000000000999') $$, 'RVBRK', null, 'on a break: none used');
+select is(pg_temp.use('211', 100, '59600000-0000-4000-8000-000000000001'), '59600000-0000-4000-8000-000000000001'::uuid,
+  'though the use before it is still answered as itself');
+reset role;
 -- Checked in by a super admin, so the admin's changes to Ritika below are one change of their own in her History.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select lives_ok($$ select public.check_in('00000000-0000-4000-8000-000000000001', m) from unnest(array[
@@ -255,9 +273,11 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.check_out('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000217') $$, 'he leaves');
 select is(pg_temp.use('217', 100, '59600000-0000-4000-8000-000000000030'), '59600000-0000-4000-8000-000000000030'::uuid,
   'the same request after he left is the same use');
-select throws_ok($$ select pg_temp.use('217', 100, '59600000-0000-4000-8000-000000000031') $$, 'RVNIN', null, 'a new one is refused');
+select is(pg_temp.use('217', 100, '59600000-0000-4000-8000-000000000031'), '59600000-0000-4000-8000-000000000031'::uuid,
+  'and a new one goes through, tied to no visit (the owner, 22 Nov)');
 reset role;
-select is((select count(*)::integer from public.bonus_redemption where member_id = '00000000-0000-4000-8000-000000000217'), 1, 'one use of his');
+select results_eq($$ select visit_id is null from public.bonus_redemption where member_id = '00000000-0000-4000-8000-000000000217' order by visit_id is null $$,
+  $$ values (false), (true) $$, 'his two uses: one in his visit, one after it');
 
 -- A missed use's request id never answers as a use without a seat.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');

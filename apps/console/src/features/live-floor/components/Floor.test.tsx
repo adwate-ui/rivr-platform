@@ -164,14 +164,13 @@ describe('The requests panel (console v3)', () => {
 });
 
 describe('The floor for a cashier', () => {
-  it('offers the list in place of Check ID, and a name that opens nothing as plain text (audit F-014, F-025)', async () => {
+  it('offers the list in place of Check ID to staff who check no ID, the name still opening the record (audit F-014; the owner, 22 Nov)', async () => {
     const check = requestRow({ kind: 'seat_check', id: 'e8', name: 'Dev Khanna', minutes: 30, table_id: 't2' });
     const { router } = await renderFloor({ ...FLOOR, role: 'cashier', requests: [check] });
     const panel = within(requests());
     const list = await panel.findByRole('button', { name: /View list/ });
-    expect(panel.getByText('Dev Khanna')).toBeDefined();
-    // No button names him at all: the card's own button is named with its kind and detail around the name.
-    expect(panel.queryByRole('button', { name: /Dev Khanna/ })).toBeNull();
+    // A cashier views Members (the owner, 22 Nov): the card's own button, named with its kind around the name, opens his record.
+    expect(panel.getByRole('button', { name: /Dev Khanna/ })).toBeDefined();
     expect(panel.queryByRole('button', { name: /Check ID/ })).toBeNull();
     fireEvent.click(list);
     await waitFor(() => expect(router.state.location.pathname).toBe('/waitlist'));
