@@ -5,7 +5,9 @@
 -- held then (private.bonus_visit_left with no visit open). It is in the record's and the member's Bonus histories, Activity
 -- and the report's Bonus used; the Door's rows show a visit's uses, so not this one, though the row's Wallet does.
 -- A request id sent again is the same use, known by its ledger key (bonus_use:<id>), which a file's use
--- (bonus_file_use:<id>) never has: a use with no visit is no longer taken for a file's.
+-- (bonus_file_use:<id>) never has: a use with no visit is no longer taken for a file's, nor a file's for it.
+-- A member on a break uses none (decision 0053; RVBRK). Check-in refused them, and a use needed one; now use_bonus
+-- refuses them itself, which also covers a break taken during a visit. A file's Use lines are #1130.
 
 comment on table public.bonus_redemption is
   'Bonus a member used: with their buy-in as they were seated (decision 0504), added after on a past seat (#1077), without a seat during a visit or with none open (the owner, 20 and 22 Nov), or from a file a super admin saved, with no visit (the owner, 22 Nov).';
@@ -35,11 +37,27 @@ begin
 end;
 $function$;
 
+-- As 20261128110000_bonus_from_a_file.sql made it, with a file's use known by its ledger key (bonus_file_use:<id>) too, now
+-- that a use without a seat may have no visit either.
+CREATE OR REPLACE FUNCTION private.bonus_file_saved_line(p_venue_id uuid, p_request_id uuid, p_n integer)
+ RETURNS TABLE(member_id uuid, kind text, chips bigint)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select g.member_id, 'add', g.amount_paise / 100 from public.bonus_grant g
+  where g.venue_id = p_venue_id and g.idempotency_key = 'bonus.hand:file:' || p_request_id || ':' || p_n
+  union all
+  select r.member_id, 'use', r.amount_paise / 100 from public.bonus_redemption r
+  join public.ledger_transaction t on t.id = r.ledger_transaction_id and t.idempotency_key = 'bonus_file_use:' || r.id
+  where r.id = private.bonus_file_use_id(p_request_id, p_n) and r.venue_id = p_venue_id and r.session_id is null and r.visit_id is null;
+$function$;
+
 -- As 20261128100000_bonus_use_without_seat.sql made it, with no check-in needed: the open visit if there is one, else none.
 -- Refusals: 42501 not one who gives Bonus by hand at the member's venue, or the member erased; RVOWN their own record;
 -- RVCHP not whole 50s from 50 to 1,00,000; 22023 no reason of 3 to 200 characters or no request id, a request id used for
 -- another use, or the member erased while this waited; RVKIL/RVFRZ/RVMBR promotions stopped or frozen; RVRAT too many a
--- minute; RVVCP more than the cap leaves; RVBON more than the Bonus in force, or some owed.
+-- minute; RVBRK on a break; RVVCP more than the cap leaves; RVBON more than the Bonus in force, or some owed.
 CREATE OR REPLACE FUNCTION private.use_bonus(p_member_id uuid, p_chips integer, p_reason text, p_request_id uuid)
  RETURNS uuid
  LANGUAGE plpgsql
@@ -86,6 +104,10 @@ begin
   -- The same request at the same moment waited above for the first, and is answered as it.
   if private.bonus_use_replayed(p_request_id, p_member_id, v_amount) then
     return p_request_id;
+  end if;
+  -- Never while on a break (decision 0053): the check-in a use once needed refused them.
+  if (select r.break_until from private.member_restrictions(p_member_id, now()) r) is not null then
+    raise exception 'On a break: no Bonus used until it ends' using errcode = 'RVBRK';
   end if;
   -- The open visit, if any: with none, the use is tied to no visit (the owner, 22 Nov).
   select v.id into v_visit_id from public.visit v where v.member_id = p_member_id and v.closed_at is null for no key update;

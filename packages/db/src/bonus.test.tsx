@@ -145,7 +145,7 @@ describe('Bonus', () => {
       .toEqual({ p_member_id: MEMBER, p_chips: 200, p_reason: 'Chips for the bar', p_request_id: 'u9' });
     // The member's balance and histories (under memberBonus), the door and Players visits.
     expect(readAgain.mock.calls.map(([filters]) => filters?.queryKey?.slice(2))).toEqual([['bonus', VENUE, MEMBER], ['door-board', VENUE], ['player-visits', VENUE]]);
-    const refusals = [['RVBON', 'bonus_short'], ['RVVCP', 'visit_cap'], ['RVCHP', 'invalid_chips'], ['22023', 'invalid_reason'],
+    const refusals = [['RVBRK', 'on_break'], ['RVBON', 'bonus_short'], ['RVVCP', 'visit_cap'], ['RVCHP', 'invalid_chips'], ['22023', 'invalid_reason'],
       ['RVOWN', 'own_record'], ['42501', 'not_allowed'], ['RVMBR', 'paused'], ['RVRAT', 'busy'], ['XX000', 'unavailable']] as const;
     for (const [code, failure] of refusals) {
       const refused = clientFor({ '/rpc/use_bonus': { status: 400, body: { code, message: 'no' } } });

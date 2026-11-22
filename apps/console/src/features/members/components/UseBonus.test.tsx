@@ -72,13 +72,13 @@ describe('UseBonus (the owner, 20 Nov)', () => {
   it('says a refusal about the amount under it, and keeps what was typed', async () => {
     renderForm(refusal('RVVCP'));
     useChips('500', 'Chips for the cash game');
-    expect(await screen.findByText('More than this visit allows. Type less.')).toBeDefined();
+    expect(await screen.findByText('More than the limit allows. Type less.')).toBeDefined();
     expect(chipsField().getAttribute('aria-invalid')).toBe('true');
     expect(reasonField().getAttribute('aria-invalid')).toBeNull();
     expect(chipsField()).toHaveProperty('value', '500');
     // Typing again takes the refusal away.
     fireEvent.change(chipsField(), { target: { value: '450' } });
-    expect(screen.queryByText('More than this visit allows. Type less.')).toBeNull();
+    expect(screen.queryByText('More than the limit allows. Type less.')).toBeNull();
   });
 
   it('says more than they hold under the amount, and a short reason under the reason', async () => {

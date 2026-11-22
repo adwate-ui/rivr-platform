@@ -205,15 +205,15 @@ export function useGiveBonusChips(venueId: string, memberId: string) {
 
 /**
  * Why Bonus used without a seat did not go: not in the staff member's role; their own member record; not whole fifties from
- * 50 to 1,00,000; no reason of 3 to 200 characters; more than the Bonus in force (or some owed);
+ * 50 to 1,00,000; no reason of 3 to 200 characters; the member on a break; more than the Bonus in force (or some owed);
  * more than the visit's limit leaves (bonus.visit_cap); the venue or member frozen, or promotions stopped; too many at once;
  * anything else.
  */
 export type UseBonusFailure =
-  | 'not_allowed' | 'own_record' | 'invalid_chips' | 'invalid_reason' | 'bonus_short' | 'visit_cap' | 'paused' | 'busy' | 'unavailable';
+  | 'not_allowed' | 'own_record' | 'invalid_chips' | 'invalid_reason' | 'on_break' | 'bonus_short' | 'visit_cap' | 'paused' | 'busy' | 'unavailable';
 
 const USE_FAILURE_BY_CODE: Readonly<Record<string, UseBonusFailure>> = {
-  '42501': 'not_allowed', RVOWN: 'own_record', RVCHP: 'invalid_chips', '22023': 'invalid_reason', RVBON: 'bonus_short',
+  '42501': 'not_allowed', RVOWN: 'own_record', RVCHP: 'invalid_chips', '22023': 'invalid_reason', RVBRK: 'on_break', RVBON: 'bonus_short',
   RVVCP: 'visit_cap', RVFRZ: 'paused', RVKIL: 'paused', RVMBR: 'paused', RVRAT: 'busy',
 };
 

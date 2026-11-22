@@ -78,10 +78,12 @@ export const memberBonus = {
       own_record: 'Not on your own record. Ask someone else who can.',
       invalid_chips: 'Give whole fifties from 50 to 1,00,000.',
       invalid_reason: 'Give a reason of 3 to 200 characters.',
+      /** A member on a break from play uses no Bonus (decision 0053). */
+      on_break: 'This member is on a break from play. Not used.',
       /** More than the Bonus in force, or some is owed. */
       bonus_short: 'More than their Bonus. Type less.',
-      /** More than the visit's limit leaves (bonus.visit_cap). */
-      visit_cap: 'More than this visit allows. Type less.',
+      /** More than the limit leaves (bonus.visit_cap): the visit's, or with none open, the share of what is held (decision 0710). */
+      visit_cap: 'More than the limit allows. Type less.',
       paused: 'Frozen, or promotions stopped. Try once released.',
       busy: 'Too many at once. Try again shortly.',
       unavailable: 'Not used. Try again.',
