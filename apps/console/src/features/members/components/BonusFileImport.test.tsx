@@ -158,6 +158,26 @@ describe('Bonus from a file', () => {
     expect(sent[2]?.p_request_id).not.toBe(sent[0]?.p_request_id);
   });
 
+  it('keeps a file\'s id after a refusal of who is asking, which comes before the check for a file saved before', async () => {
+    const sent: Sent[] = [];
+    renderSheet({ reply: noAnswer, sent, venueId: 'v-lapsed' });
+    choose(ONE_ADD);
+    await save('1 line');
+    expect(await screen.findByText('No answer. Save again.')).toBeDefined();
+    // The sign-in lapsed: the next try is refused as not allowed, before the database looks for the file it may hold.
+    cleanup();
+    renderSheet({ reply: () => Response.json({ code: '42501', message: 'permission denied for function bonus_from_file' }, { status: 401 }), sent, venueId: 'v-lapsed' });
+    choose(ONE_ADD);
+    await save('1 line');
+    expect(await screen.findByText('Not in your role. Ask an admin.')).toBeDefined();
+    cleanup();
+    renderSheet({ reply: () => Response.json(1), sent, venueId: 'v-lapsed' });
+    choose(ONE_ADD);
+    await save('1 line');
+    expect(await screen.findByText('1 line saved.')).toBeDefined();
+    expect(new Set(sent.map((body) => body.p_request_id)).size).toBe(1);
+  });
+
   it('shows another file chosen after no answer, and Save sends that file', async () => {
     const { sent } = renderSheet({ reply: noAnswer, venueId: 'v-another' });
     choose(ONE_USE);

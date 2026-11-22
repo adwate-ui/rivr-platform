@@ -1,11 +1,12 @@
 import type { BonusFileLineToSave } from '@rivr/db/bonusFile';
 
 /**
- * The request id of each Bonus file sent with no answer yet (decision 0707). Any answer is the last word on its id (the
- * database answers a file that went as saved before it refuses anything), so an id is kept only until one comes. The same
- * file sent again goes under that id, after a refresh, the file chosen again, the panel or Members opened again or the page
- * reloaded, so a file that went through unseen is never saved twice. Kept for the browser tab in sessionStorage and in
- * memory, by venue and a fingerprint of the lines (never the lines: no reason or member is kept), the ten newest.
+ * The request id of each Bonus file sent with no answer yet (decision 0707). An answer from after the database's lock on the
+ * id is the last word on it (a file that went is answered as saved before anything is refused), so the id is kept only
+ * until one comes (`BonusFileImport`). The same file sent again goes under that id, after a refresh, the file chosen again,
+ * the panel or Members opened again or the page reloaded, so a file that went through unseen is never saved twice. Kept by
+ * venue and a fingerprint of the lines (never the lines: no reason or member is kept), the ten newest: in memory, read once
+ * a page from sessionStorage, which holds them for the tab across a reload.
  */
 const MOST_FILES = 10;
 const memory = new Map<string, readonly (readonly [string, string])[]>();
@@ -40,13 +41,13 @@ function storedIds(venueId: string): (readonly [string, string])[] {
 }
 
 /**
- * The venue's kept ids, oldest first: those from before a reload, in sessionStorage, then those kept since, in memory, which
- * holds every one even where sessionStorage takes no more.
+ * The venue's kept ids, oldest first. Memory is what holds them: read from sessionStorage once a page (those from before a
+ * reload), then kept and forgotten there, so an id forgotten while sessionStorage takes no more stays forgotten.
  */
 function keptIds(venueId: string): (readonly [string, string])[] {
-  const kept = memory.get(venueId) ?? [];
-  const since = new Set(kept.map(([fingerprint]) => fingerprint));
-  return [...storedIds(venueId).filter(([fingerprint]) => !since.has(fingerprint)), ...kept];
+  const kept = memory.get(venueId) ?? storedIds(venueId);
+  memory.set(venueId, kept);
+  return [...kept];
 }
 
 function keep(venueId: string, ids: readonly (readonly [string, string])[]) {

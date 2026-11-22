@@ -10,6 +10,9 @@ const MOST_BYTES = 1_048_576;
 const ACCEPT = '.csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 type ToSave = NonNullable<Preview['toSave']>;
+
+/** Answers that say nothing of whether the file went before: no answer, and a refusal of who is asking. Its id stays for them. */
+const UNSETTLED: ReadonlySet<BonusFileRefusal['failure']> = new Set(['unavailable', 'not_allowed']);
 type MembersRead = { readonly data?: readonly BonusFileMember[] | undefined; readonly isError: boolean };
 
 /** One line as the preview shows it: as it will save, or what is wrong, said with the summary above rather than alone. */
@@ -104,8 +107,10 @@ function usePreview(venueId: string, read: ReadFile | null, sent: Preview | null
 }
 
 /**
- * Sending a file under its request id (`bonusFileRequests`), kept until an answer: any answer is the last word on that id,
- * so the next try after one is a new id. With no answer the preview stays as sent, with Save, and the id stays.
+ * Sending a file under its request id (`bonusFileRequests`), kept until an answer from after the request-id lock: saved,
+ * answered as saved before, or refused for what the file holds, which would have refused it the first time too. The next
+ * try after one is a new id. With no answer, or `not_allowed` (a refusal of who is asking, raised before the lock and the
+ * check for a file saved before, as a sign-in lapsed mid-way would), the id stays; with no answer the preview stays as sent.
  */
 function useSendFile(venueId: string, onSaved: (count: number) => void) {
   const save = useSaveBonusFile(venueId);
@@ -117,10 +122,8 @@ function useSendFile(venueId: string, onSaved: (count: number) => void) {
     const requestId = requestIdFor(venueId, toSave.lines);
     keepRequestId(venueId, toSave.lines, requestId);
     const done = await save.mutateAsync({ lines: toSave.lines, requestId });
-    if (done.ok || done.error.failure !== 'unavailable') {
-      forgetRequestId(venueId, toSave.lines);
-      setSent(null);
-    }
+    if (done.ok || done.error.failure !== 'unavailable') setSent(null);
+    if (done.ok || !UNSETTLED.has(done.error.failure)) forgetRequestId(venueId, toSave.lines);
     if (done.ok) return onSaved(done.value);
     setRefusal(done.error);
   };

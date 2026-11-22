@@ -118,7 +118,7 @@ describe('readSheetFile', () => {
     const rows = Array.from({ length: 2_000 }, () => '<row><c t="s"><v>0</v></c><c t="s"><v>1</v></c></row>').join('');
     const parts = { 'xl/worksheets/sheet1.xml': `<worksheet xmlns="${MAIN}"><sheetData>${rows}</sheetData></worksheet>`, 'xl/sharedStrings.xml': strings };
     const read = await readSheetFile(new Blob([zipStored(parts)]), 2 * MB);
-    expect(read.ok && read.rows[0]).toEqual(['', 'y'.repeat(1_000)]);
+    expect(read.ok && read.rows[0]).toEqual(['x', 'y'.repeat(1_000)]);
   });
 
   it('stops inflating a part past the most bytes, whatever its header says', async () => {

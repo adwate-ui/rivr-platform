@@ -12,8 +12,8 @@ const MOST_COLUMNS = 64;
 /** The most of a cell read: past any field a sheet of lines holds, so a cell built huge costs no more than this. */
 const MOST_CELL_CHARACTERS = 1_000;
 
-/** A cell's text as read: at most the most read, without the spaces around it. */
-const cellOf = (text: string) => text.slice(0, MOST_CELL_CHARACTERS).trim();
+/** A cell's text as read: without the spaces around it, and at most the most read, so a cell too long stays too long. */
+const cellOf = (text: string) => text.trim().slice(0, MOST_CELL_CHARACTERS);
 
 /** An XML part, or null when it does not parse, or declares a DOCTYPE, which no workbook part has and only a crafted one would. */
 function parsed(text: string | null): Document | null {

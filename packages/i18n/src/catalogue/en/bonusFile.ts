@@ -50,7 +50,7 @@ export const bonusFile = {
     not_allowed: 'Not in your role. Ask an admin.',
     own_record: 'Your own record. Nothing saved.',
     invalid_chips: 'Give whole fifties from 50 to 1,00,000. Nothing saved.',
-    invalid: 'Not taken. Nothing saved. Check the file and choose it again.',
+    invalid: 'Not taken. Nothing saved. Check the file, then choose another file.',
     bonus_short: 'More than their Bonus, or some owed. Nothing saved.',
     paused: 'Frozen, or promotions stopped. Nothing saved.',
     busy: 'Too many at once. Try again shortly.',

@@ -42,10 +42,10 @@ function columnsOf(heading: readonly string[]) {
 
 /**
  * Whether a reason is one bonus_from_file takes: 3 to 200 characters, on one line, with no other control character either
- * (a quote a file never closed leaves line breaks in it).
+ * (a quote a file never closed leaves line breaks in it). Control characters as the database's `[[:cntrl:]]` reads them.
  */
 function isReason(reason: string): boolean {
-  return reason.length >= 3 && reason.length <= 200 && ![...reason].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127);
+  return reason.length >= 3 && reason.length <= 200 && !/\p{Cc}/u.test(reason);
 }
 
 /** One line's member, type, chips and reason, or the first of them that is wrong. */
