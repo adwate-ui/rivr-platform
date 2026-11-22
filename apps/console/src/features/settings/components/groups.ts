@@ -21,8 +21,6 @@ const GROUP_OF: Readonly<Partial<Record<SettingKey, SettingGroup>>> = {
   'waitlist.priority_weights': 'seating',
   'floor.request_targets': 'seating',
   'call_time.minutes': 'time',
-  'call_time.add_choices': 'time',
-  'call_time.extend_choices': 'time',
   // The floor runs the desk's check (the owner, 5 Nov; decision 0502).
   'kyc.at_the_club': 'identity',
   'kyc.aadhaar_covers': 'identity',

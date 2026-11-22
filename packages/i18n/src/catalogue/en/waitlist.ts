@@ -22,12 +22,10 @@ export const tonight = {
   seatFailures: {
     not_seated: 'You are not seated any more.',
     not_allowed: 'Not open to you. Ask at the front desk.',
-    /** A call time that would end before the one owed (#1059): the app greys those out, so this is a race. */
-    too_early: 'Choose a length that ends after your call time.',
+    /** A time not after the minimum playing time, or the current end once set (the owner, 22 Nov): the app checks first, so this is a race. */
+    too_early: 'Pick a later time.',
     /** One that would run past a day in all, after a very long night. */
     too_long: 'Call time cannot run past a day.',
-    /** A length the club stopped offering while the sheet was open. */
-    not_offered: 'That length is no longer offered. Choose another.',
     stopped: 'Account paused. Ask at the front desk.',
     paused: 'The club is paused. Try again later.',
     unavailable: 'Not sent. Try again.',
@@ -110,9 +108,10 @@ export const waitlist = {
   approveShort: 'Approve',
   confirmRemove: 'Yes, remove {name}',
   callSeat: 'Seat',
-  callTime: 'Call time',
-  callTimeHint: '0 for no call time.',
-  invalidCall: 'Choose an open table, a seat at it, and a call time of 0 to 1,440 minutes.',
+  /** The seating's call time, named so on 22 Nov (the owner): the least a player plays before leaving. */
+  callTime: 'Minimum playing time',
+  callTimeHint: '0 for none.',
+  invalidCall: 'Choose an open table, a seat at it, and a minimum playing time of 0 to 1,440 minutes.',
   seatHeld: 'Held for a called player. Choose another seat.',
   seatTaken: 'Seat taken. Choose another.',
   tooLate: 'Hold expired. The seat is free.',

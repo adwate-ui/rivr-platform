@@ -1,7 +1,8 @@
 import type { RequestTargets } from '@rivr/domain/floorRequests';
 import { openSeatsAt, type FloorRequest, type FloorTable, type HeldSeat, type SeatedPlayer } from '@rivr/db';
+import { clockTimeAfter, nearestClockMoment } from '@rivr/domain/clubDay';
 import { formatDuration, formatTime, t } from '@rivr/i18n';
-import { Button, ChoiceChips, Figure, Grid, Inline, ProgressBar, RequestItem, Sheet, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Figure, Inline, Input, ProgressBar, RequestItem, Sheet, Stack, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useId, useState } from 'react';
 import { useBonusByHand } from './bonusByHand.ts';
@@ -64,37 +65,33 @@ function askTitle(request: FloorRequest): string {
 }
 
 /**
- * Set call time, then Extend call time, as the member app (decision 0305; #1076; #1089, the owner, 19 Nov), for the
- * floor's managers, by the member's own rule, the lengths coming with the seat by its state:
- * until a call time is set, a length ending no later than the call time the seat started with is greyed; it counts as
- * setting it, and once set, a length extends it.
+ * Set call time, then Extend call time, to a time on the clock, as the member app (decision 0305; #1076; #1089; the owner,
+ * 22 Nov), for the floor's managers, by the member's own rule: until set, a time after the minimum playing time, which
+ * counts as setting it; once set, a time after the current end. The field starts at the five minutes after that, and the
+ * time is the one the clock shows nearest now, so one gone by is refused here before anything is sent.
  */
-function CallTimeChoices({ player, now, changes }: { player: SeatedPlayer; now: Date; changes: SeatChanges }) {
-  const choices = player.addTimeChoices;
+function CallTimePicker({ player, after, now, changes }: { player: SeatedPlayer; after: Date; now: Date; changes: SeatChanges }) {
   const isSet = player.callTimeSetAt !== null;
-  const whyId = useId();
-  const noteId = useId();
-  if (choices.length === 0) return null;
-  const isOpen = (minutes: number) => player.callTimeChoicesOpen.includes(minutes);
-  // Why a length is closed: until a call time is set, it would end no later than the one owed now, as the member's own sheet
-  // says; once set, it would take the call time past its 24 hours (#1099).
-  const why = choices.every(isOpen) ? null : isSet ? t('console.floor.player.extendPastMost')
-    : t('console.floor.player.addTimeNotBefore', { time: formatTime(new Date(now.getTime() + Math.max(0, player.callTimeLeft ?? 0) * 1000)) });
-  // Each length names the Extend note, and a closed one the reason, as its description (#1099).
-  const describedBy = (minutes: number) => [isSet ? noteId : '', isOpen(minutes) || why === null ? '' : whyId].filter((id) => id !== '').join(' ');
+  const ids = { after: useId(), note: useId(), error: useId() };
+  const [time, setTime] = useState(() => clockTimeAfter(after, 5));
+  const [error, setError] = useState<string | null>(null);
+  const action = t(isSet ? 'console.floor.player.extendCallTime' : 'console.floor.player.setCallTime');
+  const set = () => {
+    const until = nearestClockMoment(time, now);
+    if (until === null || until <= after) return setError(t('console.floor.player.pickAfter', { time: formatTime(after) }));
+    void changes.addTime(player, until);
+  };
+  const describedBy = [ids.after, isSet ? ids.note : '', error === null ? '' : ids.error].filter((id) => id !== '').join(' ');
   return (
-    <Stack gap={3}>
-      <Text variant="caption" tone="muted">{t(isSet ? 'console.floor.player.extendCallTime' : 'console.floor.player.setCallTime')}</Text>
-      <Grid columns={3} gap={2}>
-        {choices.map((minutes) => (
-          <Button key={minutes} variant="subtle" fullWidth isDisabled={!isOpen(minutes)} {...(describedBy(minutes) === '' ? {} : { 'aria-describedby': describedBy(minutes) })}
-            onClick={() => void changes.addTime(player, minutes)}>
-            {isSet ? t('console.floor.player.addTimeChoice', { time: formatDuration(minutes * 60) }) : formatDuration(minutes * 60)}
-          </Button>
-        ))}
-      </Grid>
-      {why === null ? null : <Text id={whyId} variant="caption" tone="muted">{why}</Text>}
-      {isSet ? <Text id={noteId} variant="caption" tone="muted">{t('console.floor.player.extendNote')}</Text> : null}
+    <Stack gap={2}>
+      <Inline gap={3} align="end">
+        <Input variant="subtle" type="time" label={t('console.floor.player.until')} value={time} aria-describedby={describedBy}
+          aria-invalid={error === null ? undefined : true} onChange={(event) => { setTime(event.target.value); setError(null); }} />
+        <Button variant="primary" size="compact" onClick={set}>{action}</Button>
+      </Inline>
+      <Text id={ids.after} variant="caption" tone="muted">{t('console.floor.player.callTimeAfter', { time: formatTime(after) })}</Text>
+      {isSet ? <Text id={ids.note} variant="caption" tone="muted">{t('console.floor.player.extendNote')}</Text> : null}
+      {error === null ? null : <ErrorMessage id={ids.error}>{error}</ErrorMessage>}
     </Stack>
   );
 }
@@ -121,8 +118,8 @@ function Move({ player, tables, seats, held, changes }: Pick<PlayerSheetProps, '
 }
 
 /**
- * A seated player's sheet (console v3): their call time left over a bar, what they ask with its actions, Add time for the
- * floor's managers, Move (table, then seat), Bonus by hand for staff who may add it, their member record; Leave in the foot.
+ * A seated player's sheet (console v3): their call time left over a bar, what they ask with its actions, Set or Extend call
+ * time to a time for the floor's managers, Move (table, then seat), Bonus by hand for staff who may add it, their member record; Leave in the foot.
  */
 export function PlayerSheet(props: PlayerSheetProps) {
   const { venueId, player, table, requests, targets, now, permissions, changes, onLeave, onClose } = props;
@@ -149,7 +146,8 @@ export function PlayerSheet(props: PlayerSheetProps) {
             secondary={actions.secondary && { label: actions.secondary.label, onClick: () => void actions.secondary?.run() }} />
         );
       })}
-      {permissions.includes('call_time.override') && player.callTimeLeft !== null ? <CallTimeChoices player={player} now={now} changes={changes.seats} /> : null}
+      {permissions.includes('call_time.override') && player.callTimeAfterAt !== null
+        ? <CallTimePicker key={player.sessionId} player={player} after={new Date(player.callTimeAfterAt)} now={now} changes={changes.seats} /> : null}
       <Move {...props} changes={changes.seats} />
       {drawBonusByHand !== null && permissions.includes('bonus.give') ? drawBonusByHand({ venueId, memberId: player.memberId }) : null}
       <MemberRecordLink memberId={player.memberId} permissions={permissions} />
@@ -157,10 +155,10 @@ export function PlayerSheet(props: PlayerSheetProps) {
   );
 }
 
-/** The member's record, for staff who may open Members; the floor and cashiers may not (audit F-025). */
+/** The member's record, for staff who may open Members, the floor among them (the owner, 22 Nov); cashiers may not (audit F-025). */
 function MemberRecordLink({ memberId, permissions }: { memberId: string; permissions: readonly string[] }) {
   const navigate = useNavigate();
-  if (!permissions.includes('members.manage') && !permissions.includes('host_queue.manage')) return null;
+  if (!['members.manage', 'host_queue.manage', 'members.phone'].some((permission) => permissions.includes(permission))) return null;
   return (
     <Inline>
       <Button variant="text" onClick={() => void navigate({ href: `/members?member=${memberId}` })}>{t('console.floor.player.memberRecord')}</Button>

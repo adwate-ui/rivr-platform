@@ -16,6 +16,15 @@ describe('Input', () => {
     expect(screen.getByRole('textbox', { name: 'Mobile number' })).toHaveAttribute('type', 'tel');
   });
 
+  it('is a time on the clock when asked, named by its label and described by its hint (the owner, 22 Nov)', async () => {
+    const { container } = renderIn(<Input label="Until" type="time" hint="After 23:10." defaultValue="23:40" variant="inset" />);
+    const field = screen.getByLabelText('Until');
+    expect(field).toHaveAttribute('type', 'time');
+    expect(field).toHaveValue('23:40');
+    expect(field).toHaveAccessibleDescription('After 23:10.');
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
   it('takes typing when controlled', async () => {
     renderIn(<ControlledUtr />);
     await userEvent.type(screen.getByRole('textbox', { name: 'UTR' }), '412908771204');

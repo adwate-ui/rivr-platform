@@ -13,6 +13,31 @@ export function clubDayMoment(day: string, time: string): Date {
   return time < '06:00' ? new Date(at.getTime() + DAY_MS) : at;
 }
 
+// India's clock is UTC+05:30 all year.
+const IST_OFFSET_MS = 330 * 60 * 1000;
+const CLOCK_TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/**
+ * The moment a time on India's clock (`23:40`, as a time field gives it) names nearest `at`, within twelve hours either side
+ * (ahead on a tie): 01:30 picked at 23:50 is tonight's, two hours on; 22:00 picked at 22:44 is the one just gone, never
+ * tomorrow's, so a slip of the picker cannot ask for a day. Null for anything but a time.
+ */
+export function nearestClockMoment(time: string, at: Date): Date | null {
+  if (!CLOCK_TIME.test(time)) return null;
+  const today = new Date(at.getTime() + IST_OFFSET_MS).toISOString().slice(0, 10);
+  const moment = new Date(`${today}T${time}:00+05:30`).getTime();
+  const nearest = [moment - DAY_MS, moment, moment + DAY_MS].find((candidate) => Math.abs(candidate - at.getTime()) < DAY_MS / 2
+    || candidate - at.getTime() === DAY_MS / 2);
+  return new Date(nearest ?? moment);
+}
+
+/** The first mark of `stepMinutes` on India's clock strictly after a moment, as a time field takes it: 23:12 by 5s gives `23:15`. */
+export function clockTimeAfter(at: Date, stepMinutes: number): string {
+  const step = stepMinutes * 60 * 1000;
+  const mark = Math.floor(at.getTime() / step) * step + step;
+  return new Date(mark + IST_OFFSET_MS).toISOString().slice(11, 16);
+}
+
 /** The club's days from `first` to `last` (`2026-11-15`), as the moments they begin and end: 06:00 IST on the first to 06:00 IST after the last. */
 export function clubDaysPeriod(first: string, last: string): { start: Date; end: Date } {
   return { start: new Date(`${first}T06:00:00+05:30`), end: new Date(new Date(`${last}T06:00:00+05:30`).getTime() + DAY_MS) };

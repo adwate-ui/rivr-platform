@@ -34,7 +34,7 @@ test.describe('Admin tools', () => {
     await stakePanel.getByRole('textbox', { name: 'Small blind' }).fill('200');
     await stakePanel.getByRole('textbox', { name: 'Big blind' }).fill('400');
     await stakePanel.getByRole('textbox', { name: 'Straddle' }).fill('800');
-    await stakePanel.getByRole('textbox', { name: 'Call time' }).fill('240');
+    await stakePanel.getByRole('textbox', { name: 'Minimum playing time' }).fill('240');
     await stakePanel.getByRole('button', { name: 'Save' }).click();
     await expect(page.getByText(`PLO 200/400 ${RUN} added.`)).toBeVisible();
     await expect(stakePanel).toBeHidden();

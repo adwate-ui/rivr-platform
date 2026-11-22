@@ -22,10 +22,13 @@ export const tablesSetup = {
   /** A compulsory straddle (decision 0299): optional, above the big blind. */
   straddle: 'Straddle',
   straddleOptional: 'Straddle (optional)',
-  /** A stake's call time (redesign RD-16): the same value Settings shows; a stake with none is given to no table. */
-  callTime: 'Call time',
+  /**
+   * A stake's call time (redesign RD-16), the minimum playing time its seating starts from (named so on 22 Nov, the owner):
+   * the same value Settings shows; a stake with none is given to no table.
+   */
+  callTime: 'Minimum playing time',
   /** In place of the field, for staff who set up tables but do not change settings: the setting is not theirs to write. */
-  callTimeNotYours: 'Call time: not in your role. Ask an admin.',
+  callTimeNotYours: 'Minimum playing time: not in your role. Ask an admin.',
   /** A stake's tables, counted: `1 table`, `4 tables`. */
   tablesColumn: 'Tables',
   tablesOne: '1 table',

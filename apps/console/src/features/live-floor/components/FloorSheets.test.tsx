@@ -53,12 +53,15 @@ const drawBonusStub = ({ memberId }: { venueId: string; memberId: string }) => <
 const FloorWithBonus = () => <BonusByHandProvider value={drawBonusStub}><LiveFloorScreen /></BonusByHandProvider>;
 
 describe('The player sheet (console v3)', () => {
-  it('offers Bonus by hand to staff who may add it, as floor managers cannot open Members (redesign of 15 Nov)', async () => {
+  it('offers Bonus by hand to staff who may add it, on the seat as well as in Members (redesign of 15 Nov)', async () => {
     renderFloorScreen(FloorWithBonus, { ...FLOOR, role: 'floor' });
     await screen.findByRole('group', { name: 'Table 1 NLH 50/100' }, { timeout: 5000 });
     fireEvent.click(screen.getByRole('radio', { name: 'Seats' }));
     fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
-    expect(within(await sheet('Kabir Sethi')).getByText('Bonus by hand for m-s2')).toBeDefined();
+    const floorSheet = within(await sheet('Kabir Sethi'));
+    expect(floorSheet.getByText('Bonus by hand for m-s2')).toBeDefined();
+    // The floor opens the member's record too, to view (the owner, 22 Nov).
+    expect(floorSheet.getByRole('button', { name: 'Open member record' })).toBeDefined();
     cleanup();
     renderFloorScreen(FloorWithBonus, { ...FLOOR, role: 'cashier' });
     await screen.findByRole('group', { name: 'Table 1 NLH 50/100' }, { timeout: 5000 });
@@ -82,45 +85,45 @@ describe('The player sheet (console v3)', () => {
     expect(within(player).getByText('2 h left')).toBeDefined();
     expect(await within(player).findByText('Set call time')).toBeDefined();
     expect(within(player).getByRole('button', { name: 'Open member record' })).toBeDefined();
-    // None set yet: lengths from now, not added (the owner, 19 Nov).
-    fireEvent.click(await within(player).findByRole('button', { name: '30 min' }));
-    await screen.findByText('Kabir Sethi: call time set, 30 min from now');
+    // None set yet: a time after the minimum, two hours from now at 00:00, the field starting at the five minutes after (the owner, 22 Nov).
+    expect(within(player).getByText('After 00:00.')).toBeDefined();
+    const until = within(player).getByLabelText('Until');
+    expect(until).toHaveProperty('value', '00:05');
+    fireEvent.change(until, { target: { value: '00:30' } });
+    fireEvent.click(within(player).getByRole('button', { name: 'Set call time' }));
+    await screen.findByText('Kabir Sethi: call time set until 00:30');
     const [added] = rpcs('add_seat_call_time');
-    expect(added).toMatchObject({ p_session_id: 's2', p_minutes: 30 });
+    expect(added).toMatchObject({ p_session_id: 's2', p_until: '2026-11-15T19:00:00.000Z' });
     fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
-    // Undo finds the addition by the request id it was made with (decision 0480).
+    // Undo finds it by the request id it was made with (decision 0480).
     await waitFor(() => expect(rpcs('undo_call_time')).toEqual([{ p_request_id: Reflect.get(Object(added), 'p_idempotency_key') }]));
   });
 
-  it('greys the lengths Set call time may not give yet, by the member\'s own rule; set, Extend and when they leave (the owner, 18 and 19 Nov)', async () => {
-    const kabir = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', open: [120] });
-    await renderFloor({ ...FLOOR, seats: [kabir, ...(FLOOR.seats ?? []).slice(1)] });
+  it('refuses a time not after the minimum before anything is sent; set, Extend past the end and when they leave (the owner, 18, 19 and 22 Nov)', async () => {
+    const { rpcs } = await renderFloor();
     fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     const player = await sheet('Kabir Sethi');
-    expect(await within(player).findByRole('button', { name: '30 min' })).toHaveProperty('disabled', true);
-    expect(within(player).getByRole('button', { name: '2 h' })).toHaveProperty('disabled', false);
-    // Why, tied to the lengths it closes alone.
-    const why = within(player).getByText(/^Can't end before \d\d:\d\d\.$/);
-    expect(within(player).getByRole('button', { name: '30 min' }).getAttribute('aria-describedby')).toBe(why.id);
-    expect(within(player).getByRole('button', { name: '2 h' }).hasAttribute('aria-describedby')).toBe(false);
+    const until = within(player).getByLabelText('Until');
+    // 23:00 has not reached the minimum's end at 00:00; 21:30 has gone by.
+    for (const time of ['23:00', '21:30']) {
+      fireEvent.change(until, { target: { value: time } });
+      fireEvent.click(within(player).getByRole('button', { name: 'Set call time' }));
+      const why = await within(player).findByText('Pick a time after 00:00.');
+      expect(until.getAttribute('aria-invalid')).toBe('true');
+      expect(until.getAttribute('aria-describedby')?.split(' ')).toContain(why.id);
+    }
+    expect(rpcs('add_seat_call_time')).toEqual([]);
     cleanup();
-    const set = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', set_at: '2026-11-15T15:00:00Z', ends_at: '2026-11-15T18:10:00Z', left: 6000,
-      open: [30, 60] });
+    const set = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', set_at: '2026-11-15T15:00:00Z', ends_at: '2026-11-15T18:10:00Z', left: 6000 });
     await renderFloor({ ...FLOOR, seats: [set, ...(FLOOR.seats ?? []).slice(1)] });
     fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     const setSheet = await sheet('Kabir Sethi');
     expect(within(setSheet).getByText('Set · leaves 23:40')).toBeDefined();
-    // Set, the seat offers Extend's lengths, added beyond the end, and says so; no 'can't end before'.
-    expect(within(setSheet).getByText('Extend call time')).toBeDefined();
-    expect(within(setSheet).getByRole('button', { name: '+30 min' })).toHaveProperty('disabled', false);
-    expect(within(setSheet).getByText('Extend adds time beyond the current end.')).toBeDefined();
-    expect(within(setSheet).queryByText(/^Can't end before/)).toBeNull();
-    // Two hours would take it past 24 hours: greyed, the sheet says why, and each length names the note (#1099).
-    const pastMost = within(setSheet).getByText("Call time can't pass 24 hours.");
+    // Set, the seat offers Extend, to a time past the current end, and says so (#1089).
+    expect(within(setSheet).getByText('After 23:40.')).toBeDefined();
     const note = within(setSheet).getByText('Extend adds time beyond the current end.');
-    expect(within(setSheet).getByRole('button', { name: '+2 h' })).toHaveProperty('disabled', true);
-    expect(within(setSheet).getByRole('button', { name: '+2 h' }).getAttribute('aria-describedby')).toBe(`${note.id} ${pastMost.id}`);
-    expect(within(setSheet).getByRole('button', { name: '+30 min' }).getAttribute('aria-describedby')).toBe(note.id);
+    expect(within(setSheet).getByLabelText('Until').getAttribute('aria-describedby')?.split(' ')).toContain(note.id);
+    expect(within(setSheet).getByRole('button', { name: 'Extend call time' })).toBeDefined();
     // Run out, it is just done: no "leaves".
     cleanup();
     const done = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', set_at: '2026-11-15T15:00:00Z', ends_at: '2026-11-15T16:10:00Z', left: 0, owes: false });
@@ -178,9 +181,9 @@ describe('The seat sheet (console v3)', () => {
     expect(within(seat).getByRole('radio', { name: 'Leela Menon · 12 min' }).getAttribute('aria-checked')).toBe('true');
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Or a name, mobile or member number' }), { target: { value: '42' } });
     // The call time starts from the stake's own and is typed over (redesign RD-19).
-    expect(within(seat).getByRole('textbox', { name: 'Call time' })).toHaveProperty('value', '180');
-    expect(within(seat).getByText('0 for no call time.')).toBeDefined();
-    fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '250' } });
+    expect(within(seat).getByRole('textbox', { name: 'Minimum playing time' })).toHaveProperty('value', '180');
+    expect(within(seat).getByText('0 for none.')).toBeDefined();
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Minimum playing time' }), { target: { value: '250' } });
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
     await screen.findByText('42 seated at Table 2, seat 2');
     expect(rpcs('seat_member')).toEqual([{ p_table_id: 't2', p_seat: 2, p_member_number: 42, p_call_minutes: 250 }]);
@@ -204,10 +207,10 @@ describe('The seat sheet (console v3)', () => {
     fireEvent.click(within(tile('Table 1 NLH 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
     const seat = await sheet('Seat a player');
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Name, mobile or member number' }), { target: { value: '42' } });
-    fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '' } });
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Minimum playing time' }), { target: { value: '' } });
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
-    expect(await within(seat).findByText('Type the call time in minutes, 0 to 1,440.')).toBeDefined();
-    fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '1441' } });
+    expect(await within(seat).findByText('Type the minimum playing time in minutes, 0 to 1,440.')).toBeDefined();
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Minimum playing time' }), { target: { value: '1441' } });
     expect(within(seat).getByText('Between 0 and 1,440 minutes.')).toBeDefined();
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
     expect(rpcs('seat_member')).toEqual([]);
@@ -218,9 +221,9 @@ describe('The seat sheet (console v3)', () => {
     fireEvent.click(within(tile('Table 1 NLH 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
     const seat = await sheet('Seat a player');
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Name, mobile or member number' }), { target: { value: '42' } });
-    fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '' } });
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Minimum playing time' }), { target: { value: '' } });
     fireEvent.click(within(seat).getByRole('radio', { name: 'Table 2' }));
-    expect(within(seat).getByRole('textbox', { name: 'Call time' })).toHaveProperty('value', '180');
+    expect(within(seat).getByRole('textbox', { name: 'Minimum playing time' })).toHaveProperty('value', '180');
     fireEvent.change(within(seat).getByRole('textbox', { name: /obile or member number$/ }), { target: { value: '42' } });
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
     await waitFor(() => expect(rpcs('seat_member')).toEqual([expect.objectContaining({ p_table_id: 't2', p_call_minutes: 180 })]));

@@ -83,16 +83,15 @@ export const floor = {
     asksTopUp: 'Asked for a top-up',
     toppingUp: 'Top-up in progress',
     asksLeaving: 'Said they are leaving',
-    /** Set call time until one is set, then Extend call time, as the member app (#1076, #1089). */
+    /** Set call time until one is set, then Extend call time, to a time, as the member app (#1076, #1089; the owner, 22 Nov). */
     setCallTime: 'Set call time',
     extendCallTime: 'Extend call time',
-    /** Under Extend's lengths (the owner, 19 Nov). */
+    /** Under Extend's time (the owner, 19 Nov). */
     extendNote: 'Extend adds time beyond the current end.',
-    addTimeChoice: '+{time}',
-    /** Under lengths closed until a call time is set, as the member's own sheet says: `Can't end before 23:40.` */
-    addTimeNotBefore: "Can't end before {time}.",
-    /** Under Extend's lengths closed because they would take the call time past its most (1,440 minutes, #1099). */
-    extendPastMost: "Call time can't pass 24 hours.",
+    /** The time field, and under it the time it must be later than, as the member's own sheet says. */
+    until: 'Until',
+    callTimeAfter: 'After {time}.',
+    pickAfter: 'Pick a time after {time}.',
     move: 'Move to another seat',
     moveTable: 'Table',
     moveSeat: 'Seat',
@@ -120,8 +119,9 @@ export const floor = {
     tableThenSeat: 'Table, then seat',
     table: 'Table',
     seatNumber: 'Seat',
-    callTime: 'Call time',
-    callTimeHint: '0 for no call time.',
+    /** The seating's call time, named so on 22 Nov (the owner): the least a player plays before leaving. */
+    callTime: 'Minimum playing time',
+    callTimeHint: '0 for none.',
     confirm: 'Seat',
     cancel: 'Cancel',
     chooseWho: 'Choose a player or type a number.',
@@ -136,7 +136,7 @@ export const floor = {
     /** Bonus owed (#1077): none is redeemed until new Bonus pays it. */
     bonusChipsOwed: 'Owes {chips} Bonus. None to redeem.',
     bonusChipsTyped: 'Up to their balance. Taken off when they sit.',
-    badCallTime: 'Type the call time in minutes, 0 to 1,440.',
+    badCallTime: 'Type the minimum playing time in minutes, 0 to 1,440.',
     badBonusChips: 'Bonus goes in whole 50s.',
   },
   table: {
@@ -223,8 +223,8 @@ export const floor = {
     /** The seat change went through; the check-out was refused (the venue frozen, say). */
     notCheckedOut: '{name} not checked out. Check them out at the door.',
     /** The floor set a call time (#1089): from now. */
-    timeSet: '{name}: call time set, {time} from now',
-    timeAdded: '{name}: call time +{time}',
+    timeSet: '{name}: call time set until {time}',
+    timeAdded: '{name}: call time extended until {time}',
     callTimeSeen: '{name}: call time seen',
     /** A member set or extended their call time from the app (#1076): the floor is told, with when they leave. */
     callTimeSet: '{name} set call time · leaves {time}',

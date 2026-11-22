@@ -15,7 +15,7 @@ type FieldValue = SettingValue[string];
 /** A field's draft from its stored value: money in rupees (after the ₹), a rate in percent, a list as chosen. */
 function draftOf(field: SettingField, current: FieldValue | undefined): FieldDraft {
   if (field.kind === 'boolean') return current === true;
-  // A list set before the lengths were typed holds its numbers as text (call_time.add_choices before 15 Nov).
+  // A list of numbers may hold them as text, as the call time lengths did before 15 Nov.
   if (field.kind === 'numbers') return typeof current === 'object' ? [...current].map(Number) : [];
   if (field.kind === 'choices') return typeof current === 'object' ? current.map(String) : [];
   if (typeof current !== 'number') return typeof current === 'string' ? current : '';

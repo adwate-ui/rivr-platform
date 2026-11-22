@@ -13,19 +13,21 @@ grant execute on function pg_temp.as_person(text) to authenticated;
 select is(private.whole_numbers('{"a": 20.0, "b": [1.0, 2.50, "3.0"], "c": {"d": 1e2, "e": -0.0}, "f": null, "g": true}')::text,
   '{"a": 20, "b": [1, 2.50, "3.0"], "c": {"d": 100, "e": 0}, "f": null, "g": true}', 'whole numbers written whole, wherever they sit; the rest kept');
 
--- The admin writes the waitlist's hold and the Set call time lengths straight through the API, as decimals.
+-- The admin writes the waitlist's hold and a stake's call time straight through the API, as decimals.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ insert into public.setting (venue_id, key, subject, value, effective_from)
                    values ('00000000-0000-4000-8000-000000000001', 'waitlist.hold_minutes', '', '{"minutes": 20.0}', now()) $$,
   'an admin writes the hold as 20.0 minutes');
 select lives_ok($$ insert into public.setting (venue_id, key, subject, value, effective_from)
-                   values ('00000000-0000-4000-8000-000000000001', 'call_time.add_choices', '', '{"minutes": [45.0, 90.0]}', now()) $$,
-  'and the Set call time lengths as 45.0 and 90.0');
+                   select t.venue_id, 'call_time.minutes', t.code, '{"minutes": 150.0}', now()
+                   from public.table_type t where t.venue_id = '00000000-0000-4000-8000-000000000001' order by t.code limit 1 $$,
+  'and a stake''s call time as 150.0');
 reset role;
 select is((select value::text from public.setting where key = 'waitlist.hold_minutes' and venue_id = '00000000-0000-4000-8000-000000000001'
            order by created_at desc, effective_from desc limit 1), '{"minutes": 20}', 'the hold is stored whole');
 select lives_ok($$ select private.waitlist_hold('00000000-0000-4000-8000-000000000001', now()) $$, 'and the waitlist reads it');
-select is(private.add_time_choices('00000000-0000-4000-8000-000000000001'), array[45, 90], 'the lengths read as 45 and 90');
+select is((select value::text from public.setting where key = 'call_time.minutes' and venue_id = '00000000-0000-4000-8000-000000000001'
+           order by created_at desc, effective_from desc limit 1), '{"minutes": 150}', 'the call time is stored whole');
 
 select * from finish();
 rollback;

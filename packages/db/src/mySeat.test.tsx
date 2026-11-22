@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useMySeat, useMySeatActions } from './mySeat.ts';
+import { useMySeat, useMySeatActions, useMyTablemates } from './mySeat.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { useSetTopUp } from './seats.ts';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
@@ -26,7 +26,7 @@ function renderSeat(replies: Record<string, { status?: number; body: unknown }>)
     auth: { storage: sessionStorageFor(SIGNED_IN), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ seat: useMySeat(), actions: useMySeatActions(), setTopUp: useSetTopUp(VENUE) }), { wrapper });
+  const { result } = renderHook(() => ({ seat: useMySeat(), actions: useMySeatActions(), setTopUp: useSetTopUp(VENUE), tablemates: useMyTablemates(true) }), { wrapper });
   return { result, calls };
 }
 
@@ -57,8 +57,8 @@ describe('the member at the table', () => {
     await waitFor(() => expect(result.current.seat.data?.topUp).toBeNull());
   });
 
-  it('sets the call time, asks for a top-up, and leaves, each a Result (decision 0320)', async () => {
-    const { result } = renderSeat({
+  it('sets the call time to a time, asks for a top-up, and leaves, each a Result (decision 0320; the owner, 22 Nov)', async () => {
+    const { result, calls } = renderSeat({
       my_seat: { body: [SEAT] },
       leave_my_seat: { body: 'leaving' },
       request_top_up: { status: 400, body: { code: '42501', message: 'not open' } },
@@ -67,9 +67,29 @@ describe('the member at the table', () => {
     let outcomes: unknown[] = [];
     await act(async () => {
       outcomes = [await result.current.actions.leave.mutateAsync(), await result.current.actions.requestTopUp.mutateAsync(),
-        await result.current.actions.setCallTime.mutateAsync({ minutes: 60, requestId: 'r1' })];
+        await result.current.actions.setCallTime.mutateAsync({ until: new Date('2026-11-22T18:10:00.000Z'), requestId: 'r1' })];
     });
     expect(outcomes).toEqual([{ ok: true, value: 'leaving' }, { ok: false, error: 'not_allowed' }, { ok: false, error: 'too_early' }]);
+    expect(calls.find((call) => call.rpc === 'set_my_call_time')?.body).toEqual({ p_until: '2026-11-22T18:10:00.000Z', p_idempotency_key: 'r1' });
+  });
+
+  it('reads the others at the table: until when once set, else not set, away or done (the owner, 22 Nov)', async () => {
+    const { result } = renderSeat({
+      my_tablemates: { body: [
+        { seat: 3, first_name: 'Ritika', call_time: 'until', ends_at: '2026-11-22T18:10:00+00:00' },
+        { seat: 4, first_name: null, call_time: 'away', ends_at: null },
+        { seat: 5, first_name: 'Yash', call_time: 'not_set', ends_at: null },
+        { seat: 6, first_name: 'Mihir', call_time: 'done', ends_at: null },
+        { seat: 7, first_name: 'Kabir', call_time: 'until', ends_at: null },
+      ] },
+    });
+    await waitFor(() => expect(result.current.tablemates.data).toEqual([
+      { seat: 3, firstName: 'Ritika', callTime: { kind: 'until', endsAt: '2026-11-22T18:10:00+00:00' } },
+      { seat: 4, firstName: null, callTime: { kind: 'away' } },
+      { seat: 5, firstName: 'Yash', callTime: { kind: 'not_set' } },
+      { seat: 6, firstName: 'Mihir', callTime: { kind: 'done' } },
+      { seat: 7, firstName: 'Kabir', callTime: { kind: 'not_set' } },
+    ]));
   });
 
   it('leaves at once with call time done, and names a frozen account', async () => {

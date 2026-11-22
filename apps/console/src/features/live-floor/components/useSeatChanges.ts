@@ -1,6 +1,6 @@
 import type { LeaveReason, SeatWho } from '@rivr/contracts';
 import { useAddCallTime, useCheckOutActions, useFloorActions, useFloorUndo, useSeatActions, type FloorTable, type SeatedPlayer } from '@rivr/db';
-import { formatDuration, t } from '@rivr/i18n';
+import { formatTime, t } from '@rivr/i18n';
 import { useRef } from 'react';
 import { useChangeToast } from './useChangeToast.ts';
 
@@ -39,21 +39,21 @@ function useSeating(venueId: string) {
 }
 
 /**
- * More call time the floor's managers add (decision 0305), undone by its request id. Each length keeps its request id
- * until it goes through, so a press again after a lost answer adds it once.
+ * A call time the floor's managers set or extend to a time (decision 0305; the owner, 22 Nov), undone by its request id.
+ * Each time keeps its request id until it goes through, so a press again after a lost answer sets it once.
  */
 function useAddTime(venueId: string) {
   const say = useChangeToast();
   const undo = useFloorUndo(venueId);
   const add = useAddCallTime(venueId);
   const requestIds = useRef(new Map<string, string>());
-  return async (player: SeatedPlayer, minutes: number) => {
-    const key = `${player.sessionId}:${String(minutes)}`;
+  return async (player: SeatedPlayer, until: Date) => {
+    const key = `${player.sessionId}:${until.toISOString()}`;
     const requestId = requestIds.current.get(key) ?? crypto.randomUUID();
     requestIds.current.set(key, requestId);
-    const outcome = await add.mutateAsync({ sessionId: player.sessionId, minutes, requestId });
+    const outcome = await add.mutateAsync({ sessionId: player.sessionId, until, requestId });
     if (outcome.ok) requestIds.current.delete(key);
-    say(outcome, t(player.callTimeSetAt === null ? 'console.floor.toast.timeSet' : 'console.floor.toast.timeAdded', { name: player.fullName, time: formatDuration(minutes * 60) }),
+    say(outcome, t(player.callTimeSetAt === null ? 'console.floor.toast.timeSet' : 'console.floor.toast.timeAdded', { name: player.fullName, time: formatTime(until) }),
       () => undo.mutateAsync({ kind: 'callTime', requestId }));
   };
 }

@@ -38,15 +38,13 @@ export interface MySeat {
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
   readonly straddle: bigint | null;
-  /** The lengths of call time the club offers, in minutes, shortest first (decision 0305): the member sets one (#1059). */
-  readonly addTimeChoices: readonly number[];
-  /**
-   * Those open now by the one rule (#1076): until a call time is set, the lengths ending after the call time the seat
-   * started with; once set, every length, to extend it. None while the member cannot see call time.
-   */
-  readonly callTimeChoicesOpen: readonly number[];
-  /** When a call time was first set, by the member or the floor's Add call time (#1059, #1076); null if never. */
+  /** When a call time was first set, by the member or the floor (#1059, #1076); null if never. */
   readonly callTimeSetAt: string | null;
+  /**
+   * The time a call time set or extended must fall after (the owner, 22 Nov): the end of the minimum playing time until
+   * set, the current end once set, now once that has passed. Null with no call time, or while the member cannot see it.
+   */
+  readonly callTimeAfterAt: string | null;
 }
 
 // The time left is read again each half minute; Home shows it to the minute.
@@ -94,7 +92,7 @@ export function useMySeat() {
             callTimeMinutes: row.call_time_minutes, startedAt: row.started_at, callTimeEndsAt: row.call_time_ends_at,
             tableTypeName: row.table_type_name, game: playedGame(row.game), smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise),
             straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise),
-            addTimeChoices: row.add_time_choices, callTimeChoicesOpen: row.call_time_choices_open, callTimeSetAt: row.call_time_set_at };
+            callTimeSetAt: row.call_time_set_at, callTimeAfterAt: row.call_time_after_at };
     },
   });
 }
@@ -104,19 +102,18 @@ export type Leaving = 'left' | 'leaving';
 
 /**
  * Why a seat action did not go through: not seated any more, the feature not open to them (a seat with no call time sets
- * none), a call time that would end before the one they owe, run past a day, or a length the club no longer offers
- * (#1059), the account or venue frozen, or anything else.
+ * none), a call time not after the minimum or the current end, or run past a day (#1059; the owner, 22 Nov), the account
+ * or venue frozen, or anything else.
  */
-export type MySeatFailure = 'not_seated' | 'not_allowed' | 'too_early' | 'too_long' | 'not_offered' | 'stopped' | 'paused' | 'unavailable';
+export type MySeatFailure = 'not_seated' | 'not_allowed' | 'too_early' | 'too_long' | 'stopped' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, MySeatFailure>> = {
-  '22023': 'not_seated', '42501': 'not_allowed', RVCTN: 'not_allowed', RVCTE: 'too_early', RVCTX: 'too_long', RVCTC: 'not_offered',
-  RVMBR: 'stopped', RVFRZ: 'paused',
+  '22023': 'not_seated', '42501': 'not_allowed', RVCTN: 'not_allowed', RVCTE: 'too_early', RVCTX: 'too_long', RVMBR: 'stopped', RVFRZ: 'paused',
 };
 
 /**
- * The member's own seat actions (#634): set their call time (`setCallTime`, a length the club offers from now, owed as
- * well as the call time they had, #1059; the tap's request id sets it once), leave the seat (`leave`), and ask for a
+ * The member's own seat actions (#634): set or extend their call time to a time (`setCallTime`, owed as well as the call
+ * time they had, #1059; the owner, 22 Nov; the tap's request id sets it once), leave the seat (`leave`), and ask for a
  * top-up (`requestTopUp`). Each is a Result and reads the seat again.
  */
 export function useMySeatActions() {
@@ -127,8 +124,8 @@ export function useMySeatActions() {
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(value);
   };
   const setCallTime = useMutation({
-    mutationFn: async ({ minutes, requestId }: { minutes: number; requestId: string }) =>
-      settle((await client.rpc('set_my_call_time', { p_minutes: minutes, p_idempotency_key: requestId })).error, null),
+    mutationFn: async ({ until, requestId }: { until: Date; requestId: string }) =>
+      settle((await client.rpc('set_my_call_time', { p_until: until.toISOString(), p_idempotency_key: requestId })).error, null),
   });
   const leave = useMutation({
     mutationFn: async () => {
@@ -138,4 +135,34 @@ export function useMySeatActions() {
   });
   const requestTopUp = useMutation({ mutationFn: async () => settle((await client.rpc('request_top_up')).error, null) });
   return { setCallTime, leave, requestTopUp };
+}
+
+/** Where another player at the member's table stands with call time: not set, away (the clock stands still), done, or until `endsAt`. */
+export type TablemateCallTime = { readonly kind: 'not_set' | 'away' | 'done' } | { readonly kind: 'until'; readonly endsAt: string };
+
+/** Another player at the member's table (the owner, 22 Nov): their seat, first name (null for one who keeps it off the TVs) and call time. */
+export interface Tablemate {
+  readonly seat: number;
+  readonly firstName: string | null;
+  readonly callTime: TablemateCallTime;
+}
+
+function tablemateCallTime(state: string, endsAt: string | null): TablemateCallTime {
+  if (state === 'until' && endsAt !== null) return { kind: 'until', endsAt };
+  return { kind: state === 'away' || state === 'done' ? state : 'not_set' };
+}
+
+/** The others at the member's table, by seat, while they sit and see call time; none otherwise. Read with the seat. */
+export function useMyTablemates(isEnabled: boolean) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.myTablemates(userId ?? 'signed-out'),
+    enabled: userId !== null && isEnabled,
+    refetchInterval: LIVE,
+    queryFn: async (): Promise<Tablemate[]> => {
+      const { data, error } = await client.rpc('my_tablemates').limit(LIST_MOST);
+      if (error) throw error;
+      return data.map((row) => ({ seat: row.seat, firstName: row.first_name, callTime: tablemateCallTime(row.call_time, row.ends_at) }));
+    },
+  });
 }

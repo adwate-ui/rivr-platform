@@ -69,6 +69,7 @@ export const queryKeys = {
   tableHands: (userId: string, tableId: string) => ['user', userId, 'table-hands', tableId] as const,
   tabletSeats: (userId: string) => ['user', userId, 'tablet-seats'] as const,
   mySeat: (userId: string) => ['user', userId, 'my-seat'] as const,
+  myTablemates: (userId: string) => ['user', userId, 'my-tablemates'] as const,
   myNextPlayTimeBonus: (userId: string) => ['user', userId, 'my-next-play-time-bonus'] as const,
   signedInPhone: (userId: string) => ['user', userId, 'signed-in-phone'] as const,
   doorBoard: (userId: string, venueId: string) => ['user', userId, 'door-board', venueId] as const,
@@ -182,7 +183,6 @@ export const queryKeys = {
   tvReportIn: (userId: string) => ['user', userId, 'tv-report-in'] as const,
   /** A venue's TVs, for staff who manage devices. */
   venueTvs: (userId: string, venueId: string) => ['user', userId, 'venue-tvs', venueId] as const,
-  tvPairingPolicy: (userId: string, venueId: string) => ['user', userId, 'tv-pairing-policy', venueId] as const,
   /** A venue's stakes for the promotion builder (#84). */
   promotionStakes: (userId: string, venueId: string) => ['user', userId, 'promotion-stakes', venueId] as const,
   /** The console's promotions list, a promotion's versions and a member's grants (console v3 phase 7). */

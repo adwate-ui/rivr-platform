@@ -49,9 +49,9 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is_empty($$ select * from pg_temp.items() $$, 'no call time items before anyone sets one');
 select is(pg_temp.chimes(), 0, 'and nothing counted');
 
--- Ishaan sets an hour from his app: one item, counted.
+-- Ishaan sets a time an hour from now from his app: one item, counted.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select public.set_my_call_time(60, gen_random_uuid());
+select public.set_my_call_time(now() + interval '1 hour', gen_random_uuid());
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select who, minutes from pg_temp.items() $$, $$ values ('211'::text, 60) $$, 'his set is an item on the floor''s Requests');
 select is(pg_temp.chimes(), 1, 'counted for the chime and the header');
@@ -61,18 +61,18 @@ update public.call_time_request set requested_at = requested_at - interval '1 mi
 where session_id = (select id from seats where who = '211');
 create temp table first_set on commit drop as select id from public.call_time_request where session_id = (select id from seats where who = '211');
 grant select on first_set to authenticated;
--- He extends by 30 before the floor looks: still one item, now his latest.
+-- He extends it half an hour past its end before the floor looks: still one item, now his latest.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select public.set_my_call_time(30, gen_random_uuid());
+select public.set_my_call_time(now() + interval '90 minutes', gen_random_uuid());
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select results_eq($$ select who, minutes from pg_temp.items() $$, $$ values ('211'::text, 30) $$, 'his extend updates the one item for his seat');
+select results_eq($$ select who, minutes from pg_temp.items() $$, $$ values ('211'::text, 90) $$, 'his extend updates the one item for his seat');
 select is(pg_temp.chimes(), 1, 'still one seat counted');
 -- The floor's own Set for Vihaan is no item.
-select public.add_seat_call_time((select id from seats where who = '212'), 60, gen_random_uuid());
+select public.add_seat_call_time((select id from seats where who = '212'), now() + interval '1 hour', gen_random_uuid());
 select is((select count(*)::integer from pg_temp.items() where who = '212'), 0, 'the floor''s own Set is never an item');
 -- Seen stops at the change it is given: his first set seen, his later extend is still the item.
 select lives_ok($$ select public.mark_call_time_seen((select id from first_set)) $$, 'the floor marks his first set seen');
-select results_eq($$ select who, minutes from pg_temp.items() $$, $$ values ('211'::text, 30) $$, 'his later extend is still an item');
+select results_eq($$ select who, minutes from pg_temp.items() $$, $$ values ('211'::text, 90) $$, 'his later extend is still an item');
 select is(pg_temp.chimes(), 1, 'still counted');
 
 -- Who may mark it seen.
@@ -108,9 +108,9 @@ select lives_ok($$ select public.mark_call_time_seen((select request_id from ite
 
 -- He extends again: a new item. His seat ends: no item.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select public.set_my_call_time(30, gen_random_uuid());
+select public.set_my_call_time(now() + interval '2 hours', gen_random_uuid());
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select results_eq($$ select who, minutes from pg_temp.items() $$, $$ values ('211'::text, 30) $$, 'a new extend is a new item');
+select results_eq($$ select who, minutes from pg_temp.items() $$, $$ values ('211'::text, 120) $$, 'a new extend is a new item');
 select public.end_seat((select id from seats where who = '211'), 'left');
 select is_empty($$ select * from pg_temp.items() $$, 'his seat ended, his item goes with it');
 select is(pg_temp.chimes(), 0, 'and is no longer counted');
