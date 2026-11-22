@@ -33,8 +33,8 @@ describe('readBonusFile', () => {
 
   it('says what is wrong with a line: the member, the type, the chips, then the reason', () => {
     const read = readBonusFile([HEADING, ['Ritika', 'add', '50', 'Gift'], ['1042', 'gift', '50', 'Gift'], ['1042', 'use', '75', 'Gift'], ['1042', 'use', '1,00,050', 'Gift'],
-      ['1042', 'use', '50', 'ok'], ['1042', 'use', '50', 'x'.repeat(201)]]);
-    expect(read.lines.map((line) => (line.ok ? 'ok' : line.problem))).toEqual(['member', 'type', 'chips', 'chips', 'reason', 'reason']);
+      ['1042', 'use', '50', 'ok'], ['1042', 'use', '50', 'x'.repeat(201)], ['1042', 'add', '50', 'Diwali\n1043,add,500,gift']]);
+    expect(read.lines.map((line) => (line.ok ? 'ok' : line.problem))).toEqual(['member', 'type', 'chips', 'chips', 'reason', 'reason', 'reason']);
   });
 
   it('says what is wrong with the whole file: no columns, no lines, or too many', () => {

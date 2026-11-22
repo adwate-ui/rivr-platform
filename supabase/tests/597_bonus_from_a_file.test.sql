@@ -84,6 +84,8 @@ select is(pg_temp.refusal(jsonb_build_array(pg_temp.line(5, '215', 'gift', 500, 
 select is(pg_temp.refusal(jsonb_build_array(pg_temp.line(6, '215', 'add', 75, 'Diwali gift'))), 'RVCHP 6', 'chips not in whole 50s');
 select is(pg_temp.refusal(jsonb_build_array(pg_temp.line(6, '215', 'add', 100050, 'Diwali gift'))), 'RVCHP 6', 'more than 1,00,000 chips');
 select is(pg_temp.refusal(jsonb_build_array(pg_temp.line(7, '215', 'use', 100, ' ok '))), '22023 7', 'a reason of two characters');
+select is(pg_temp.refusal(jsonb_build_array(pg_temp.line(7, '215', 'add', 100, E'Diwali\n1043,add,500,gift'))), '22023 7',
+  'a reason over two lines, as a quote never closed makes it');
 select is(pg_temp.refusal(jsonb_build_array(pg_temp.line(8, '218', 'add', 500, 'Diwali gift'))), 'RVOWN 8', 'her own record');
 -- All or none: the Add on line 2 is undone with the Use refused on line 3.
 select is(pg_temp.refusal(jsonb_build_array(pg_temp.line(2, '216', 'add', 500, 'Diwali gift'), pg_temp.line(3, '215', 'use', 1050, 'At the bar'))),

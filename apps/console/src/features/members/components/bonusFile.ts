@@ -40,6 +40,14 @@ function columnsOf(heading: readonly string[]) {
   return Object.values(columns).some((index) => index < 0) ? null : columns;
 }
 
+/**
+ * Whether a reason is one bonus_from_file takes: 3 to 200 characters, on one line, with no other control character either
+ * (a quote a file never closed leaves line breaks in it).
+ */
+function isReason(reason: string): boolean {
+  return reason.length >= 3 && reason.length <= 200 && ![...reason].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127);
+}
+
 /** One line's member, type, chips and reason, or the first of them that is wrong. */
 function lineOf(fields: readonly string[], columns: NonNullable<ReturnType<typeof columnsOf>>, line: number): ReadLine {
   const key = memberKeyOf(fields[columns.member] ?? '');
@@ -49,7 +57,7 @@ function lineOf(fields: readonly string[], columns: NonNullable<ReturnType<typeo
   if (key === null) return { line, ok: false, problem: 'member' };
   if (kind === undefined) return { line, ok: false, problem: 'type' };
   if (chips === null) return { line, ok: false, problem: 'chips' };
-  if (reason.length < 3 || reason.length > 200) return { line, ok: false, problem: 'reason' };
+  if (!isReason(reason)) return { line, ok: false, problem: 'reason' };
   return { line, ok: true, key, kind, chips, reason };
 }
 

@@ -15,7 +15,7 @@ export const bonusFile = {
     member: 'Line {line}: give a member number or a 10-digit mobile.',
     type: 'Line {line}: write add or use under type.',
     chips: 'Line {line}: give whole fifties from 50 to 1,00,000.',
-    reason: 'Line {line}: give a reason of 3 to 200 characters.',
+    reason: 'Line {line}: give a reason of 3 to 200 characters, on one line.',
     unknown: 'Line {line}: no member has that number or mobile.',
     own: 'Line {line}: your own record. Ask another super admin.',
     frozen: 'Line {line}: {name} is frozen.',
@@ -33,13 +33,13 @@ export const bonusFile = {
   totals: '{count} lines · {added} added · {used} used',
   totalsOne: '1 line · {added} added · {used} used',
   /** Above the wrong lines, shown alone while there are any: the one message announced for all of them. */
-  toFix: 'Fix {count} lines, then choose the file again.',
-  toFixOne: 'Fix 1 line, then choose the file again.',
+  toFix: 'Fix {count} lines, then choose another file.',
+  toFixOne: 'Fix 1 line, then choose another file.',
   save: 'Save every line',
   /** Beside Save while a file saves: the sheet stays open until it is answered. */
   saving: 'Saving. This stays open until it is done.',
   /** Beside Save for a file sent before with no answer: Save sends it under the same request, so it can only go once. */
-  resend: 'Sent before with no answer. Save again to see if it went.',
+  resend: 'Sent with no answer. Save again.',
   confirm: 'Yes, save {count} lines',
   confirmOne: 'Yes, save 1 line',
   saved: '{count} lines saved.',

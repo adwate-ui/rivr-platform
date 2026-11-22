@@ -113,6 +113,14 @@ describe('readSheetFile', () => {
     expect(await readSheetFile(new Blob([zipStored(broken)]), MB)).toEqual({ ok: false, problem: 'unreadable' });
   });
 
+  it('reads a long shared string used by many cells once, and keeps no cell past a thousand characters', async () => {
+    const strings = `<sst xmlns="${MAIN}"><si><t>${' '.repeat(500_000)}x</t></si><si><t>${'y'.repeat(5_000)}</t></si></sst>`;
+    const rows = Array.from({ length: 2_000 }, () => '<row><c t="s"><v>0</v></c><c t="s"><v>1</v></c></row>').join('');
+    const parts = { 'xl/worksheets/sheet1.xml': `<worksheet xmlns="${MAIN}"><sheetData>${rows}</sheetData></worksheet>`, 'xl/sharedStrings.xml': strings };
+    const read = await readSheetFile(new Blob([zipStored(parts)]), 2 * MB);
+    expect(read.ok && read.rows[0]).toEqual(['', 'y'.repeat(1_000)]);
+  });
+
   it('stops inflating a part past the most bytes, whatever its header says', async () => {
     const huge = `<worksheet xmlns="${MAIN}"><sheetData>${'<row/>'.repeat(4_000_000)}</sheetData></worksheet>`;
     const bytes = await zipDeflated({ 'xl/worksheets/sheet1.xml': huge });

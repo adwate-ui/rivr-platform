@@ -28,34 +28,39 @@ function refusalText(refusal: BonusFileRefusal): string {
   return refusal.line === null ? why : t('console.members.bonus.file.atLine', { line: formatNumber(refusal.line), why });
 }
 
-/** A file to save: its totals, read out politely, then every line. A file with lines to fix: how many, once, then those alone. */
+/** A file's totals, said in the sheet's one status line: `12 lines · 24,000 added · 3,500 used`. */
+function totalsText(toSave: ToSave): string {
+  const count = toSave.lines.length;
+  return t(count === 1 ? 'console.members.bonus.file.totalsOne' : 'console.members.bonus.file.totals',
+    { count: formatNumber(count), added: formatChips(toSave.added), used: formatChips(toSave.used) });
+}
+
+/** A file to save: every line, its totals said above. A file with lines to fix: how many, once, then those lines alone. */
 function PreviewBody({ preview }: { preview: Preview }) {
   const wrong = preview.lines.filter((line) => !line.ok);
-  const toSave = preview.toSave;
-  const summary = toSave === null
-    ? <ErrorMessage>{wrong.length === 1 ? t('console.members.bonus.file.toFixOne') : t('console.members.bonus.file.toFix', { count: formatNumber(wrong.length) })}</ErrorMessage>
-    : <StatusMessage>{t(toSave.lines.length === 1 ? 'console.members.bonus.file.totalsOne' : 'console.members.bonus.file.totals',
-      { count: formatNumber(toSave.lines.length), added: formatChips(toSave.added), used: formatChips(toSave.used) })}</StatusMessage>;
+  const lines = preview.toSave === null ? wrong : preview.lines;
   return (
     <Stack gap={4}>
-      {summary}
-      <Stack gap={2} divided>{(toSave === null ? wrong : preview.lines).map((line) => <LineView key={line.line} line={line} />)}</Stack>
+      {preview.toSave === null
+        ? <ErrorMessage>{wrong.length === 1 ? t('console.members.bonus.file.toFixOne') : t('console.members.bonus.file.toFix', { count: formatNumber(wrong.length) })}</ErrorMessage>
+        : null}
+      <Stack gap={2} divided>{lines.map((line) => <LineView key={line.line} line={line} />)}</Stack>
     </Stack>
   );
 }
 
 /**
- * The sheet's foot, in view down a long file: what became of the last Save (a refusal, or no answer), or that this file was
- * sent before with no answer; that it is saving; and Save, asked twice.
+ * The sheet's foot, in view down a long file: what became of the last Save (a refusal, or no answer); one status line, that
+ * it is saving or that this file was sent before with no answer; and Save, asked twice.
  */
 function Footer({ toSave, venueId, refusal, isSaving, onSave }: { toSave: ToSave; venueId: string; refusal: BonusFileRefusal | null; isSaving: boolean; onSave: () => void }) {
   const count = toSave.lines.length;
-  const isKept = refusal === null && !isSaving && hasRequestId(venueId, toSave.lines);
+  const isKept = refusal === null && hasRequestId(venueId, toSave.lines);
+  const status = isSaving ? t('console.members.bonus.file.saving') : isKept ? t('console.members.bonus.file.resend') : null;
   return (
     <>
       {refusal === null ? null : <ErrorMessage>{refusalText(refusal)}</ErrorMessage>}
-      {isKept ? <Text variant="small" tone="muted">{t('console.members.bonus.file.resend')}</Text> : null}
-      <StatusMessage>{isSaving ? t('console.members.bonus.file.saving') : null}</StatusMessage>
+      <StatusMessage>{status}</StatusMessage>
       <ConfirmButton variant="primary" size="compact" label={t('console.members.bonus.file.save')} isBusy={isSaving} onConfirm={onSave}
         confirm={count === 1 ? t('console.members.bonus.file.confirmOne') : t('console.members.bonus.file.confirm', { count: formatNumber(count) })} />
     </>
@@ -99,8 +104,8 @@ function usePreview(venueId: string, read: ReadFile | null, sent: Preview | null
 }
 
 /**
- * Sending a file under its request id (`bonusFileRequests`). Saved, or refused as another file's, the next try of it is a
- * new one; any other refusal wrote nothing, so its id stays. With no answer the preview stays as sent, with Save.
+ * Sending a file under its request id (`bonusFileRequests`), kept until an answer: any answer is the last word on that id,
+ * so the next try after one is a new id. With no answer the preview stays as sent, with Save, and the id stays.
  */
 function useSendFile(venueId: string, onSaved: (count: number) => void) {
   const save = useSaveBonusFile(venueId);
@@ -112,8 +117,10 @@ function useSendFile(venueId: string, onSaved: (count: number) => void) {
     const requestId = requestIdFor(venueId, toSave.lines);
     keepRequestId(venueId, toSave.lines, requestId);
     const done = await save.mutateAsync({ lines: toSave.lines, requestId });
-    if (done.ok || done.error.failure === 'invalid') forgetRequestId(venueId, toSave.lines);
-    if (done.ok || done.error.failure !== 'unavailable') setSent(null);
+    if (done.ok || done.error.failure !== 'unavailable') {
+      forgetRequestId(venueId, toSave.lines);
+      setSent(null);
+    }
     if (done.ok) return onSaved(done.value);
     setRefusal(done.error);
   };
@@ -182,8 +189,9 @@ export function BonusFileSheet({ venueId, onClose }: { venueId: string; onClose:
       <Stack gap={4}>
         <Chooser hasFile={read !== null} isBusy={send.isSaving} onChoose={(file) => void choose(file)} />
         {problem === null ? null : <ErrorMessage>{t(`console.members.bonus.file.${problem}`)}</ErrorMessage>}
+        {/* The one status line, always in place: the file's totals, or that it was saved. */}
+        <StatusMessage>{saved ?? (toSave === null ? null : totalsText(toSave))}</StatusMessage>
         <Shown shown={shown} refusal={send.refusal} />
-        <StatusMessage>{saved}</StatusMessage>
       </Stack>
     </Sheet>
   );

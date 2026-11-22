@@ -11,11 +11,15 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-/** The members a file names, Ritika holding `ritika` paise of Bonus. */
-const membersHolding = (ritika: number) => [
-  { key: '1042', member_id: 'm1', member_number: 1042, full_name: 'Ritika Das', in_force_paise: ritika, owed_paise: 0, is_own: false, is_frozen: false },
+/** Ritika as the members are read: what she holds, and whether she is frozen. */
+interface Ritika { readonly held: number; readonly isFrozen: boolean }
+
+/** The members a file names. */
+const membersAs = (ritika: Ritika) => [
+  { key: '1042', member_id: 'm1', member_number: 1042, full_name: 'Ritika Das', in_force_paise: ritika.held, owed_paise: 0, is_own: false, is_frozen: ritika.isFrozen },
   { key: '+919000000216', member_id: 'm2', member_number: 1043, full_name: 'Kunal Mehra', in_force_paise: 0, owed_paise: 0, is_own: false, is_frozen: false },
 ];
+const HOLDING_1000: Ritika = { held: 100_000, isFrozen: false };
 
 interface Sent { readonly p_request_id: string; readonly p_lines: unknown }
 
@@ -24,13 +28,15 @@ interface Fake {
   readonly reply: () => Response | Promise<Response>;
   readonly sent?: Sent[];
   readonly onClose?: () => void;
-  /** What Ritika holds each time the members are read. */
-  readonly ritika?: () => number;
+  /** Ritika each time the members are read. */
+  readonly ritika?: () => Ritika;
   readonly queryClient?: QueryClient;
+  /** A venue of its own for a test that keeps a file's request id, so no other test reads it. */
+  readonly venueId?: string;
 }
 
 /** A super admin signed in and the sheet open, against a fake API; the bodies bonus_from_file was sent go into `sent`. */
-function renderSheet({ reply, sent = [], onClose = vi.fn(), ritika = () => 100_000, queryClient = new QueryClient() }: Fake) {
+function renderSheet({ reply, sent = [], onClose = vi.fn(), ritika = () => HOLDING_1000, queryClient = new QueryClient(), venueId = 'v1' }: Fake) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -41,7 +47,7 @@ function renderSheet({ reply, sent = [], onClose = vi.fn(), ritika = () => 100_0
   );
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/bonus_file_members')) return Response.json(membersHolding(ritika()));
+    if (url.includes('/rpc/bonus_file_members')) return Response.json(membersAs(ritika()));
     if (url.includes('/rpc/bonus_from_file')) {
       sent.push(JSON.parse(String(init?.body)));
       return reply();
@@ -49,7 +55,7 @@ function renderSheet({ reply, sent = [], onClose = vi.fn(), ritika = () => 100_0
     return Response.json([]);
   });
   const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
-  render(<RivrDataProvider client={client} queryClient={queryClient}><BonusFileSheet venueId="v1" onClose={onClose} /></RivrDataProvider>);
+  render(<RivrDataProvider client={client} queryClient={queryClient}><BonusFileSheet venueId={venueId} onClose={onClose} /></RivrDataProvider>);
   return { sent, onClose };
 }
 
@@ -94,28 +100,36 @@ describe('Bonus from a file', () => {
     expect(screen.getByText('Line 3: no member has that number or mobile.')).toBeDefined();
     expect(screen.getByText('Line 4: write add or use under type.')).toBeDefined();
     expect(screen.queryByText(/^Line 5/)).toBeNull();
-    expect(screen.getAllByRole('alert').map((alert) => alert.textContent)).toEqual(['Fix 3 lines, then choose the file again.']);
+    expect(screen.getAllByRole('alert').map((alert) => alert.textContent)).toEqual(['Fix 3 lines, then choose another file.']);
     expect(screen.queryByRole('button', { name: 'Save every line' })).toBeNull();
   });
 
-  it('says beside Save at which line the database refused, and that nothing was saved', async () => {
-    renderSheet({ reply: () => Response.json({ code: 'RVBON', message: 'Line 2: more than the Bonus in force', details: '2' }, { status: 400 }) });
+  it('says beside Save at which line the database refused, and that nothing was saved; that file then starts afresh', async () => {
+    const sent: Sent[] = [];
+    renderSheet({ reply: () => Response.json({ code: 'RVBON', message: 'Line 2: more than the Bonus in force', details: '2' }, { status: 400 }), sent, venueId: 'v-refused' });
     choose(ONE_USE);
     await save('1 line');
     expect(await screen.findByText('Refused at line 2. More than their Bonus, or some owed. Nothing saved.')).toBeDefined();
+    // An answer is the last word on its id: chosen again, the file is no file sent with no answer, and goes under a new id.
+    choose(ONE_USE);
+    await screen.findByRole('button', { name: 'Save every line' });
+    expect(screen.queryByText('Sent with no answer. Save again.')).toBeNull();
+    await save('1 line');
+    await waitFor(() => expect(sent).toHaveLength(2));
+    expect(sent[1]?.p_request_id).not.toBe(sent[0]?.p_request_id);
   });
 
-  it('keeps the file as sent after no answer, even once the members, read again, hold what it took', async () => {
-    let ritika = 100_000;
+  it('keeps the file as sent after no answer, even once the members, read again, say it could not go now', async () => {
+    let ritika = HOLDING_1000;
     const queryClient = new QueryClient();
-    const { sent } = renderSheet({ reply: noAnswer, ritika: () => ritika, queryClient });
+    const { sent } = renderSheet({ reply: noAnswer, ritika: () => ritika, queryClient, venueId: 'v-frozen' });
     choose(ONE_USE);
     await save('1 line');
     expect(await screen.findByText('No answer. Save again.')).toBeDefined();
-    // It went: read again, she holds nothing, and a live preview would say the Use is more than she holds.
-    ritika = 0;
+    // Frozen since: read live, her line could not go, though the database answers a file that went as saved before that.
+    ritika = { held: 100_000, isFrozen: true };
     await act(() => queryClient.invalidateQueries());
-    expect(screen.queryByText('Line 2: more than Ritika Das holds by then.')).toBeNull();
+    expect(screen.queryByText('Line 2: Ritika Das is frozen.')).toBeNull();
     expect(screen.getByText('Line 2 · Ritika Das · No. 1042 · Use 1,000 · At the bar')).toBeDefined();
     await save('1 line');
     await waitFor(() => expect(sent).toHaveLength(2));
@@ -124,20 +138,20 @@ describe('Bonus from a file', () => {
 
   it('offers a file sent with no answer again in a sheet opened again, under its id, though its balances have changed', async () => {
     const sent: Sent[] = [];
-    renderSheet({ reply: noAnswer, sent });
+    renderSheet({ reply: noAnswer, sent, venueId: 'v-again' });
     choose(ONE_USE);
     await save('1 line');
     expect(await screen.findByText('No answer. Save again.')).toBeDefined();
     cleanup();
-    renderSheet({ reply: () => Response.json(1), sent, ritika: () => 0 });
+    renderSheet({ reply: () => Response.json(1), sent, ritika: () => ({ held: 0, isFrozen: false }), venueId: 'v-again' });
     choose(ONE_USE);
-    expect(await screen.findByText('Sent before with no answer. Save again to see if it went.')).toBeDefined();
+    expect(await screen.findByText('Sent with no answer. Save again.')).toBeDefined();
     await save('1 line');
     expect(await screen.findByText('1 line saved.')).toBeDefined();
     expect(sent[1]?.p_request_id).toBe(sent[0]?.p_request_id);
     // Saved: the next save of that file is a new one.
     cleanup();
-    renderSheet({ reply: () => Response.json(1), sent });
+    renderSheet({ reply: () => Response.json(1), sent, venueId: 'v-again' });
     choose(ONE_USE);
     await save('1 line');
     await waitFor(() => expect(sent).toHaveLength(3));
@@ -145,7 +159,7 @@ describe('Bonus from a file', () => {
   });
 
   it('shows another file chosen after no answer, and Save sends that file', async () => {
-    const { sent } = renderSheet({ reply: noAnswer });
+    const { sent } = renderSheet({ reply: noAnswer, venueId: 'v-another' });
     choose(ONE_USE);
     await save('1 line');
     expect(await screen.findByText('No answer. Save again.')).toBeDefined();

@@ -142,7 +142,7 @@ revoke all on function private.bonus_file_replayed(uuid, jsonb, uuid) from publi
 -- Adds and uses a file's Bonus (above), resolving to how many lines went. Refusals, each naming the file's line in its
 -- detail where there is one: 42501 not a super admin of the venue; 22023 no lines, more than 500, no request id, a request
 -- id used for another file, a line with no member of the venue (or one erased), with a type not add or use, or with no reason
--- of 3 to 200 characters; RVOWN the super admin's own record; RVCHP not whole 50s from 50 to 1,00,000; RVKIL/RVFRZ
+-- of 3 to 200 characters on one line; RVOWN the super admin's own record; RVCHP not whole 50s from 50 to 1,00,000; RVKIL/RVFRZ
 -- promotions stopped or the venue frozen; RVMBR a line's member frozen; RVRAT more than five files a minute; RVBON a use of
 -- more than the Bonus in force then, or while some is owed.
 create function private.bonus_from_file(p_venue_id uuid, p_lines jsonb, p_request_id uuid)
@@ -194,8 +194,9 @@ begin
     if v_line.chips is null or v_line.chips < 50 or v_line.chips > 100000 or v_line.chips % 50 <> 0 then
       raise exception 'Line %: whole fifties from 50 to 1,00,000 chips', v_line.line using errcode = 'RVCHP', detail = v_line.line::text;
     end if;
-    if length(v_line.reason) not between 3 and 200 then
-      raise exception 'Line %: a reason of 3 to 200 characters', v_line.line using errcode = '22023', detail = v_line.line::text;
+    -- On one line: a line break, or another control character, is no reason's (a quote a file never closed reads on).
+    if length(v_line.reason) not between 3 and 200 or v_line.reason ~ '[[:cntrl:]]' then
+      raise exception 'Line %: a reason of 3 to 200 characters, on one line', v_line.line using errcode = '22023', detail = v_line.line::text;
     end if;
     if private.is_own_cage_record(v_line.member_id) or coalesce(private.is_own_kyc_check(v_line.member_id), false) then
       raise exception 'Line %: staff never change Bonus on their own record', v_line.line using errcode = 'RVOWN', detail = v_line.line::text;

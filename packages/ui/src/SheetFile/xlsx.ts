@@ -9,6 +9,11 @@ const MOST_PART_BYTES = 2_000_000;
 export const MOST_SHEET_ROWS = 5_000;
 const MOST_SHARED_STRINGS = 20_000;
 const MOST_COLUMNS = 64;
+/** The most of a cell read: past any field a sheet of lines holds, so a cell built huge costs no more than this. */
+const MOST_CELL_CHARACTERS = 1_000;
+
+/** A cell's text as read: at most the most read, without the spaces around it. */
+const cellOf = (text: string) => text.slice(0, MOST_CELL_CHARACTERS).trim();
 
 /** An XML part, or null when it does not parse, or declares a DOCTYPE, which no workbook part has and only a crafted one would. */
 function parsed(text: string | null): Document | null {
@@ -63,7 +68,7 @@ function rowCells(row: Element, shared: readonly string[]): string[] {
   let next = 0;
   for (const cell of childrenNamed(row, 'c')) {
     const column = columnOf(cell.getAttribute('r'), next);
-    if (column < MOST_COLUMNS) cells[column] = cellText(cell, shared).trim();
+    if (column < MOST_COLUMNS) cells[column] = cellOf(cellText(cell, shared));
     next = column + 1;
   }
   return Array.from(cells, (cell) => cell ?? '');
@@ -88,7 +93,8 @@ async function sharedStrings(read: (name: string) => Promise<string | null>, isT
   if (!isThere) return [];
   const root = parsed(await read('xl/sharedStrings.xml'))?.documentElement;
   if (root === undefined) return null;
-  return root.childElementCount > MOST_SHARED_STRINGS ? 'tooBig' : childrenNamed(root, 'si').map(textOf);
+  // Each string made a cell's text once, here, however many cells use it.
+  return root.childElementCount > MOST_SHARED_STRINGS ? 'tooBig' : childrenNamed(root, 'si').map((item) => cellOf(textOf(item)));
 }
 
 /**
