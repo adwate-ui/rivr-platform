@@ -2,11 +2,10 @@
  * TV pairing (#49), end to end, signed in once on the console as a floor supervisor (Naveen Rao,
  * this flow's own sign-in: Auth sends one code a minute to a number):
  * - a TV that is not paired shows a six-digit code; a code no TV shows is refused on the console;
- * - he types the TV's code in with a name and the tournament clock (a mode still to be built, so the
- *   TV shows its name and its name only), and the TV shows it;
+ * - he types the TV's code in with a name and its boards, the call time board first, and the TV shows it;
  * - he puts promotions on it, which the TV shows without a reload, and again within five seconds of one;
- * - once unpaired, the TV shows a new code;
- * - the owner switches to window-only pairing: a TV shows no code until Pair a TV is pressed (#325).
+ * - once unpaired, the TV shows a new code.
+ * Every TV not yet paired shows its code at once: window-only pairing went (the owner, 22 Nov).
  * The waitlist and jackpot boards themselves are the "TV boards" flow.
  */
 import { expect, test } from '@playwright/test';
@@ -38,7 +37,11 @@ test.describe('TV pairing', () => {
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(floor.getByText('No TV shows that code. Check it and type it again.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(code);
+    // Its boards as its row has them (the owner, 22 Nov): the call time board its main one, the promotions in between, and
+    // the tables its call time board shows.
     await floor.getByRole('radiogroup', { name: 'What it shows' }).getByRole('radio', { name: 'Call-time board', exact: true }).click();
+    await floor.getByRole('group', { name: 'What it turns to in between', exact: true }).getByRole('button', { name: 'Promotions', exact: true }).click();
+    await expect(floor.getByRole('group', { name: 'Call time tables', exact: true })).toBeVisible();
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
 
@@ -64,30 +67,5 @@ test.describe('TV pairing', () => {
     await expect(floor.getByText(name, { exact: true })).toHaveCount(0);
     await expect(tv.getByRole('heading', { name: 'Screen pairing' })).toBeVisible({ timeout: 15_000 });
     await expect(tv.getByRole('heading', { level: 2, name: /^\d{6}$/ })).toBeVisible();
-  });
-
-  test('TV pairing: window-only, a TV gets a code only after Pair a TV, and switching back restores codes', async ({ browser }) => {
-    test.skip(isRemoteTarget(), 'switches how the club pairs TVs, so the local stack only');
-    // Arvind Rao, a super admin (the owner's switch, venue.configure); his number is otherwise only the Kill switch flow's.
-    const owner = await browser.newPage();
-    await signInToConsole(owner, '9000000136');
-    await openConsole(owner, '/settings?tab=tvs');
-    const windowOnly = owner.getByRole('switch', { name: 'Pair TVs only after Pair a TV is pressed' });
-    await windowOnly.click();
-    try {
-      await expect(owner.getByText('Press Pair a TV, then pair within ten minutes.')).toBeVisible();
-      const tv = await browser.newPage();
-      await tv.setViewportSize(VIEWPORT.display);
-      await tv.goto(appUrl('display'));
-      await expect(tv.getByText(/^Press Pair a TV on the console/)).toBeVisible();
-      await owner.getByRole('button', { name: 'Pair a TV' }).click();
-      await expect(owner.getByText(/^A TV gets a code until \d{2}:\d{2}\.$/)).toBeVisible();
-      await tv.reload();
-      await expect(tv.getByRole('heading', { level: 2, name: /^\d{6}$/ })).toBeVisible();
-    } finally {
-      // Back to codes on first load, so later flows' TVs get one.
-      await windowOnly.click();
-      await expect(owner.getByRole('button', { name: 'Pair a TV' })).toHaveCount(0);
-    }
   });
 });

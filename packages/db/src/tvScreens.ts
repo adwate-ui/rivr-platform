@@ -34,14 +34,8 @@ export function toTvBoards(boards: readonly StoredTvMode[], seconds: readonly nu
   return turns.length === 0 ? [WAITLIST_TURN] : turns;
 }
 
-/**
- * What an unpaired TV shows (#49): its code, or why it has none (`too_many` while device-pair refuses for a while,
- * `window_closed` while the venue pairs only after staff press Pair a TV, #325).
- */
-export type TvPairing = { status: 'loading' } | { status: 'code'; code: TvCode } | { status: 'too_many' } | { status: 'window_closed' }
-  | { status: 'unavailable' };
-
-const PAIRING_REFUSALS = ['too_many', 'window_closed'] as const;
+/** What an unpaired TV shows (#49): its code at once (the owner, 22 Nov), or why it has none (`too_many` while device-pair refuses for a while). */
+export type TvPairing = { status: 'loading' } | { status: 'code'; code: TvCode } | { status: 'too_many' } | { status: 'unavailable' };
 
 /**
  * The signed-in TV: its name on the console, and the boards it shows in order, its own and those it turns to (decision
@@ -65,6 +59,8 @@ export interface VenueTv {
   readonly mode: TvMode | null;
   /** The boards it turns to after its main one, in order. */
   readonly rotation: readonly TvMode[];
+  /** The tables its call time board shows; none is every table (the owner, 22 Nov). */
+  readonly tables: readonly string[];
   /** When it last reported in; null if it has not yet. */
   readonly lastSeenAt: string | null;
   /** It reported in within the last few minutes. */
@@ -134,12 +130,9 @@ export function useTvPairing(): TvPairing {
     // A code is renewed when device-pair says it has run out (useClaimCheck), not by the TV's own
     // clock, which may be wrong.
     refetchInterval: (query) => (query.state.data?.ok ? false : ASK_AGAIN),
-    queryFn: async (): Promise<Result<TvCode, 'too_many' | 'window_closed' | 'unavailable'>> => {
+    queryFn: async (): Promise<Result<TvCode, 'too_many' | 'unavailable'>> => {
       const { data, error } = await client.functions.invoke('device-pair', { body: { tv: 'start' } });
-      if (error) {
-        const code = await functionErrorCode(error);
-        return err(PAIRING_REFUSALS.find((refusal) => refusal === code) ?? 'unavailable');
-      }
+      if (error) return err((await functionErrorCode(error)) === 'too_many' ? 'too_many' : 'unavailable');
       const code = toTvCode(data);
       return code === null ? err('unavailable') : ok(code);
     },
@@ -209,7 +202,7 @@ export function useVenueTvs(venueId: string) {
     queryFn: async (): Promise<VenueTv[]> => {
       const [devices, screens, heartbeats] = await Promise.all([
         client.from('device').select('id, name, auth_user_id').eq('venue_id', venueId).eq('kind', 'tv').is('revoked_at', null).order('name').limit(LIST_MOST),
-        client.from('tv_screen').select('device_id, mode, rotation').eq('venue_id', venueId).limit(LIST_MOST),
+        client.from('tv_screen').select('device_id, mode, rotation, tables').eq('venue_id', venueId).limit(LIST_MOST),
         client.from('tv_heartbeat').select('device_id, last_seen_at').eq('venue_id', venueId).limit(LIST_MOST),
       ]);
       if (devices.error) throw devices.error;
@@ -222,7 +215,7 @@ export function useVenueTvs(venueId: string) {
         const screen = screenOf.get(device.id);
         return {
           deviceId: device.id, name: device.name, isPaired: device.auth_user_id !== null, mode: screen === undefined ? null : boardOf(screen.mode),
-          rotation: screen?.rotation.filter(isBoard) ?? [], lastSeenAt,
+          rotation: screen?.rotation.filter(isBoard) ?? [], tables: screen?.tables ?? [], lastSeenAt,
           isOnline: lastSeenAt !== null && Date.now() - Date.parse(lastSeenAt) < ONLINE_WITHIN,
         };
       });
@@ -231,10 +224,10 @@ export function useVenueTvs(venueId: string) {
 }
 
 /**
- * What staff with tvs.manage do with TVs: `pair` one by the code it shows, with a name and mode
- * (ok with its device id); change what one shows (`setMode`) and the boards it turns to after that (`setRotation`, decision
- * 0163); `unpair` one, with the reason. Each
- * resolves to a Result and reloads the list.
+ * What staff with tvs.manage do with TVs: `pair` one by the code it shows, with a name, its boards in order (the first its
+ * main one) and its tables (ok with its device id; the owner, 22 Nov); change what one shows (`setMode`), the boards it turns
+ * to after that (`setRotation`, decision 0163) and the tables its call time board shows (`setTables`, none for every table);
+ * `unpair` one, with the reason. Each resolves to a Result and reloads the list.
  */
 export function useTvActions(venueId: string) {
   const { client, userId } = useRivrData();
@@ -244,8 +237,10 @@ export function useTvActions(venueId: string) {
     return error ? err(TV_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(value);
   };
   const pair = useMutation({
-    mutationFn: async ({ code, name, mode }: { code: string; name: string; mode: TvMode }) => {
-      const { data, error } = await client.rpc('claim_tv_pairing', { p_venue_id: venueId, p_code: code, p_name: name.trim(), p_mode: mode });
+    mutationFn: async ({ code, name, boards, tables }: { code: string; name: string; boards: readonly TvMode[]; tables: readonly string[] }) => {
+      const { data, error } = await client.rpc('claim_tv_pairing', {
+        p_venue_id: venueId, p_code: code, p_name: name.trim(), p_boards: [...boards], p_tables: [...tables],
+      });
       return settle(data ?? '', error);
     },
   });
@@ -257,48 +252,14 @@ export function useTvActions(venueId: string) {
     mutationFn: async ({ deviceId, rotation }: { deviceId: string; rotation: readonly TvMode[] }) =>
       settle(null, (await client.rpc('set_tv_rotation', { p_device_id: deviceId, p_rotation: [...rotation] })).error),
   });
+  const setTables = useMutation({
+    mutationFn: async ({ deviceId, tables }: { deviceId: string; tables: readonly string[] }) =>
+      settle(null, (await client.rpc('set_tv_tables', { p_device_id: deviceId, p_tables: [...tables] })).error),
+  });
   const unpair = useMutation({
     // As a tablet is revoked (#41): the database unlinks the TV's login, and 'now' is the database's time.
     mutationFn: async ({ deviceId, reason }: { deviceId: string; reason: string }) =>
       settle(null, (await client.from('device').update({ revoked_at: 'now', revoked_reason: reason.trim() }).eq('id', deviceId)).error),
   });
-  return { pair, setMode, setRotation, unpair };
-}
-
-/** How the venue pairs TVs (#325): only in a window after Pair a TV, and until when one is open; null while unknown. */
-export interface TvPairingPolicy {
-  readonly isWindowOnly: boolean;
-  readonly openUntil: string | null;
-}
-
-/** The venue's TV pairing policy, for staff who manage TVs. */
-export function useTvPairingPolicy(venueId: string) {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: queryKeys.tvPairingPolicy(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
-    queryFn: async (): Promise<TvPairingPolicy | null> => {
-      const { data, error } = await client.rpc('tv_pairing_policy', { p_venue_id: venueId }).limit(LIST_MOST);
-      if (error) throw error;
-      const row = data[0];
-      return row ? { isWindowOnly: row.is_window_only, openUntil: row.open_until } : null;
-    },
-  });
-}
-
-/** The owner switches window-only pairing (`setWindowOnly`); staff who manage TVs press Pair a TV (`openWindow`). Each a Result. */
-export function useTvPairingActions(venueId: string) {
-  const { client, userId } = useRivrData();
-  const queryClient = useQueryClient();
-  const settle = async (error: { code: string } | null): Promise<Result<null, TvFailure>> => {
-    await queryClient.invalidateQueries({ queryKey: queryKeys.tvPairingPolicy(userId ?? 'signed-out', venueId) });
-    return error ? err(TV_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
-  };
-  const setWindowOnly = useMutation({
-    mutationFn: async (isOn: boolean) => settle((await client.rpc('set_tv_pairing_window_only', { p_venue_id: venueId, p_is_on: isOn })).error),
-  });
-  const openWindow = useMutation({
-    mutationFn: async () => settle((await client.rpc('open_tv_pairing_window', { p_venue_id: venueId })).error),
-  });
-  return { setWindowOnly, openWindow };
+  return { pair, setMode, setRotation, setTables, unpair };
 }

@@ -1,7 +1,8 @@
 import { useMySeatActions, type MySeat, type MySeatFailure } from '@rivr/db';
+import { clockTimeAfter, nearestClockMoment } from '@rivr/domain/clubDay';
 import { formatDuration, formatTime, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Sheet, Stack, Text, useIsOnline, useToast } from '@rivr/ui';
-import { useId, useState } from 'react';
+import { Button, ErrorMessage, Input, Sheet, Stack, Text, useIsOnline, useToast } from '@rivr/ui';
+import { useRef, useState } from 'react';
 
 /** The sheet open from the seat: a top-up, setting the call time (`addTime`, as a push's link names it), or leaving. */
 export type SeatSheet = 'topUp' | 'addTime' | 'leave';
@@ -41,76 +42,48 @@ function TopUpSheet({ onClose }: SheetProps) {
   );
 }
 
-/**
- * The line under the lengths: when the chosen one ends (from now until set, from the call time's end once set, #1076), and,
- * with any greyed out, why (`id`, which the lengths name as their description).
- */
-function CallTimeLine({ id, choice, from, why }: { id: string; choice: number | null; from: Date | null; why: string | null }) {
-  return (
-    <Stack gap={1}>
-      {choice === null || from === null ? null : <Text tone="muted">{t('player.live.seat.callTimeEnds', { time: formatTime(new Date(from.getTime() + choice * 60_000)) })}</Text>}
-      {why === null ? null : <Text id={id} tone="muted">{why}</Text>}
-    </Stack>
-  );
+/** The time picked as a moment, the one the clock shows nearest now, or why it is refused: none picked, or not after `after`. */
+function pickedUntil(time: string, now: Date, after: Date): { until: Date } | { error: string } {
+  const until = nearestClockMoment(time, now);
+  if (until === null) return { error: t('player.live.seat.pickTime') };
+  return until > after ? { until } : { error: t('player.live.seat.pickAfter', { time: formatTime(after) }) };
 }
 
 /**
- * Why any length is greyed, and what the lengths name as their description (#1099): until set, a length would end before
- * the call time owed now; once set, it would take the call time past its 24 hours, and Extend's note describes them too.
+ * "Set call time" (the owner, 17 Nov; #1059), then "Extend call time" (18 Nov; #1076), to a time on the clock (22 Nov): the
+ * phone's own picker, the time it must be later than under it (the minimum playing time's end until set, the current end
+ * once set) and Extend's note (#1089). The time is the one the clock shows nearest now: 01:30 picked at 23:50 is tonight's,
+ * and 22:00 picked at 22:44 has gone by. Owed at once, with no floor approval; the seat then says until when, and the floor
+ * is told. Each time picked has its own request id, so a retry after a lost answer sets it once.
  */
-function callTimeHelp(seat: MySeat, secondsLeft: number, now: Date, ids: { why: string; note: string }) {
-  const isSet = seat.callTimeSetAt !== null;
-  const why = seat.addTimeChoices.every((minutes) => seat.callTimeChoicesOpen.includes(minutes)) ? null
-    : isSet ? t('player.live.seat.extendPastMost') : t('player.live.seat.callTimeNotBefore', { time: formatTime(new Date(now.getTime() + secondsLeft * 1000)) });
-  const describedBy = [why === null ? '' : ids.why, isSet ? ids.note : ''].filter((id) => id !== '').join(' ');
-  return { why, describedBy: describedBy === '' ? undefined : describedBy };
-}
-
-/** Where a length counts from (#1076): now until a call time is set; once set, the end of it while it runs, else now. */
-function choiceFrom(seat: MySeat, now: Date): Date | null {
-  if (seat.callTimeSetAt === null) return now;
-  if (seat.callTimeEndsAt === null) return null;
-  const end = new Date(seat.callTimeEndsAt);
-  return end > now ? end : now;
-}
-
-/**
- * "Set call time" (the owner, 17 Nov; #1059), then "Extend call time" (18 Nov; #1076): every length the club offers
- * (call_time.add_choices to set; call_time.extend_choices to extend, beyond the current end, #1089). Until set, a length counts from now, and one ending no later than the call time the seat
- * started with is greyed out, the line under them (which they name as their description) saying why; once set, a length
- * extends it. Owed at once, with no floor approval; the seat then says until when, and the floor is told. An hour is
- * chosen first where it is open. The times move with the clock (`now`) while the sheet is open.
- */
-function SetCallTimeSheet({ seat, secondsLeft, now, onClose }: SheetProps & { seat: MySeat; secondsLeft: number; now: Date }) {
+function SetCallTimeSheet({ seat, now, onClose }: SheetProps & { seat: MySeat; now: Date }) {
   const { setCallTime } = useMySeatActions();
   const toast = useToast();
   const send = useSend(onClose);
-  const whyId = useId();
-  const noteId = useId();
   const isSet = seat.callTimeSetAt !== null;
-  const isOpen = (minutes: number) => seat.callTimeChoicesOpen.includes(minutes);
-  const choices = seat.addTimeChoices;
-  // Set or Extend in words, and why any length is greyed (#1099).
   const action = t(isSet ? 'player.live.seat.extendCallTime' : 'player.live.seat.setCallTime');
-  const { why, describedBy } = callTimeHelp(seat, secondsLeft, now, { why: whyId, note: noteId });
-  const [choice, setChoice] = useState(choices.find((minutes) => minutes === 60 && isOpen(minutes)) ?? choices.find(isOpen) ?? null);
-  const [requestId] = useState(() => crypto.randomUUID());
-  const set = async (minutes: number) => {
-    const outcome = await setCallTime.mutateAsync({ minutes, requestId });
+  const after = seat.callTimeAfterAt === null ? now : new Date(seat.callTimeAfterAt);
+  // The time to beat, and once set Extend's note (#1089), both the field's description (#1099).
+  const hint = [t('player.live.seat.callTimeAfter', { time: formatTime(after) }), isSet ? t('player.live.seat.extendNote') : ''].join(' ').trim();
+  const [time, setTime] = useState(() => clockTimeAfter(after, 5));
+  const [error, setError] = useState<string | null>(null);
+  const requestIds = useRef(new Map<string, string>());
+  const set = async () => {
+    const picked = pickedUntil(time, now, after);
+    if ('error' in picked) return setError(picked.error);
+    const key = picked.until.toISOString();
+    const requestId = requestIds.current.get(key) ?? crypto.randomUUID();
+    requestIds.current.set(key, requestId);
+    const outcome = await setCallTime.mutateAsync({ until: picked.until, requestId });
     if (outcome.ok) toast(t(isSet ? 'player.live.seat.callTimeExtended' : 'player.live.seat.callTimeSet'));
     send.settle(outcome);
   };
   return (
     <Sheet isOpen onClose={onClose} title={action}>
       <Stack gap={4}>
-        <ChoiceChips label={action} isLabelVisuallyHidden look="tile" mode="one" selected={choice === null ? [] : [String(choice)]}
-          describedBy={describedBy}
-          options={choices.map((minutes) => ({ value: String(minutes), label: formatDuration(minutes * 60), isDisabled: !isOpen(minutes) }))}
-          onChange={([value]) => setChoice(choices.find((minutes) => String(minutes) === value) ?? choice)} />
-        <CallTimeLine id={whyId} choice={choice} from={choiceFrom(seat, now)} why={why} />
-        {isSet ? <Text id={noteId} variant="caption" tone="muted">{t('player.live.seat.extendNote')}</Text> : null}
-        <Button variant="primary" size="tall" fullWidth isDisabled={send.isOffline || choice === null} isLoading={setCallTime.isPending}
-          onClick={() => { if (choice !== null) void set(choice); }}>
+        <Input variant="inset" type="time" label={t('player.live.seat.until')} value={time} error={error ?? undefined} hint={hint}
+          onChange={(event) => { setTime(event.target.value); setError(null); }} />
+        <Button variant="primary" size="tall" fullWidth isDisabled={send.isOffline} isLoading={setCallTime.isPending} onClick={() => void set()}>
           {action}
         </Button>
         {send.notice}
@@ -150,7 +123,7 @@ export function SeatSheets({ open, seat, secondsLeft, now = new Date(), onClose 
   open: SeatSheet | null; seat: MySeat; secondsLeft: number; now?: Date; onClose: () => void;
 }) {
   if (open === 'topUp') return <TopUpSheet onClose={onClose} />;
-  if (open === 'addTime') return <SetCallTimeSheet seat={seat} secondsLeft={secondsLeft} now={now} onClose={onClose} />;
+  if (open === 'addTime') return <SetCallTimeSheet seat={seat} now={now} onClose={onClose} />;
   if (open === 'leave') return <LeaveSheet seat={seat} secondsLeft={secondsLeft} onClose={onClose} />;
   return null;
 }

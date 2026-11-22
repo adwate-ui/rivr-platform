@@ -128,10 +128,10 @@ grant select on yash to authenticated;
 update public.seat_session set started_at = pg_temp.ago(170), seated_here_at = pg_temp.ago(170) where id = (select id from yash);
 -- A host may not undo an addition; the manager's undo marks it undone, never asked for.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select public.add_seat_call_time((select id from yash), 30, '29600000-0000-4000-8000-000000000003');
+select public.add_seat_call_time((select id from yash), now() + interval '30 minutes', '29600000-0000-4000-8000-000000000003');
 reset role;
 select is((select row(call_time_minutes, call_time_set_at is not null)::text from public.seat_session where id = (select id from yash)), '(200,t)',
-  'thirty minutes added two hours fifty in: three hours twenty, and set');
+  'a time half an hour on, set two hours fifty in: three hours twenty, and set');
 create temp table added on commit drop as select id from public.call_time_request where idempotency_key = '29600000-0000-4000-8000-000000000003';
 grant select on added to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
@@ -143,7 +143,7 @@ select is((select row(status, call_time_minutes, call_time_set_at is null)::text
            where r.id = (select id from added)), '(undone,180,t)', 'undone: three hours again, and no call time set');
 -- Not the latest decision of the seat, or of three minutes ago: stays.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select public.add_seat_call_time((select id from yash), 30, '29600000-0000-4000-8000-000000000004');
+select public.add_seat_call_time((select id from yash), now() + interval '30 minutes', '29600000-0000-4000-8000-000000000004');
 reset role;
 create temp table asked on commit drop as select id from public.call_time_request where idempotency_key = '29600000-0000-4000-8000-000000000004';
 grant select on asked to authenticated;
@@ -151,7 +151,7 @@ grant select on asked to authenticated;
 update public.call_time_request set decided_at = decided_at - interval '1 second', requested_at = requested_at - interval '1 second'
 where id = (select id from asked);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select public.add_seat_call_time((select id from yash), 30, gen_random_uuid());
+select public.add_seat_call_time((select id from yash), now() + interval '1 hour', gen_random_uuid());
 select throws_ok($$ select public.undo_call_time((select id from asked)) $$, '22023', null, 'a later addition: the first stays');
 reset role;
 update public.call_time_request set requested_at = pg_temp.ago(3), decided_at = pg_temp.ago(3) where id = (select id from asked);
@@ -227,7 +227,7 @@ reset role;
 grant select on practice to authenticated;
 update public.seat_session set started_at = pg_temp.ago(170), seated_here_at = pg_temp.ago(170) where id = (select id from practice);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select public.add_seat_call_time((select id from practice), 30, '29600000-0000-4000-8000-000000000006');
+select public.add_seat_call_time((select id from practice), now() + interval '30 minutes', '29600000-0000-4000-8000-000000000006');
 reset role;
 create temp table practice_ask on commit drop as select id from public.call_time_request where idempotency_key = '29600000-0000-4000-8000-000000000006';
 grant select on practice_ask to authenticated;

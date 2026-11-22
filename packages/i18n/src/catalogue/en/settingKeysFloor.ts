@@ -1,21 +1,10 @@
 /** The rules under Settings, Floor, as staff read them: see settingKeys.ts. Apart to hold that file to its size. */
 export const floorSettingKeys = {
+  /** The stake's minimum playing time, as Tables setup and the seat sheets name it (the owner, 22 Nov). */
   'call_time.minutes': {
-    name: 'Call time',
+    name: 'Minimum playing time',
     help: 'Least time at the table, per stake',
     fields: { minutes: 'Minutes' },
-  },
-  'call_time.add_choices': {
-    name: 'Set call time choices',
-    help: 'Lengths to set a call time by',
-    fields: { minutes: 'Lengths offered' },
-  },
-  /** Its own list since 19 Nov (#1089): the member's Extend and the floor's alike. */
-  'call_time.extend_choices': {
-    name: 'Extend call time choices',
-    help: 'Lengths to extend a set call time by',
-    hints: { minutes: 'Extend adds time beyond the current end.' },
-    fields: { minutes: 'Lengths offered' },
   },
   'fnb.enabled': {
     name: 'Orders',

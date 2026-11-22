@@ -1,7 +1,7 @@
--- More call time in lengths the club types (redesign RD-19): the setting takes whole minutes from 1 to 1,440, up to twelve;
--- a member sets any length offered and the floor adds one, however odd, by the one rule (#1076). Ishaan (211) sits at Table 5 with three hours;
--- 103 is a floor manager (admin). The rule itself is proved on the golden file (024); the choices from before, kept as text,
--- in 277.
+-- A call time's request holds a length of whole minutes, never nought or more than a day, and a stake's call time written with
+-- a point is the whole number it is (redesign RD-19). The lengths the club once typed (call_time.add_choices) went when call
+-- time came to be set to a time (the owner, 22 Nov; 526 and 277). Ishaan (211) sits at Table 5 with three hours; 103 is a
+-- floor manager (admin).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -13,32 +13,8 @@ $$;
 create function pg_temp.session() returns public.seat_session language sql as $$
   select * from public.seat_session where member_id = '00000000-0000-4000-8000-000000000211' and ended_at is null;
 $$;
--- A value for the club's lengths, set from tomorrow, so each try stands alone.
-create function pg_temp.set_lengths(p_minutes jsonb, p_days integer) returns void language sql as $$
-  insert into public.setting (venue_id, key, subject, value, effective_from, reason)
-  values ('00000000-0000-4000-8000-000000000001', 'call_time.add_choices', '', jsonb_build_object('minutes', p_minutes), now() + make_interval(days => p_days), 'test 424');
-$$;
 grant execute on function pg_temp.as_person(text), pg_temp.session() to authenticated;
 
--- What the setting takes.
-select set_config('request.jwt.claims', '', true);
-select lives_ok($$ select pg_temp.set_lengths('[1, 50, 1440]', 1) $$, 'any whole minutes from 1 to a day are a setting');
-select lives_ok($$ select pg_temp.set_lengths('[10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]', 2) $$, 'up to twelve of them');
-select throws_ok($$ select pg_temp.set_lengths('[10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130]', 3) $$, null, null, 'not thirteen');
-select throws_ok($$ select pg_temp.set_lengths('[]', 3) $$, null, null, 'nor none at all');
-select throws_ok($$ select pg_temp.set_lengths('[0]', 3) $$, null, null, 'nought minutes is no length');
-select throws_ok($$ select pg_temp.set_lengths('[1441]', 3) $$, null, null, 'nor a minute past a day');
-select throws_ok($$ select pg_temp.set_lengths('[45.5]', 3) $$, null, null, 'nor half a minute');
-select throws_ok($$ select pg_temp.set_lengths('["50"]', 3) $$, null, null, 'nor a length as text, as the ticked presets were kept');
-
--- The club types 50 minutes and 3 hours 20: the seat offers them, shortest first. A length written with a point (50.0) is a
--- whole number to the schema, and one typed twice is offered once.
-insert into public.setting (venue_id, key, subject, value, effective_from, reason)
-values ('00000000-0000-4000-8000-000000000001', 'call_time.add_choices', '', '{"minutes": [200, 50.0, 200]}', '-infinity', 'test 424'),
--- The same lengths to extend by (#1089: Extend has a list of its own, copied from Set's as the lists were split).
-       ('00000000-0000-4000-8000-000000000001', 'call_time.extend_choices', '', '{"minutes": [200, 50]}', '-infinity', 'test 424');
-insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'call_time.view', true, 'test 424');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.seat_member((select id from public.game_table where name = 'Table 5' and venue_id = '00000000-0000-4000-8000-000000000001'),
                      2, p_member_number => (select member_number from public.member where id = '00000000-0000-4000-8000-000000000211'),
@@ -47,24 +23,11 @@ reset role;
 create temp table sess on commit drop as select (pg_temp.session()).id as id;
 grant select on sess to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is(public.add_time_choices('00000000-0000-4000-8000-000000000001'), array[50, 200], 'the floor is offered 50 minutes and 3 hours 20');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select is((select add_time_choices from public.my_seat()), array[50, 200], 'and so is the seat');
-
--- The member sets a length offered, which was no preset; one not offered is refused as before, and one ending before the
--- three hours too.
-select throws_ok($$ select public.set_my_call_time(60, gen_random_uuid()) $$, 'RVCTC', null, 'an hour is not offered');
-select throws_ok($$ select public.set_my_call_time(50, gen_random_uuid()) $$, 'RVCTE', null, '50 minutes from now end before the three hours');
-select is(public.set_my_call_time(200, gen_random_uuid()), 200, 'he sets 3 hours 20 from now');
+select lives_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '200 minutes', gen_random_uuid()) $$,
+  'a floor manager sets a time 3 hours 20 from now');
 reset role;
 select is((pg_temp.session()).call_time_minutes, 200, 'three hours and 20 minutes');
-
--- The floor adds the other length itself, extending it.
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select lives_ok($$ select public.add_seat_call_time((select id from sess), 50, gen_random_uuid()) $$, 'a floor manager adds 50 minutes');
-reset role;
-select is((pg_temp.session()).call_time_minutes, 250, '4 hours 10 in all');
-select is((select array_agg(minutes order by minutes) from public.call_time_request where session_id = (select id from sess)), array[50, 200], 'each request keeps its length');
+select is((select array_agg(minutes) from public.call_time_request where session_id = (select id from sess)), array[200], 'its request keeps the length to the time');
 
 -- A request holds a length, never nought or more than a day.
 select throws_ok($$ update public.call_time_request set minutes = 0 where session_id = (select id from sess) $$, '23514', null, 'a request is never for nought minutes');

@@ -54,7 +54,7 @@ describe('the stakes on Tables setup (redesign RD-17)', () => {
     type(panel, 'Stake name', 'Highest');
     type(panel, 'Small blind', '5000000');
     type(panel, 'Big blind', '10000050');
-    type(panel, 'Call time', '240');
+    type(panel, 'Minimum playing time', '240');
     fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
     expect(await within(panel).findByText('Check the name, blinds, straddle and call time.')).toBeDefined();
     expect(sent).toEqual([]);
@@ -74,7 +74,7 @@ describe('the stakes on Tables setup (redesign RD-17)', () => {
     type(panel, 'Small blind', '100');
     type(panel, 'Big blind', '200');
     type(panel, /^Straddle/, '200');
-    type(panel, 'Call time', '240');
+    type(panel, 'Minimum playing time', '240');
     fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
     expect(await within(panel).findByText('Check the name, blinds, straddle and call time.')).toBeDefined();
     expect(sent).toEqual([]);
@@ -98,7 +98,7 @@ describe('the stakes on Tables setup (redesign RD-17)', () => {
     fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
     expect(await within(panel).findByText('Check the name, blinds, straddle and call time.')).toBeDefined();
     // Editing a field takes the refusal away until the next Save.
-    type(panel, 'Call time', '1441');
+    type(panel, 'Minimum playing time', '1441');
     expect(within(panel).queryByText('Check the name, blinds, straddle and call time.')).toBeNull();
     expect(within(panel).getByText('Between 1 and 1,440 minutes.')).toBeDefined();
     fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
@@ -109,9 +109,9 @@ describe('the stakes on Tables setup (redesign RD-17)', () => {
     const sent = renderStakes();
     fireEvent.click(within(rowOf('Private Room')).getByRole('button', { name: 'Change stake Private Room' }));
     const panel = screen.getByRole('dialog', { name: 'Change stake Private Room' });
-    expect(['Stake name', 'Small blind', 'Big blind', /^Straddle/, 'Call time'].map((field) => within(panel).getByRole('textbox', { name: field }).getAttribute('value')))
+    expect(['Stake name', 'Small blind', 'Big blind', /^Straddle/, 'Minimum playing time'].map((field) => within(panel).getByRole('textbox', { name: field }).getAttribute('value')))
       .toEqual(['Private Room', '100', '200', '500', '240']);
-    type(panel, 'Call time', '300');
+    type(panel, 'Minimum playing time', '300');
     fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(sent).toEqual([{ rpc: 'set_table_type', body: {
       p_type_id: 's2', p_name: 'Private Room', p_small_blind_paise: 10000, p_big_blind_paise: 20000, p_straddle_paise: 50000, p_call_time_minutes: 300,
@@ -164,8 +164,8 @@ describe('the stakes on Tables setup (redesign RD-17)', () => {
     const sent = renderStakes({}, { canSetCallTime: false });
     fireEvent.click(screen.getByRole('button', { name: 'New stake' }));
     const panel = screen.getByRole('dialog', { name: 'New stake' });
-    expect(within(panel).queryByRole('textbox', { name: 'Call time' })).toBeNull();
-    expect(within(panel).getByText('Call time: not in your role. Ask an admin.')).toBeDefined();
+    expect(within(panel).queryByRole('textbox', { name: 'Minimum playing time' })).toBeNull();
+    expect(within(panel).getByText('Minimum playing time: not in your role. Ask an admin.')).toBeDefined();
     type(panel, 'Stake name', '300/600');
     type(panel, 'Small blind', '300');
     type(panel, 'Big blind', '600');

@@ -60,7 +60,7 @@ describe('every setting the contracts declare, as the Settings screen shows it',
   it('shows each setting in one group of one tab, in this order (redesign RD-18)', () => {
     expect(Object.fromEntries(Object.values(AREA_GROUPS).flat().map((group) => [group, keysOf(group)]))).toEqual({
       seating: ['waitlist.hold_minutes', 'waitlist.interest_to_open', 'waitlist.priority_weights', 'floor.request_targets'],
-      time: ['call_time.minutes', 'call_time.add_choices', 'call_time.extend_choices'],
+      time: ['call_time.minutes'],
       identity: ['kyc.at_the_club', 'kyc.aadhaar_covers'],
       fnb: ['fnb.enabled'],
       bonus: ['bonus.expiry_days', 'bonus.daily_staff_cap', 'bonus.by_hand_cap', 'bonus.visit_cap'],

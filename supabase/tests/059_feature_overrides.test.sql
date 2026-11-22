@@ -66,7 +66,9 @@ select is_empty($$ select id from public.member_feature_override $$, 'a host see
 select is_empty($$ select * from public.member_feature_overrides('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202') $$,
   'nor through the record');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000110');
-select is_empty($$ select id from public.member_feature_override $$, 'nor does a membership manager');
+select is_empty($$ select id from public.member_feature_override $$, 'nor does a membership manager, from the table');
+select is((select count(*)::integer from public.member_feature_overrides('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202')), 2,
+  'but reads them on the record, to view, as staff who read mobiles do (the owner, 22 Nov)');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000202');
 select is((select count(*)::integer from public.member_feature_override), 2, 'Kabir sees that his own exist');
 select throws_ok($$ select reason from public.member_feature_override $$, '42501', null, 'but never why');

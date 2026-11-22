@@ -85,24 +85,36 @@ export const playerLive = {
     nextBonusIn: 'in {time}',
     seatedToast: 'Seated at {table}, seat {seat}',
   },
+  /** The others at the member's table and their call time (the owner, 22 Nov): `Seat 3 · Ritika`, then `Until 23:40`. */
+  tablemates: {
+    title: 'At your table',
+    seatName: 'Seat {seat} · {name}',
+    seat: 'Seat {seat}',
+    until: 'Until {time}',
+    notSet: 'Not set',
+    away: 'Away',
+    done: 'Done',
+  },
   /** What the member does from the seat (brief 3.4 E): three round actions, each a sheet, then food and drink. */
   seat: {
     topUp: 'Top up',
-    /** The member sets their call time from now, a length the club offers, with no floor approval (#1059). */
+    /** The member sets their call time to a time on the clock, with no floor approval (#1059; the owner, 22 Nov). */
     setCallTime: 'Set call time',
-    /** Once set, a length extends it (#1076). */
+    /** Once set, a later time extends it (#1076). */
     extendCallTime: 'Extend call time',
-    /** Under Extend's lengths (#1089, the owner, 19 Nov). */
+    /** Under Extend's time (#1089, the owner, 19 Nov). */
     extendNote: 'Extend adds time beyond the current end.',
     leave: 'Leave seat',
     requestTopUp: 'Request top-up',
     cancel: 'Cancel',
-    /** Under the lengths: when the one chosen ends, `Until 00:10`. */
-    callTimeEnds: 'Until {time}',
-    /** Under lengths greyed out because they end before the call time owed: `Can't end before 23:40.` */
-    callTimeNotBefore: "Can't end before {time}.",
-    /** Under Extend's lengths closed because they would take the call time past its most (1,440 minutes, #1099). */
-    extendPastMost: "Call time can't pass 24 hours.",
+    /** The time field: the time the call time runs until. */
+    until: 'Until',
+    /** Under it: the time it must be later than, the minimum playing time's end until set, the current end once set. */
+    callTimeAfter: 'After {time}.',
+    /** A time picked not after it. */
+    pickAfter: 'Pick a time after {time}.',
+    /** A time field left empty. */
+    pickTime: 'Pick a time.',
     /** Set or extended: the seat then says until when. */
     callTimeSet: 'Call time set',
     callTimeExtended: 'Call time extended',

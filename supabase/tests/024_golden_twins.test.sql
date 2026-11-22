@@ -151,18 +151,26 @@ select results_eq(
   $$ select description, nullif(expected ->> 'minutes', '')::integer from golden.golden_case where file = 'callTimeExtension.json' order by position $$,
   'private.extended_call_time gives every call time in the golden file, and refuses every refusal');
 
--- A length of call time chosen for a seat, set or extended by the member or added by the floor:
--- private.call_time_choice_end and @rivr/domain callTimeChoiceEnd (packages/testing/golden/callTimeChoice.json, #1076).
--- The SQL refuses with null, whatever the reason.
-select ok((select count(*) > 0 from golden.golden_case where file = 'callTimeChoice.json'), 'the call time choice cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'callTimeChoice.json' and operation <> 'choose' $$,
-  'every operation in callTimeChoice.json is proved here');
+-- A call time set or extended to a time, by the member or by the floor: private.call_time_until and
+-- private.call_time_opens_after, and @rivr/domain callTimeUntil and callTimeOpensAfter (packages/testing/golden/callTimeUntil.json,
+-- the owner, 22 Nov). The SQL refuses with null, whatever the reason.
+select ok((select count(*) > 0 from golden.golden_case where file = 'callTimeUntil.json'), 'the call time to a time cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'callTimeUntil.json' and operation not in ('until', 'opens') $$,
+  'every operation in callTimeUntil.json is proved here');
 select results_eq(
-  $$ select description, private.call_time_choice_end((inputs ->> 'current')::integer, (inputs ->> 'played')::integer,
-                                                      (inputs ->> 'initial')::integer, inputs ->> 'set' = 'yes', (inputs ->> 'length')::integer)
-     from golden.golden_case where file = 'callTimeChoice.json' order by position $$,
-  $$ select description, nullif(expected ->> 'minutes', '')::integer from golden.golden_case where file = 'callTimeChoice.json' order by position $$,
-  'private.call_time_choice_end gives every call time in the golden file, and refuses every refusal');
+  $$ select description, private.call_time_until((inputs ->> 'current')::integer, (inputs ->> 'played')::integer,
+                                                 (inputs ->> 'initial')::integer, inputs ->> 'set' = 'yes', (inputs ->> 'ahead')::numeric)
+     from golden.golden_case where file = 'callTimeUntil.json' and operation = 'until' order by position $$,
+  $$ select description, nullif(expected ->> 'minutes', '')::integer
+     from golden.golden_case where file = 'callTimeUntil.json' and operation = 'until' order by position $$,
+  'private.call_time_until gives every call time in the golden file, and refuses every refusal');
+select results_eq(
+  $$ select description, private.call_time_opens_after((inputs ->> 'current')::integer, (inputs ->> 'played')::integer,
+                                                       (inputs ->> 'initial')::integer, inputs ->> 'set' = 'yes')
+     from golden.golden_case where file = 'callTimeUntil.json' and operation = 'opens' order by position $$,
+  $$ select description, nullif(expected ->> 'seconds', '')::integer
+     from golden.golden_case where file = 'callTimeUntil.json' and operation = 'opens' order by position $$,
+  'private.call_time_opens_after gives where every picked time opens in the golden file');
 
 -- A bonus: private.bonus_draws and private.bonus_expiring, and @rivr/domain bonusSpend and bonusExpired
 -- (packages/testing/golden/bonus.json). Grants are written "amount @ end | ...", the end "never" for one with none.

@@ -32,10 +32,11 @@ export interface SeatedPlayer {
   readonly callTimeEndsAt: string | null;
   /** Whether they owe their call time: one is due until a call time has been set and has run out (#1076). */
   readonly owesCallTime: boolean;
-  /** The lengths the seat offers by its state (#1089): the Set list until a call time is set, then the Extend list. */
-  readonly addTimeChoices: readonly number[];
-  /** Which of them may be given now, by the member's own rule (#1076). */
-  readonly callTimeChoicesOpen: readonly number[];
+  /**
+   * The time a call time set or extended must fall after, by the member's own rule (the owner, 22 Nov): the end of the
+   * minimum playing time until set, the current end once set, now once passed; null with no call time.
+   */
+  readonly callTimeAfterAt: string | null;
   /** Whether the member set or extended it last (the floor is told), not the floor's Add call time. */
   readonly isCallTimeSetByMember: boolean;
   /** The seat's latest call time change, so the floor is told of each once; null with none. */
@@ -105,7 +106,7 @@ export function useFloorSeats(venueId: string, isEnabled = true) {
         callTimeLeft: row.call_time_left, leavingAt: row.leaving_at,
         topUp: row.top_up === 'requested' || row.top_up === 'in_progress' ? row.top_up : null,
         callTimeSetAt: row.call_time_set_at, callTimeEndsAt: row.call_time_ends_at, owesCallTime: row.owes_call_time,
-        addTimeChoices: row.add_time_choices, callTimeChoicesOpen: row.call_time_choices_open, isCallTimeSetByMember: row.call_time_set_by_member === true,
+        callTimeAfterAt: row.call_time_after_at, isCallTimeSetByMember: row.call_time_set_by_member === true,
         callTimeChangeId: row.call_time_change_id,
       }));
     },
@@ -220,16 +221,16 @@ export function useSetSeatCallTime(venueId: string) {
 }
 
 /**
- * The floor's managers (call_time.override) add a length offered to a seated player's call time (decision 0305), by the
- * member's own rule (#1076): until set, it counts from now and ends after the call time the seat started with, and counts
- * as setting it; once set, it extends it. The same `requestId` again adds nothing more, so a retry after a lost answer is safe.
+ * The floor's managers (call_time.override) set or extend a seated player's call time to a time (decision 0305; the owner,
+ * 22 Nov), by the member's own rule: until set, the time falls after the minimum playing time, and counts as setting it;
+ * once set, after the current end. The same `requestId` again sets nothing more, so a retry after a lost answer is safe.
  */
 export function useAddCallTime(venueId: string) {
   const { client } = useRivrData();
   const settle = useSeatSettle(venueId);
   return useMutation({
-    mutationFn: async ({ sessionId, minutes, requestId }: { sessionId: string; minutes: number; requestId: string }) =>
-      settle((await client.rpc('add_seat_call_time', { p_session_id: sessionId, p_minutes: minutes, p_idempotency_key: requestId })).error),
+    mutationFn: async ({ sessionId, until, requestId }: { sessionId: string; until: Date; requestId: string }) =>
+      settle((await client.rpc('add_seat_call_time', { p_session_id: sessionId, p_until: until.toISOString(), p_idempotency_key: requestId })).error),
   });
 }
 

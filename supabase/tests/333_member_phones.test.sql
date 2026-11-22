@@ -30,8 +30,11 @@ select is((select phone from public.member_search('00000000-0000-4000-8000-00000
            where member_id = (select id from known)), null, 'search gives an admin no number');
 select is((select member_id from public.member_search('00000000-0000-4000-8000-000000000001', right((select phone from known), 10))),
           (select id from known), 'but still finds the member by digits of their number');
+select is((select phone from public.member_record('00000000-0000-4000-8000-000000000001', (select id from known))), (select phone from known),
+          'the record gives an admin the number, as it does the floor (members.phone; the owner, 22 Nov)');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
 select is((select phone from public.member_record('00000000-0000-4000-8000-000000000001', (select id from known))), null,
-          'the record gives an admin no number');
+          'and a host none');
 reset role;
 
 -- A member the desk may check in person, for the identity list's search.

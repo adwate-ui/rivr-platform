@@ -54,10 +54,11 @@ describe('the console rail (console v3)', () => {
     expect(items('admin')).not.toContain('/content');
   });
 
-  it('gives the floor the night, ID checks in person and TVs, and no member list or other admin screen', () => {
-    expect(items('floor')).toEqual(['/', '/waitlist', '/door', '/fnb', '/kyc-review', '/settings']);
+  it('gives the floor the night, Members to view (the owner, 22 Nov), ID checks in person and TVs, and no other admin screen', () => {
+    expect(items('floor')).toEqual(['/', '/waitlist', '/door', '/fnb', '/members', '/kyc-review', '/settings']);
     expect(items('cashier')).toEqual(['/', '/waitlist', '/door', '/settings']);
-    for (const kept of ['/tables', '/members', '/promotions', '/staff']) expect(isAllowedAt(ROLE_PERMISSIONS.floor, kept)).toBe(false);
+    for (const kept of ['/tables', '/promotions', '/staff']) expect(isAllowedAt(ROLE_PERMISSIONS.floor, kept)).toBe(false);
+    expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/members')).toBe(false);
     // Settings holds only its TVs tab for them (the owner, 3 Nov).
     expect(isAllowedAt(ROLE_PERMISSIONS.floor, '/settings', 'floor')).toBe(false);
   });

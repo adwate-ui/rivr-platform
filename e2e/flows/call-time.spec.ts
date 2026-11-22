@@ -23,17 +23,17 @@ async function ritikasRequest(floor: Page, kind: RegExp) {
 }
 
 test.describe('Call time', () => {
-  test('Tonight › Seated, Set call time, Top-up requested, Leaving list: an hour and a half, two hours she sets, a top-up; leaving before it needs an admin', async ({ browser }) => {
+  test('Tonight › Seated, Set call time, Top-up requested, Leaving list: an hour and a half, a time after it she sets, a top-up; leaving before it needs an admin', async ({ browser }) => {
     test.setTimeout(90_000);
     test.skip(isRemoteTarget(), 'seats a member and lets her go early, so the local stack only');
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000128');
-    // Seated with an hour and a half typed over the Private Room's own, so the club's lengths fall either side of it.
+    // Seated with a minimum playing time of an hour and a half typed over the Private Room's own (the owner, 22 Nov).
     await showSeats(floor);
     await tableTile(floor, 'Private Room').getByRole('button', { name: 'Seat 1, Open' }).click();
     const seating = floor.getByRole('dialog', { name: 'Seat a player' });
     await seating.getByRole('textbox', { name: /^(Or a n|N)ame, mobile or member number$/ }).fill('9000000215');
-    await seating.getByLabel('Call time', { exact: true }).fill('90');
+    await seating.getByLabel('Minimum playing time', { exact: true }).fill('90');
     await seating.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(floor.getByRole('button', { name: /^Seat 1, Ritika Das, (1 h 30 min|1 h 29 min)$/ })).toBeVisible();
 
@@ -45,14 +45,19 @@ test.describe('Call time', () => {
     await expect(player.getByText('Playing since')).toBeVisible();
     await expect(player.getByRole('timer')).toHaveCount(0);
 
-    // Set call time (#1059): 30 minutes and an hour would end before the hour and a half she owes; two hours from now are
-    // owed at once, with no request to the floor, and her seat's row says so.
+    // Set call time (#1059), to a time on the clock (the owner, 22 Nov): one now is before the hour and a half she owes, and is
+    // refused in the sheet; the five minutes after it, where the field starts, are owed at once, with no request to the floor,
+    // and her seat's row says so.
     await player.getByRole('button', { name: 'Set call time' }).click();
     const setting = player.getByRole('dialog', { name: 'Set call time' });
-    await expect(setting.getByRole('radio', { name: '30 min' })).toBeDisabled();
-    await expect(setting.getByRole('radio', { name: '1 h' })).toBeDisabled();
-    await expect(setting.getByRole('radio', { name: '2 h' })).toHaveAttribute('aria-checked', 'true');
-    await expect(setting.getByText(/^Can't end before \d\d:\d\d\.$/)).toBeVisible();
+    const after = setting.getByText(/^After \d\d:\d\d\.$/);
+    await expect(after).toBeVisible();
+    const until = setting.getByLabel('Until', { exact: true });
+    const offered = await until.inputValue();
+    await until.fill(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date()));
+    await setting.getByRole('button', { name: 'Set call time' }).click();
+    await expect(setting.getByText(/^Pick a time after \d\d:\d\d\.$/)).toBeVisible();
+    await until.fill(offered);
     await setting.getByRole('button', { name: 'Set call time' }).click();
     await expect(player.getByText(/^Call time until \d\d:\d\d$/).first()).toBeVisible();
     await expect(player.getByRole('button', { name: 'Extend call time' })).toBeVisible();

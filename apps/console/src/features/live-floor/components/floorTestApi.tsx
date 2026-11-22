@@ -30,15 +30,17 @@ export function tableRow(id: string, name: string, extra: Partial<{ is_open: boo
  */
 export function seatRow({ session, table, seat, name, ...extra }: {
   session: string; table: string; seat: number; name: string; left?: number | null; top_up?: string | null; leaving?: boolean;
-  owes?: boolean; set_at?: string | null; ends_at?: string | null; lengths?: number[]; open?: number[]; change?: string | null; by_member?: boolean | null;
+  owes?: boolean; set_at?: string | null; ends_at?: string | null; after?: string | null; change?: string | null; by_member?: boolean | null;
 }) {
   const left = extra.left === undefined ? 7200 : extra.left;
-  const call = { set_at: null, ends_at: null, owes: left !== null && left > 0, lengths: [30, 60, 120], open: [30, 60, 120], by_member: null, change: null, ...extra };
+  // A time opens once the call time left has run, by default: the minimum's end until set (the owner, 22 Nov).
+  const after = left === null ? null : new Date(NOW.getTime() + Math.max(left, 0) * 1000).toISOString();
+  const call = { set_at: null, ends_at: null, owes: left !== null && left > 0, after, by_member: null, change: null, ...extra };
   return {
     session_id: session, table_id: table, seat, member_id: `m-${session}`, full_name: name, tier_name: 'Black card', started_at: minutesAgo(60),
     must_move_order: null, away_since: null, call_time_left: left, leaving_at: extra.leaving === true ? minutesAgo(2) : null,
     top_up: extra.top_up ?? null, call_time_set_at: call.set_at, call_time_ends_at: call.ends_at, owes_call_time: call.owes,
-    call_time_choices_open: call.open, call_time_set_by_member: call.by_member, call_time_change_id: call.change, add_time_choices: call.lengths,
+    call_time_after_at: call.after, call_time_set_by_member: call.by_member, call_time_change_id: call.change,
   };
 }
 

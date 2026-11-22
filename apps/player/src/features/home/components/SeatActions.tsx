@@ -6,11 +6,11 @@ import type { SeatSheet } from './SeatSheets.tsx';
 import { lineOf, stakeOf } from './waitlistCopy.ts';
 
 /**
- * Whether the seat offers its call time action (#1076, the owner, 18 Nov): Set call time once a length the club offers would
- * end after the call time the seat started with; Extend call time once one is set. A seat with no call time has neither.
+ * Whether the seat offers its call time action (#1076, the owner, 18 Nov): Set call time until one is set, to a time after
+ * the minimum playing time (22 Nov); Extend call time once one is set. A seat with no call time has neither.
  */
 const callTimeAction = (seat: MySeat): 'set' | 'extend' | null => {
-  if (!seat.hasCallTime || seat.callTimeChoicesOpen.length === 0) return null;
+  if (!seat.hasCallTime || seat.callTimeAfterAt === null) return null;
   return seat.callTimeSetAt === null ? 'set' : 'extend';
 };
 

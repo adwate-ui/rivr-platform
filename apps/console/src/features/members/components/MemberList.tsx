@@ -18,8 +18,10 @@ interface ListProps {
   readonly onOpen: (memberId: string) => void;
   /** The element beside the screen's title that holds the table's Export, as the prototype has it; null until it is there. */
   readonly exportIn: HTMLElement | null;
-  /** Super admins (members.change_phone) see each full mobile number; other staff only search by its last four digits. */
+  /** The floor and up (members.phone) see each full mobile number (the owner, 22 Nov); other staff only search by its last four digits. */
   readonly seesPhone: boolean;
+  /** Super admins export the mobiles; the floor and admins only view them (the owner, 22 Nov). */
+  readonly exportsPhone: boolean;
   /** Super admins export members' identity documents (the owner, 9 Nov). */
   readonly seesIdentity: boolean;
   /** A record is open beside the list, so it has half the width: every column kept, the lines scrolling sideways (owner, 9 Nov). */
@@ -61,7 +63,7 @@ function HistoryPanel({ venueId, opened, onClose }: { venueId: string; opened: M
  * the server sorts, searches, filters and pages, and counts what each column's menu offers. The search finds a name by
  * any part, a member number exactly, or four or more digits of a mobile. Export reads every member the view leaves.
  */
-function Results({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, isDocked, tier, tiers, onHistory }: Omit<ListProps, 'seesHistory'> & ResultsExtra) {
+function Results({ venueId, tonight, onOpen, exportIn, seesPhone, exportsPhone, seesIdentity, isDocked, tier, tiers, onHistory }: Omit<ListProps, 'seesHistory'> & ResultsExtra) {
   // The table's view as it last handed it over; none until it is first drawn.
   const [request, setRequest] = useState<DataTableRequest | null>(null);
   const view = viewOf(request, tier);
@@ -71,7 +73,7 @@ function Results({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, 
   const statuses = useMemberAccountStatuses(venueId).data;
   const chosen = tierWords(tier);
   const base = {
-    label: t('console.members.title'), columns: memberColumns(tonight, { seesPhone, statuses, choices, onHistory }), rowKey: (row: MemberListRow) => row.memberId, scrollsSideways: isDocked,
+    label: t('console.members.title'), columns: memberColumns(tonight, { seesPhone, exportsPhone, statuses, choices, onHistory }), rowKey: (row: MemberListRow) => row.memberId, scrollsSideways: isDocked,
     filter: { label: t('console.members.search'), variant: 'subtle' as const, text: (row: MemberListRow) => row.fullName }, belowSearch: tiers,
     ...(chosen === undefined ? {} : { exportFilter: chosen }), exportColumns: memberExportColumns(seesIdentity),
     onRowOpen: (row: MemberListRow) => onOpen(row.memberId), initialSort: { key: 'name', direction: 'ascending' } as const, exportIn,
@@ -89,7 +91,7 @@ function Results({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, 
 /**
  * Every member of the venue, listed on open (owner, 3 Nov; decision 0483), as console v3 draws it: the search and a tier
  * choice narrow the table of Name, No., Tier, ID check, Hours, City, Joined, Tonight, Visits and Bonus, with the mobile
- * for super admins (owner, 8 Nov); a click on a row opens the member's record.
+ * for the floor and up (owner, 8 and 22 Nov); a click on a row opens the member's record.
  */
 export function MemberList(props: ListProps) {
   // The tier is kept in the address, as the table's view is, so it stays as a record opens, on a reload and with Back.

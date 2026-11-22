@@ -14,7 +14,7 @@ afterEach(() => {
 const SEAT: MySeat = {
   tableName: 'Table 1', seat: 4, isAway: false, hasCallTime: true, callTimeLeft: 9668, playedSeconds: 1140, isLeaving: false, topUp: null,
   callTimeMinutes: 180, startedAt: '2026-11-15T16:55:30Z', callTimeEndsAt: null, tableTypeName: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null,
-  addTimeChoices: [30, 60, 120], callTimeChoicesOpen: [120], callTimeSetAt: null,
+  callTimeSetAt: null, callTimeAfterAt: '2026-11-15T19:55:30Z',
 };
 
 function Seat({ seat }: { seat: MySeat }) {
@@ -68,16 +68,16 @@ describe('Tonight › Set or Extend call time (the owner, 18 Nov)', () => {
     vi.stubGlobal('fetch', async () => Response.json(features));
   }
 
-  it('offers Set call time only once a length would end after the call time the seat started with', async () => {
+  it('offers no Set call time to a seat with no call time', async () => {
     withEveryAction();
-    render(<Seat seat={{ ...SEAT, callTimeChoicesOpen: [] }} />);
+    render(<Seat seat={{ ...SEAT, hasCallTime: false, callTimeAfterAt: null }} />);
     await screen.findByRole('button', { name: 'Leave seat' }, { timeout: 5000 });
     expect(screen.queryByRole('button', { name: 'Set call time' })).toBeNull();
   });
 
   it('offers Extend call time once one is set', async () => {
     withEveryAction();
-    render(<Seat seat={{ ...SEAT, callTimeSetAt: '2026-11-15T17:00:00Z', callTimeChoicesOpen: [30, 60, 120] }} />);
+    render(<Seat seat={{ ...SEAT, callTimeSetAt: '2026-11-15T17:00:00Z' }} />);
     expect(await screen.findByRole('button', { name: 'Extend call time' }, { timeout: 5000 })).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Set call time' })).toBeNull();
   });

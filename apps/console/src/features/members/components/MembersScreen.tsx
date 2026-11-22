@@ -34,7 +34,8 @@ export function MembersScreen(props: MembersScreenProps) {
   const can: RecordAccess = {
     seesIdentity: staff.venue.role === 'super_admin',
     manage: permissions.includes('members.manage'),
-    seePhoto: permissions.includes('kyc.review') || permissions.includes('cage.transact'),
+    // The floor and up see the selfie too (the owner, 22 Nov): authorize_kyc_image lets members.phone see it.
+    seePhoto: permissions.includes('kyc.review') || permissions.includes('cage.transact') || permissions.includes('members.phone'),
     override: permissions.includes('members.override_features'),
     erase: permissions.includes('members.erase'),
     changePhone: permissions.includes('members.change_phone'),
@@ -42,6 +43,7 @@ export function MembersScreen(props: MembersScreenProps) {
     resetHours: staff.venue.role === 'super_admin',
     giveBonus: permissions.includes('bonus.give'),
     correctBonus: staff.venue.role === 'super_admin',
+    viewsAll: permissions.includes('members.phone'),
   };
   // Floor and up open a member's History of changes by staff, as the Door's History (#1073).
   return <Members title={title} venueId={venueId} can={can} seesHistory={permissions.includes('members.phone')} {...props} />;
@@ -57,7 +59,7 @@ function Members({ title, venueId, can, seesHistory, memberId, part, onNavigate 
       {can.erase ? <ErasureRequests venueId={venueId} onOpen={(id) => onNavigate(recordHref(id))} /> : null}
       {/* The list stays in place as a record opens, so the search typed stays (C-02). */}
       <SplitView layout="docked" recordKey={memberId} backLabel={t('console.members.back')} onBack={() => onNavigate('/members')} onClose={() => onNavigate('/members')}
-        list={<MemberList venueId={venueId} tonight={tonight} onOpen={(id) => onNavigate(recordHref(id))} exportIn={exportIn} seesPhone={can.changePhone}
+        list={<MemberList venueId={venueId} tonight={tonight} onOpen={(id) => onNavigate(recordHref(id))} exportIn={exportIn} seesPhone={can.viewsAll} exportsPhone={can.changePhone}
           seesIdentity={can.seesIdentity} isDocked={memberId !== undefined} seesHistory={seesHistory} />}
         detail={memberId === undefined ? null : (
           <MemberRecordPanel key={memberId} venueId={venueId} memberId={memberId} can={can} part={part}

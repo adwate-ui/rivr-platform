@@ -82,10 +82,6 @@ describe('An unpaired TV', () => {
     const refused = renderHook(() => useTvPairing(), { wrapper: busy.wrapper });
     await waitFor(() => expect(refused.result.current).toEqual({ status: 'too_many' }));
     cleanup();
-    const closed = renderTvs(null, { 'device-pair:start': { status: 403, body: { error: 'window_closed' } } });
-    const waiting = renderHook(() => useTvPairing(), { wrapper: closed.wrapper });
-    await waitFor(() => expect(waiting.result.current).toEqual({ status: 'window_closed' }));
-    cleanup();
     const down = renderTvs(null, { 'device-pair:start': { status: 502, body: { error: 'unavailable' } } });
     const failed = renderHook(() => useTvPairing(), { wrapper: down.wrapper });
     await waitFor(() => expect(failed.result.current).toEqual({ status: 'unavailable' }));
@@ -136,30 +132,42 @@ describe('The console\'s TVs', () => {
     const LONG_AGO = new Date(Date.now() - 10 * 60_000).toISOString();
     const { wrapper } = renderTvs(STAFF, {
       '/rest/v1/device': { body: [{ id: 'd1', name: 'Bar TV', auth_user_id: 'u1' }, { id: 'd2', name: 'Door TV', auth_user_id: null }, { id: 'd3', name: 'Old TV', auth_user_id: 'u3' }] },
-      '/rest/v1/tv_screen': { body: [{ device_id: 'd1', mode: 'jackpot', rotation: ['call_time', 'promotions'] }] },
+      '/rest/v1/tv_screen': { body: [{ device_id: 'd1', mode: 'jackpot', rotation: ['call_time', 'promotions'], tables: ['t1', 't2'] }] },
       '/rest/v1/tv_heartbeat': { body: [{ device_id: 'd1', last_seen_at: JUST_NOW }, { device_id: 'd3', last_seen_at: LONG_AGO }] },
     });
     const { result } = renderHook(() => useVenueTvs(VENUE), { wrapper });
     await waitFor(() => expect(result.current.data).toEqual([
       // A board that went reads as the waitlist: the database holds none now, and the type still names them.
-      { deviceId: 'd1', name: 'Bar TV', isPaired: true, mode: 'waitlist', rotation: ['call_time', 'promotions'], lastSeenAt: JUST_NOW, isOnline: true },
-      { deviceId: 'd2', name: 'Door TV', isPaired: false, mode: null, rotation: [], lastSeenAt: null, isOnline: false },
-      { deviceId: 'd3', name: 'Old TV', isPaired: true, mode: null, rotation: [], lastSeenAt: LONG_AGO, isOnline: false },
+      { deviceId: 'd1', name: 'Bar TV', isPaired: true, mode: 'waitlist', rotation: ['call_time', 'promotions'], tables: ['t1', 't2'], lastSeenAt: JUST_NOW, isOnline: true },
+      { deviceId: 'd2', name: 'Door TV', isPaired: false, mode: null, rotation: [], tables: [], lastSeenAt: null, isOnline: false },
+      { deviceId: 'd3', name: 'Old TV', isPaired: true, mode: null, rotation: [], tables: [], lastSeenAt: LONG_AGO, isOnline: false },
     ]));
   });
 
-  it('pairs a TV by its code, and says when no TV shows that code', async () => {
+  it('pairs a TV by its code with its boards and tables, and says when no TV shows that code', async () => {
     const paired = renderTvs(STAFF, { '/rpc/claim_tv_pairing': { body: 'd9' } });
     const actions = renderHook(() => useTvActions(VENUE), { wrapper: paired.wrapper });
     let outcome: unknown;
-    await act(async () => { outcome = await actions.result.current.pair.mutateAsync({ code: '048213', name: ' Bar TV ', mode: 'waitlist' }); });
+    await act(async () => {
+      outcome = await actions.result.current.pair.mutateAsync({ code: '048213', name: ' Bar TV ', boards: ['call_time', 'waitlist'], tables: ['t1'] });
+    });
     expect(outcome).toEqual({ ok: true, value: 'd9' });
-    expect(paired.calls.find((call) => call.url.includes('claim_tv_pairing'))?.body).toEqual({ p_venue_id: VENUE, p_code: '048213', p_name: 'Bar TV', p_mode: 'waitlist' });
+    expect(paired.calls.find((call) => call.url.includes('claim_tv_pairing'))?.body)
+      .toEqual({ p_venue_id: VENUE, p_code: '048213', p_name: 'Bar TV', p_boards: ['call_time', 'waitlist'], p_tables: ['t1'] });
     cleanup();
     const wrong = renderTvs(STAFF, { '/rpc/claim_tv_pairing': { status: 400, body: { code: 'RVCOD', message: 'No TV is showing that code' } } });
     const refused = renderHook(() => useTvActions(VENUE), { wrapper: wrong.wrapper });
-    await act(async () => { outcome = await refused.result.current.pair.mutateAsync({ code: '048214', name: 'Bar TV', mode: 'waitlist' }); });
+    await act(async () => { outcome = await refused.result.current.pair.mutateAsync({ code: '048214', name: 'Bar TV', boards: ['waitlist'], tables: [] }); });
     expect(outcome).toEqual({ ok: false, error: 'wrong_code' });
+  });
+
+  it('sets the tables a TV\'s call time board shows (the owner, 22 Nov)', async () => {
+    const { calls, wrapper } = renderTvs(STAFF, { '/rpc/set_tv_tables': { body: null } });
+    const { result } = renderHook(() => useTvActions(VENUE), { wrapper });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.setTables.mutateAsync({ deviceId: 'd1', tables: ['t1', 't2'] }); });
+    expect(outcome).toEqual({ ok: true, value: null });
+    expect(calls.find((call) => call.url.includes('set_tv_tables'))?.body).toEqual({ p_device_id: 'd1', p_tables: ['t1', 't2'] });
   });
 
   it('changes what a TV shows, and unpairs one with the reason', async () => {

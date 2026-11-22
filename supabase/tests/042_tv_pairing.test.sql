@@ -36,7 +36,7 @@ select throws_ok($$ select count(*) from private.tv_pairing $$, '42501', null, '
 reset role;
 set local role anon;
 select throws_ok($$ select * from public.start_tv_pairing('anyone') $$, '42501', null, 'a signed-out caller cannot either');
-select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', '000000', 'TV', 'waitlist') $$, '42501', null,
+select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', '000000', 'TV', array['waitlist']::public.tv_mode[], '{}') $$, '42501', null,
   'nor claim a code');
 reset role;
 
@@ -50,19 +50,19 @@ reset role;
 
 -- Claiming the code.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from bar), 'Bar TV', 'waitlist') $$,
+select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from bar), 'Bar TV', array['waitlist']::public.tv_mode[], '{}') $$,
   '42501', null, 'a dealer cannot pair a TV');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
-select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from bar), 'Bar TV', 'waitlist') $$,
+select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from bar), 'Bar TV', array['waitlist']::public.tv_mode[], '{}') $$,
   '42501', null, 'nor can a member');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001',
-    lpad(((select code from bar)::int + 1)::text, 6, '0'), 'Bar TV', 'waitlist') $$, 'RVCOD', null,
+    lpad(((select code from bar)::int + 1)::text, 6, '0'), 'Bar TV', array['waitlist']::public.tv_mode[], '{}') $$, 'RVCOD', null,
   'a code no TV shows is refused');
 create temporary table bar_tv on commit drop as
-  select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from bar), '  Bar TV ', 'waitlist') as device_id;
+  select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from bar), '  Bar TV ', array['waitlist']::public.tv_mode[], '{}') as device_id;
 grant select on bar_tv to authenticated, service_role;
-select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from bar), 'Bar TV', 'promotions') $$,
+select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from bar), 'Bar TV', array['promotions']::public.tv_mode[], '{}') $$,
   'RVCOD', null, 'a code is claimed once');
 reset role;
 select results_eq($$ select d.venue_id, d.kind, d.name, s.user_id, d.auth_user_id from public.device d
@@ -142,7 +142,7 @@ select results_eq($$ select boards from public.my_tv_screen() $$, $$ values (arr
 
 -- The practice venue pairs its own TVs, and a frozen venue pairs none.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select lives_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000002', (select code from door), 'Practice TV', 'call_time') $$,
+select lives_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000002', (select code from door), 'Practice TV', array['call_time']::public.tv_mode[], '{}') $$,
   'staff pair a TV at the practice venue');
 reset role;
 select is((select d.venue_id from public.device d where d.name = 'Practice TV'), '00000000-0000-4000-8000-000000000002'::uuid,
@@ -153,7 +153,7 @@ reset role;
 grant select on hall to authenticated;
 insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from hall), 'Hall TV', 'waitlist') $$,
+select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from hall), 'Hall TV', array['waitlist']::public.tv_mode[], '{}') $$,
   'RVFRZ', null, 'a frozen venue pairs no TV');
 select throws_ok($$ select public.set_tv_mode((select device_id from bar_tv), 'waitlist') $$, 'RVFRZ', null, 'nor changes a mode');
 reset role;
@@ -179,7 +179,7 @@ select results_eq($$ select refusal from public.check_tv_pairing((select secret 
   'a request that has run out is told to start again');
 reset role;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from hall), 'Hall TV', 'waitlist') $$,
+select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from hall), 'Hall TV', array['waitlist']::public.tv_mode[], '{}') $$,
   'RVCOD', null, 'and its code cannot be claimed');
 reset role;
 

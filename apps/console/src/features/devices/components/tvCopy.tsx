@@ -1,7 +1,7 @@
 import { TV_MODES, type TvMode } from '@rivr/contracts';
-import type { TvFailure } from '@rivr/db';
+import { useFloorTables, type TvFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { ChoiceChips } from '@rivr/ui';
+import { ChoiceChips, LoadState, Stack, Text } from '@rivr/ui';
 
 /** What the console's TVs screen says when pairing, changing a mode or unpairing did not go through. */
 export const TV_FAILURE_COPY: Readonly<Record<TvFailure, MessageKey>> = {
@@ -50,3 +50,36 @@ export function RotationChips({ label, mode, value, onChange, isDisabled = false
   );
 }
 
+/** The venue's tables, in their order on the floor, by id and name, once read (null until then), and whether the read failed. */
+export interface VenueTables {
+  readonly tables: readonly { id: string; name: string }[] | null;
+  readonly isError: boolean;
+  readonly retry: () => void;
+}
+
+/** The venue's tables: the floor's own read, shared with the TVs' chips. */
+export function useVenueTables(venueId: string): VenueTables {
+  const read = useFloorTables();
+  return { tables: read.data?.filter((table) => table.venueId === venueId) ?? null, isError: read.isError, retry: () => void read.refetch() };
+}
+
+interface TableChipsProps {
+  label: string;
+  tables: VenueTables;
+  /** The tables picked; none is every table. */
+  value: readonly string[];
+  onChange: (tables: string[]) => void;
+  isDisabled?: boolean;
+}
+
+/** The tables a TV's call time board shows, one chip each (the owner, 22 Nov); none picked shows every table. */
+export function TableChips({ label, tables, value, onChange, isDisabled = false }: TableChipsProps) {
+  if (tables.tables === null) return tables.isError ? <LoadState isError onRetry={tables.retry} /> : <LoadState />;
+  return (
+    <Stack gap={1}>
+      <ChoiceChips label={label} selected={value} isDisabled={isDisabled} onChange={onChange}
+        options={tables.tables.map((table) => ({ value: table.id, label: table.name }))} />
+      <Text variant="small" tone="muted">{t('console.tvs.tablesHint')}</Text>
+    </Stack>
+  );
+}

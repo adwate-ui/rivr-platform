@@ -42,7 +42,8 @@ export interface InputProps extends NativeInputProps {
   hint?: string | undefined;
   /** What is wrong and what to do, in one or two lines. Marks the field invalid. */
   error?: string | undefined;
-  type?: 'text' | 'tel' | 'email' | 'password' | 'search' | 'url' | 'date';
+  /** `time` is a time on the clock, `23:40`: the phone's own clock picker (call time set to a time; the owner, 22 Nov). */
+  type?: 'text' | 'tel' | 'email' | 'password' | 'search' | 'url' | 'date' | 'time';
   variant?: InputVariant;
   /** Fixed text before the value that is not typed, such as `+91` or `₹`. Read out with the field. */
   prefix?: string | undefined;

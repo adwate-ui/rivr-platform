@@ -112,6 +112,15 @@ describe('Seating an approved player (the owner, 8 Nov)', () => {
     await waitFor(() => expect(chosen(sheet, /^Leela Menon/)).toBe('true'));
   });
 
+  it('opens a request\'s member in Members for the floor, who view Members (the owner, 22 Nov)', async () => {
+    const { router } = renderFloorScreen(RequestsScreen, {
+      role: 'floor', tables: [tableRow('t1', 'Table 1')], requests: [requestRow({ kind: 'join', id: 'e5', name: 'Leela Menon', minutes: 2, table_id: 't1' })],
+    });
+    await screen.findByRole('button', { name: 'Approve' }, { timeout: 5000 });
+    fireEvent.click(screen.getByRole('button', { name: /^[^,]+, Leela Menon/ }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/members'));
+  });
+
   it('leaves the alert waiting, with no sheet, when the table is full', async () => {
     const api: { tables: unknown[]; requests: unknown[] } = {
       tables: [tableRow('t1', 'Table 1')], requests: [requestRow({ kind: 'join', id: 'e5', name: 'Leela Menon', minutes: 2, table_id: 't1' })],

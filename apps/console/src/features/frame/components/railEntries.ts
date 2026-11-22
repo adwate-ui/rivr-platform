@@ -60,7 +60,8 @@ export const RAIL: readonly RailGroup[] = [
   },
   {
     id: 'players', label: 'console.rail.groups.players', entries: [
-      { id: 'members', label: 'console.rail.items.members', href: '/members', icon: 'profile', anyOf: ['members.manage', 'host_queue.manage'], counts: ['erasureRequests'], countWords: 'deletions' },
+      // The floor opens Members to view (members.phone: the floor and up; the owner, 22 Nov).
+      { id: 'members', label: 'console.rail.items.members', href: '/members', icon: 'profile', anyOf: ['members.manage', 'host_queue.manage', 'members.phone'], counts: ['erasureRequests'], countWords: 'deletions' },
       { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', icon: 'kyc', anyOf: ['kyc.review', 'kyc.in_person'], counts: ['kycReview'], countWords: 'idChecks' },
       { id: 'feedback', label: 'console.rail.items.feedback', href: '/feedback', icon: 'feedback', anyOf: ['feedback.manage'], counts: ['feedback'], countWords: 'tickets' },
     ],

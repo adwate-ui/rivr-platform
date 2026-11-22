@@ -92,7 +92,10 @@ export {
 } from './tablesSetup.ts';
 export { useFloorTakenSeats, useSeatCallActions } from './seatCall.ts';
 export { useMyUsualFnbItems } from './fnbUsual.ts';
-export { useMyNextPlayTimeBonus, useMySeat, useMySeatActions, type Leaving, type NextPlayTimeBonus, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';
+export {
+  useMyNextPlayTimeBonus, useMySeat, useMySeatActions, useMyTablemates, type Leaving, type NextPlayTimeBonus, type MySeat, type MySeatFailure, type Tablemate,
+  type TablemateCallTime, type TopUp,
+} from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {
   isMemberQuery, MATCHES_MOST, topMatches, useMemberActions, useMemberEarlyDepartures, useMemberAccountStatuses, type MemberAccountState, type MemberAccountStatus, useMemberVisits, type MemberVisit, useMemberHoursPlayed, useMemberRecord, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberTierFailure, type MemberKycStatus, type MemberListRow,
@@ -141,15 +144,12 @@ export {
   useMyTvScreen,
   useTvActions,
   useTvPairing,
-  useTvPairingActions,
-  useTvPairingPolicy,
   useVenueTvs,
   type MyTvScreen,
   type TvBoardTurn,
   type TvCode,
   type TvFailure,
   type TvPairing,
-  type TvPairingPolicy,
   type VenueTv,
 } from './tvScreens.ts';
 export {

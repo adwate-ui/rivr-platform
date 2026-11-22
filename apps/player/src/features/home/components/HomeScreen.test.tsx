@@ -136,56 +136,11 @@ describe('Tonight', () => {
   });
 
   it('Leave says nothing of call time to a member who may not see it', async () => {
-    renderTonight([], [{ ...SEAT, call_time_left: null, call_time_minutes: null, call_time_ends_at: null, call_time_choices_open: [] }]);
+    renderTonight([], [{ ...SEAT, call_time_left: null, call_time_minutes: null, call_time_ends_at: null, call_time_after_at: null }]);
     fireEvent.click(await screen.findByRole('button', { name: 'Leave seat' }, LATER));
     const sheet = await screen.findByRole('dialog', { name: 'Leave your seat?' });
     expect(within(sheet).queryByText(/call time/i)).toBeNull();
     expect(within(sheet).getByRole('button', { name: 'Join leaving list' })).toBeDefined();
-  });
-
-  it('Set call time: lengths that would end before the call time owed are greyed, with why, and the first open one is set', async () => {
-    // 2 h 41 min 8 s owed: an hour and two hours end before it, so the server opens three and four hours alone (#1076).
-    const { asked } = renderTonight([], [{ ...SEAT, add_time_choices: [60, 120, 180, 240], call_time_choices_open: [180, 240] }]);
-    fireEvent.click(await screen.findByRole('button', { name: 'Set call time' }, LATER));
-    const sheet = await screen.findByRole('dialog', { name: 'Set call time' });
-    expect(within(sheet).getByRole('radio', { name: '1 h' })).toHaveProperty('disabled', true);
-    expect(within(sheet).getByRole('radio', { name: '2 h' })).toHaveProperty('disabled', true);
-    expect(within(sheet).getByRole('radio', { name: '3 h' }).getAttribute('aria-checked')).toBe('true');
-    expect(within(sheet).getByText('Until 01:44')).toBeDefined();
-    expect(within(sheet).getByText("Can't end before 01:25.")).toBeDefined();
-    // Setting is from now: no 'beyond the current end' (#1089).
-    expect(within(sheet).queryByText('Extend adds time beyond the current end.')).toBeNull();
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Set call time' }));
-    await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('set_my_call_time')).map((call) => call.includes('"p_minutes":180'))).toEqual([true]));
-  });
-
-  it('Set call time once the call time is met: every length the club types is open, and the one chosen is set (decision 0305)', async () => {
-    const choices = [20, 45, 50, 75, 90, 200, 300];
-    const { asked } = renderTonight([], [{ ...SEAT, call_time_left: 0, call_time_ends_at: null, add_time_choices: choices, call_time_choices_open: choices }]);
-    fireEvent.click(await screen.findByRole('button', { name: 'Set call time' }, LATER));
-    const radios = await screen.findAllByRole('radio');
-    expect(radios.map((choice) => choice.textContent)).toEqual(['20 min', '45 min', '50 min', '1 h 15 min', '1 h 30 min', '3 h 20 min', '5 h']);
-    expect(radios.some((choice) => choice.hasAttribute('disabled'))).toBe(false);
-    expect(screen.queryByText(/^Can't end before/)).toBeNull();
-    fireEvent.click(screen.getByRole('radio', { name: '3 h 20 min' }));
-    fireEvent.click(within(screen.getByRole('dialog', { name: 'Set call time' })).getByRole('button', { name: 'Set call time' }));
-    await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('set_my_call_time')).map((call) => call.includes('"p_minutes":200'))).toEqual([true]));
-  });
-
-  it('Extend call time once set: a length is added to when it ends, and sent as the member\'s own (the owner, 18 Nov)', async () => {
-    // Set, and ending at 01:25 IST: an hour more ends at 02:25.
-    // Two hours closed (past the day's most): once set, the sheet greys it and says why, not "Can't end before" (#1089, #1099).
-    const { asked } = renderTonight([], [{ ...SEAT, call_time_set_at: '2026-11-15T17:00:00Z', call_time_choices_open: [30, 60] }]);
-    fireEvent.click(await screen.findByRole('button', { name: 'Extend call time' }, LATER));
-    const sheet = await screen.findByRole('dialog', { name: 'Extend call time' });
-    expect(within(sheet).getByRole('radio', { name: '1 h' }).getAttribute('aria-checked')).toBe('true');
-    expect(within(sheet).getByText('Until 02:25')).toBeDefined();
-    // Extend adds beyond the current end, and the sheet says so (#1089, the owner, 19 Nov).
-    expect(within(sheet).getByText('Extend adds time beyond the current end.')).toBeDefined();
-    expect(within(sheet).getByText("Call time can't pass 24 hours.")).toBeDefined();
-    expect(within(sheet).queryByText(/^Can't end before/)).toBeNull();
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Extend call time' }));
-    await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('set_my_call_time')).map((call) => call.includes('"p_minutes":60'))).toEqual([true]));
   });
 
   it('Order on its way: the tracker reads where the order is, from the bar\'s steps', async () => {

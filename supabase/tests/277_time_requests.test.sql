@@ -1,7 +1,7 @@
--- More call time as the owner set it on 3 Nov (decision 0305) and 18 Nov (#1076): the lengths offered are a setting, and
--- the floor's managers add them by the member's own rule: until a call time is set, a length counts from now and must end
--- after the call time the seat started with, and adding one counts as setting it; once set, a length extends it. Ishaan
--- (211) sits at Table 5 with three hours; 103 is a floor manager (admin), 108 a host, 106 a dealer.
+-- More call time as the owner set it on 3 Nov (decision 0305), 18 Nov (#1076) and 22 Nov: the floor's managers set a seat's
+-- call time to a time on the clock by the member's own rule: until a call time is set, the time must fall after the minimum
+-- the seat started with, and setting one counts as setting it; once set, a time past the end extends it. Ishaan (211) sits
+-- at Table 5 with three hours; 103 is a floor manager (admin), 108 a host, 104 a cashier. One transaction is one moment.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -28,68 +28,51 @@ reset role;
 create temp table sess on commit drop as select (pg_temp.session()).id as id;
 grant select on sess to authenticated;
 
--- None set: 30 minutes, 1 hour and 2 hours, to the floor and on the member's seat.
-select is(public.add_time_choices('00000000-0000-4000-8000-000000000001'), array[30, 60, 120], 'none set: 30 min, 1 hour, 2 hours');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
-select is(public.add_time_choices('00000000-0000-4000-8000-000000000001'), array[30, 60, 120], 'a host reads them too');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select throws_ok($$ select public.add_time_choices('00000000-0000-4000-8000-000000000001') $$, '42501', null, 'a dealer does not');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select is((select add_time_choices from public.my_seat()), array[30, 60, 120], 'the seat offers them');
-reset role;
-
--- The club's choices from before 15 Nov carry over (redesign RD-19): ticked from presets then and kept as text, 45 minutes
--- and 1 hour 30 are still offered, shortest first, and nothing else is asked for or added. Such a value is set no more
--- (the lengths are typed, as numbers: 424), so the check that would refuse it stands aside for this one row.
-select set_config('request.jwt.claims', '', true);
-alter table public.setting disable trigger setting_check;
-insert into public.setting (venue_id, key, subject, value, effective_from, reason)
-values ('00000000-0000-4000-8000-000000000001', 'call_time.add_choices', '', '{"minutes": ["90", "45"]}', '-infinity', 'test 277'),
--- The same lengths to extend by (#1089: Extend has a list of its own, copied from Set's as the lists were split).
-       ('00000000-0000-4000-8000-000000000001', 'call_time.extend_choices', '', '{"minutes": [90, 45]}', '-infinity', 'test 277');
-alter table public.setting enable trigger setting_check;
-select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select is((select add_time_choices from public.my_seat()), array[45, 90], 'the seat offers 45 minutes and 1 hour 30');
-reset role;
-
--- Seated just now, no length offered ends after the three hours: the floor's Add call time waits as the member's Set does.
+-- Seated just now, a time before the three hours end is refused: the floor's Set waits as the member's does.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.add_seat_call_time((select id from sess), 90, gen_random_uuid()) $$, '22023', null,
-  'an hour and a half from now would end before the three hours, and is refused');
+select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '90 minutes', gen_random_uuid()) $$, '22023', null,
+  'a time an hour and a half from now ends before the three hours, and is refused');
 reset role;
 update public.seat_session set started_at = now() - interval '150 minutes', seated_here_at = now() - interval '150 minutes' where id = (select id from sess);
 
--- The floor's managers add a length offered themselves; a host does not, and nothing but a length offered is added.
+-- The floor's managers set a time themselves; a host does not, and nothing without a time or a request id.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
-select throws_ok($$ select public.add_seat_call_time((select id from sess), 90, gen_random_uuid()) $$, '42501', null, 'a host adds no call time');
+select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '90 minutes', gen_random_uuid()) $$, '42501', null,
+  'a host sets no call time');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.add_seat_call_time((select id from sess), 60, gen_random_uuid()) $$, '22023', null, 'an hour is not offered');
-select throws_ok($$ select public.add_seat_call_time((select id from sess), 90, null) $$, '22023', null, 'nor anything without a request id');
-select lives_ok($$ select public.add_seat_call_time((select id from sess), 90, '277a0000-0000-4000-8000-000000000001') $$,
-  'two and a half hours in, a floor manager adds 1 hour 30');
--- The same request again (a retry after a lost answer) adds nothing more; the same id for another length is refused.
-select lives_ok($$ select public.add_seat_call_time((select id from sess), 90, '277a0000-0000-4000-8000-000000000001') $$, 'the same request again');
-select throws_ok($$ select public.add_seat_call_time((select id from sess), 45, '277a0000-0000-4000-8000-000000000001') $$, '22023', null,
-  'that request id was for another addition');
+select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '90 minutes', null) $$, '22023', null,
+  'nor anything without a request id');
+select throws_ok($$ select public.add_seat_call_time((select id from sess), null, gen_random_uuid()) $$, '22023', null, 'nor without a time');
+select lives_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '90 minutes', '277a0000-0000-4000-8000-000000000001') $$,
+  'two and a half hours in, a floor manager sets a time an hour and a half from now');
+-- The same request again (a retry after a lost answer) sets nothing more; the same id for another time is refused.
+select lives_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '90 minutes', '277a0000-0000-4000-8000-000000000001') $$,
+  'the same request again');
+select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '2 hours', '277a0000-0000-4000-8000-000000000001') $$, '22023', null,
+  'that request id was for another call time');
 reset role;
-select is((pg_temp.session()).call_time_minutes, 240, 'four hours: two and a half played and 1 hour 30 from now, added once');
-select ok((pg_temp.session()).call_time_set_at is not null, 'the floor''s Add call time counts as setting it');
+select is((pg_temp.session()).call_time_minutes, 240, 'four hours: two and a half played and an hour and a half to the time, set once');
+select ok((pg_temp.session()).call_time_set_at is not null, 'the floor''s Set counts as setting it');
 select is((select row(status, minutes, decided_by_staff_id is not null)::text from public.call_time_request
-           where idempotency_key = '277a0000-0000-4000-8000-000000000001'), '(approved,90,t)', 'kept as approved, with who added it');
+           where idempotency_key = '277a0000-0000-4000-8000-000000000001'), '(approved,90,t)', 'kept as approved, with who set it');
 select is((select count(*)::integer from public.outbox_event where event_type = 'call_time.updated' and payload ->> 'minutes' = '240'),
   1, 'the member''s devices are told, once');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select lives_ok($$ select public.add_seat_call_time((select id from sess), 45, gen_random_uuid()) $$, 'a cashier, with the floor''s permissions, adds too');
+select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '90 minutes', gen_random_uuid()) $$, '22023', null,
+  'once set, a time at the current end does not extend it');
+select lives_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '135 minutes', gen_random_uuid()) $$,
+  'a cashier, with the floor''s permissions, extends it too');
 reset role;
-select is((pg_temp.session()).call_time_minutes, 285, 'once set, 45 minutes extend it to four hours 45');
+select is((pg_temp.session()).call_time_minutes, 285, 'once set, a time 45 minutes past the end makes four hours 45');
 
--- Met: time added runs from the minutes played, the seat owes it again, and the sweep completes it again once played. The
+-- Met: a time picked runs from the time played, the seat owes it again, and the sweep completes it again once played. The
 -- first completion still counts for promotions.
 update public.seat_session set started_at = now() - interval '7 hours', seated_here_at = now() - interval '7 hours' where id = (select id from sess);
 select private.sweep_seated_time();
 select ok((pg_temp.session()).call_time_completed_at is not null, 'seven hours played: the call time is met');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select lives_ok($$ select public.add_seat_call_time((select id from sess), 45, gen_random_uuid()) $$, 'the floor adds 45 minutes once it is met');
+select lives_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '45 minutes', gen_random_uuid()) $$,
+  'the floor sets a time 45 minutes on once it is met');
 reset role;
 select is((pg_temp.session()).call_time_minutes, 465, 'seven hours played, and 45 minutes from now');
 select is((pg_temp.session()).call_time_completed_at, null, 'the call time is owed again');
@@ -101,20 +84,25 @@ select private.sweep_seated_time();
 select is((select count(*)::integer from public.outbox_event where event_type = 'call_time.completed'
              and payload ->> 'session_id' = (select id from sess)::text), 2, 'met again: a second call_time.completed');
 
--- Never past a day, from the time played as from the call time.
+-- Never past a day: eight hours played, a time making exactly a day is open, a minute later is not.
 update public.seat_session set call_time_minutes = 1380, call_time_completed_at = null where id = (select id from sess);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.add_seat_call_time((select id from sess), 90, gen_random_uuid()) $$, '22023', null, 'not past a day');
+select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '961 minutes', gen_random_uuid()) $$, '22023', null,
+  'not past a day');
+select lives_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '960 minutes', gen_random_uuid()) $$, 'a day at most');
 reset role;
+select is((pg_temp.session()).call_time_minutes, 1440, 'a whole day');
 
--- A seat that ended takes nothing; a frozen venue adds nothing.
+-- A seat that ended takes nothing; a frozen venue sets nothing.
 update public.seat_session set ended_at = now(), end_reason = 'left' where id = (select id from sess);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.add_seat_call_time((select id from sess), 45, gen_random_uuid()) $$, '22023', null, 'an ended seat takes nothing');
+select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '45 minutes', gen_random_uuid()) $$, '22023', null,
+  'an ended seat takes nothing');
 reset role;
 insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'test 277');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.add_seat_call_time((select id from sess), 45, gen_random_uuid()) $$, 'RVFRZ', null, 'a frozen venue adds nothing');
+select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '45 minutes', gen_random_uuid()) $$, 'RVFRZ', null,
+  'a frozen venue sets nothing');
 reset role;
 
 select * from finish();

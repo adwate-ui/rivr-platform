@@ -1,6 +1,6 @@
 -- Call time set, extended and owed (#1076, the owner, 18 Nov): a seat with call time owes it until a call time has been set
--- and has run out; Set call time opens once a length would end after the call time the seat started with; once set, a length
--- extends it; the floor's Add call time counts as setting it; the floor is told when a member sets or extends. Ishaan (211)
+-- and has run out; Set call time takes a time after the minimum the seat started with (the owner, 22 Nov); once set, a time
+-- past the end extends it; the floor's Set counts as setting it; the floor is told when a member sets or extends. Ishaan (211)
 -- Vihaan (212), Yash (214) and Ritika (215) sit at Table 5 with three hours, Mihir (213) with none; 103 Aditya is a floor
 -- manager, 108 a host.
 begin;
@@ -25,9 +25,9 @@ create function pg_temp.played(p_member text, p_minutes integer) returns void la
                                  seated_here_at = greatest(now() - make_interval(mins => p_minutes), private.tonight_began(now()))
   where id = (pg_temp.seated(p_member)).id;
 $$;
-create function pg_temp.floor_seat(p_member text) returns table (owes boolean, set_at timestamptz, ends_at timestamptz, open integer[], by_member boolean)
+create function pg_temp.floor_seat(p_member text) returns table (owes boolean, set_at timestamptz, ends_at timestamptz, after_at timestamptz, by_member boolean)
 language sql as $$
-  select owes_call_time, call_time_set_at, call_time_ends_at, call_time_choices_open, call_time_set_by_member
+  select owes_call_time, call_time_set_at, call_time_ends_at, call_time_after_at, call_time_set_by_member
   from public.floor_seats('00000000-0000-4000-8000-000000000001') where member_id = ('00000000-0000-4000-8000-000000000' || p_member)::uuid;
 $$;
 create function pg_temp.chimes() returns integer language sql as $$
@@ -52,14 +52,14 @@ select public.seat_member(pg_temp.table_id('Table 5'), 6, p_member_number => (se
          where id = '00000000-0000-4000-8000-000000000215'), p_call_minutes => 180);
 reset role;
 
--- Set call time opens once a length would end after the three hours.
+-- Set call time takes a time after the three hours.
 select pg_temp.played('211', 100);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select is((select call_time_choices_open from public.my_seat()), array[120], 'an hour and forty in, two hours alone end after the three hours');
+select is((select call_time_after_at from public.my_seat()), now() + interval '80 minutes', 'an hour and forty in, a time opens once the three hours end');
 reset role;
 select pg_temp.played('211', 190);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select is((select call_time_choices_open from public.my_seat()), array[30, 60, 120], 'past the three hours, every length is open');
+select is((select call_time_after_at from public.my_seat()), now(), 'past the three hours, any time ahead is open');
 
 -- Never set, he owes his call time even once the countdown reached nought: the app puts him on the Leaving list.
 select is((select call_time_left from public.my_seat()), 0, 'three hours ten in, the countdown is at nought');
@@ -69,8 +69,8 @@ select is(pg_temp.chimes(), 0, 'nothing for the floor to hear yet');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is(public.leave_my_seat(), 'leaving', 'leaving from the app, he goes on the Leaving list, owing');
 
--- He sets thirty minutes: from now, three hours forty. The floor is told, and sees when he leaves.
-select is(public.set_my_call_time(30, gen_random_uuid()), 220, 'thirty minutes from now make three hours forty');
+-- He sets a time half an hour from now: three hours forty. The floor is told, and sees when he leaves.
+select is(public.set_my_call_time(now() + interval '30 minutes', gen_random_uuid()), 220, 'half an hour from now makes three hours forty');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select ok((select owes and set_at is not null and by_member and ends_at between now() + interval '29 minutes' and now() + interval '31 minutes'
            from pg_temp.floor_seat('211')), 'the floor sees it set by him, ending in thirty minutes, still owed');
@@ -84,7 +84,7 @@ select throws_ok($$ select public.undo_call_time((select id from member_set)) $$
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
 select is(pg_temp.chimes(), 1, 'a host on the floor hears it too');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select is(public.set_my_call_time(60, gen_random_uuid()), 280, 'set, an hour more extends it to four hours forty');
+select is(public.set_my_call_time(now() + interval '90 minutes', gen_random_uuid()), 280, 'set, a time an hour past the end extends it to four hours forty');
 reset role;
 
 -- Run out, what he set is met: leaving from the app ends the seat, call time met.
@@ -97,13 +97,16 @@ reset role;
 select is((select leave_reason from public.seat_session where member_id = '00000000-0000-4000-8000-000000000211' order by started_at desc limit 1),
   'call_time_met', 'his call time met');
 
--- The floor's Add call time counts as setting it, and is no member's set: the floor is not told of its own.
+-- The floor's Set counts as setting it, and is no member's set: the floor is not told of its own.
 select pg_temp.played('212', 170);
 create temp table vihaan on commit drop as select (pg_temp.seated('212')).id as id;
 grant select on vihaan to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is((select open from pg_temp.floor_seat('212')), array[30, 60, 120], 'two hours fifty in, the floor may add any length');
-select lives_ok($$ select public.add_seat_call_time((select id from vihaan), 30, gen_random_uuid()) $$, 'the floor adds thirty minutes');
+select is((select after_at from pg_temp.floor_seat('212')), now() + interval '10 minutes', 'two hours fifty in, the floor may pick a time after the three hours');
+select throws_ok($$ select public.add_seat_call_time((select id from vihaan), now() + interval '5 minutes', gen_random_uuid()) $$, '22023', null,
+  'nor one before them');
+select lives_ok($$ select public.add_seat_call_time((select id from vihaan), now() + interval '30 minutes', gen_random_uuid()) $$,
+  'the floor sets a time half an hour from now');
 select ok((select set_at is not null and not by_member from pg_temp.floor_seat('212')), 'which sets his call time, by the floor');
 reset role;
 select is((pg_temp.seated('212')).call_time_minutes, 200, 'three hours twenty: from now, as his own set would');
@@ -155,7 +158,7 @@ select lives_ok($$ select public.check_out('00000000-0000-4000-8000-000000000001
 
 -- A seat with no call time owes none, and sets none.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select ok((select not owes and open = '{}' from pg_temp.floor_seat('213')), 'no call time: none owed, and no length to add');
+select ok((select not owes and after_at is null from pg_temp.floor_seat('213')), 'no call time: none owed, and no time to set');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select is(public.leave_my_seat(), 'left', 'he leaves from the app at once');
 reset role;

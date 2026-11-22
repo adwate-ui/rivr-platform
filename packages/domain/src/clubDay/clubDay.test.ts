@@ -1,5 +1,37 @@
 import { describe, expect, it } from 'vitest';
-import { clubDay, clubDayMoment, clubDaysPeriod, dayAfter, lastDayOfMonth, recentClubMonths, weekOf } from './clubDay.ts';
+import {
+  clockTimeAfter, clubDay, clubDayMoment, clubDaysPeriod, dayAfter, lastDayOfMonth, nearestClockMoment, recentClubMonths, weekOf,
+} from './clubDay.ts';
+
+describe('a time picked on India\'s clock', () => {
+  it('is the time the clock shows nearest now: past midnight ahead, a time just gone behind', () => {
+    const evening = new Date('2026-11-22T15:30:00Z'); // 21:00 IST
+    expect(nearestClockMoment('23:40', evening)?.toISOString()).toBe('2026-11-22T18:10:00.000Z');
+    expect(nearestClockMoment('01:30', evening)?.toISOString()).toBe('2026-11-22T20:00:00.000Z');
+    expect(nearestClockMoment('21:00', evening)?.toISOString()).toBe('2026-11-22T15:30:00.000Z');
+    expect(nearestClockMoment('20:00', evening)?.toISOString()).toBe('2026-11-22T14:30:00.000Z');
+    // 11:30 picked for 23:30, a slip of AM for PM, is the one gone by, not a call time of most of a day.
+    expect(nearestClockMoment('11:30', evening)?.toISOString()).toBe('2026-11-22T06:00:00.000Z');
+  });
+
+  it('takes the time ahead when it is twelve hours either way, and crosses midnight IST from the small hours', () => {
+    const evening = new Date('2026-11-22T15:30:00Z'); // 21:00 IST
+    expect(nearestClockMoment('09:00', evening)?.toISOString()).toBe('2026-11-23T03:30:00.000Z');
+    const late = new Date('2026-11-22T19:20:00Z'); // 00:50 IST on the 23rd
+    expect(nearestClockMoment('02:00', late)?.toISOString()).toBe('2026-11-22T20:30:00.000Z');
+    expect(nearestClockMoment('23:40', late)?.toISOString()).toBe('2026-11-22T18:10:00.000Z');
+  });
+
+  it('reads nothing but a 24-hour time', () => {
+    expect(['24:00', '9:30', '23:60', '', '23:40:10'].map((time) => nearestClockMoment(time, new Date()))).toEqual([null, null, null, null, null]);
+  });
+
+  it('suggests the first mark of the step after a moment, as a time field takes it', () => {
+    expect(clockTimeAfter(new Date('2026-11-22T17:42:25Z'), 5)).toBe('23:15');
+    expect(clockTimeAfter(new Date('2026-11-22T17:45:00Z'), 5)).toBe('23:20');
+    expect(clockTimeAfter(new Date('2026-11-22T18:28:00Z'), 5)).toBe('00:00');
+  });
+});
 
 describe('the club\'s day, 06:00 to 06:00 IST', () => {
   it('holds the night past midnight, and turns at 06:00 IST', () => {

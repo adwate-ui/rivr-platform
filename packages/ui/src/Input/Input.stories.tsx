@@ -65,3 +65,8 @@ export const Tall: Story = { args: { label: 'Mobile number', prefix: '+91', isTa
 export const Subtle: Story = { args: { variant: 'subtle', label: 'Add: mobile or member no.' } };
 
 export const SubtleWithError: Story = { args: { variant: 'subtle', label: 'Add: mobile or member no.', error: 'Not a member number or mobile.' } };
+
+/** A time on the clock (the owner, 22 Nov): the member's Set call time, inset, and the floor's, filled on the console. */
+export const Time: Story = { args: { variant: 'inset', type: 'time', label: 'Until', hint: 'After 23:10.', inputMode: undefined, defaultValue: '23:40' } };
+
+export const TimeSubtle: Story = { args: { variant: 'subtle', type: 'time', label: 'Until', hint: 'After 23:10.', inputMode: undefined, defaultValue: '23:40' } };

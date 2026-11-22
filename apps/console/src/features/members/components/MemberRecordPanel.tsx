@@ -13,6 +13,7 @@ import { MemberSignUp } from './MemberSignUp.tsx';
 import { MemberVisits } from './MemberVisits.tsx';
 import { PromotionGrants } from './PromotionGrants.tsx';
 import { partsFor, recordHref, type RecordPart } from './recordParts.ts';
+import { AccountView, MembershipView } from './RecordViews.tsx';
 import { ResetHours } from './ResetHours.tsx';
 import { SeatLine } from './SeatLine.tsx';
 import { TierForm } from './TierForm.tsx';
@@ -36,6 +37,8 @@ export interface RecordAccess {
   readonly giveBonus: boolean;
   /** A super admin reverses a Bonus given and adds a use a seat missed (#1077). */
   readonly correctBonus: boolean;
+  /** The floor and up (members.phone) see every part, to view, where they may not change it (the owner, 22 Nov). */
+  readonly viewsAll: boolean;
 }
 
 /** Member number, tier (and a change's last day), KYC and whether they are in the room. */
@@ -78,28 +81,36 @@ function VisitsPart({ venueId, record, can }: PartProps) {
   );
 }
 
-/** One part of the record: visits; bonus chips; sign-up; the tier and a break; or the account's overrides, number and erasure. */
+/** The tier and a break: the forms for members.manage, else to view (the owner, 22 Nov). */
+function MembershipPart({ venueId, record, can }: PartProps) {
+  if (!can.manage) return <MembershipView venueId={venueId} record={record} />;
+  return (
+    <Stack gap={6}>
+      <TierForm venueId={venueId} record={record} />
+      <MemberBreak venueId={venueId} memberId={record.memberId} />
+    </Stack>
+  );
+}
+
+/** The account's: overrides, number and erasure for super admins, else to view (the owner, 22 Nov). */
+function AccountPart({ venueId, record, can }: PartProps) {
+  if (!can.override && !can.changePhone && !can.erase) return <AccountView venueId={venueId} record={record} />;
+  return (
+    <Stack gap={6}>
+      {can.seesIdentity ? <MemberIdDocuments venueId={venueId} memberId={record.memberId} isVerified={record.isKycComplete} /> : null}
+      {can.override ? <FeatureOverrides venueId={venueId} memberId={record.memberId} /> : null}
+      {can.changePhone ? <ChangePhone venueId={venueId} memberId={record.memberId} currentPhone={record.phone} /> : null}
+      {can.erase ? <EraseMember venueId={venueId} memberId={record.memberId} /> : null}
+    </Stack>
+  );
+}
+
+/** One part of the record: visits; bonus chips; sign-up; the tier and a break; or the account's. */
 function PartContent({ part, venueId, record, can }: PartProps & { part: RecordPart }) {
   if (part === 'bonus') return <MemberBonus venueId={venueId} memberId={record.memberId} canGive={can.giveBonus} canCorrect={can.correctBonus} />;
   if (part === 'signUp') return <MemberSignUp venueId={venueId} memberId={record.memberId} />;
-  if (part === 'membership') {
-    return (
-      <Stack gap={6}>
-        <TierForm venueId={venueId} record={record} />
-        <MemberBreak venueId={venueId} memberId={record.memberId} />
-      </Stack>
-    );
-  }
-  if (part === 'account') {
-    return (
-      <Stack gap={6}>
-        {can.seesIdentity ? <MemberIdDocuments venueId={venueId} memberId={record.memberId} isVerified={record.isKycComplete} /> : null}
-        {can.override ? <FeatureOverrides venueId={venueId} memberId={record.memberId} /> : null}
-        {can.changePhone ? <ChangePhone venueId={venueId} memberId={record.memberId} currentPhone={record.phone} /> : null}
-        {can.erase ? <EraseMember venueId={venueId} memberId={record.memberId} /> : null}
-      </Stack>
-    );
-  }
+  if (part === 'membership') return <MembershipPart venueId={venueId} record={record} can={can} />;
+  if (part === 'account') return <AccountPart venueId={venueId} record={record} can={can} />;
   return <VisitsPart venueId={venueId} record={record} can={can} />;
 }
 
@@ -141,7 +152,8 @@ interface RecordProps extends PartProps {
 
 /**
  * The record, its parts as tabs in the address (console v3; C-02): Visits, Bonus chips and Sign-up for all, Tier and break
- * for members.manage, Account for super admins. A part the staff member may not open shows Visits.
+ * for members.manage, Account for super admins, and both to view for the floor and up (the owner, 22 Nov). A part the staff
+ * member may not open shows Visits.
  */
 function Record({ venueId, record, can, part, tonight, onNavigate }: RecordProps) {
   const parts = partsFor(can);
@@ -151,7 +163,7 @@ function Record({ venueId, record, can, part, tonight, onNavigate }: RecordProps
       <RecordHeader venueId={venueId} record={record} can={can} />
       {tonight?.kind === 'seated' ? <SeatLine name={record.fullName} seat={tonight} onNavigate={onNavigate} /> : null}
       {parts.length > 1 ? (
-        <Tabs label={t('console.members.parts.label', { name: record.fullName })} current={current} onNavigate={onNavigate}
+        <Tabs look="pill" label={t('console.members.parts.label', { name: record.fullName })} current={current} onNavigate={onNavigate}
           tabs={parts.map((id) => ({ id, label: t(PART_LABELS[id]), href: recordHref(record.memberId, id) }))} />
       ) : null}
       <PartContent part={current} venueId={venueId} record={record} can={can} />

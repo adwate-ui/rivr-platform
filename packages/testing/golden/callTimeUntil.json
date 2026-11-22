@@ -1,0 +1,174 @@
+{
+  "rule": "call time set or extended to a time",
+  "about": "A call time set or extended to a time on the clock, by the member from the seat or by the floor (the owner, 22 Nov). One rule for both. The time picked is given as the seconds from now to it, and must be ahead of now. The seat's call time becomes the whole seconds played (net of time away; none or below nought counting as nought) plus those seconds, in minutes rounded up. Until a call time is set, the time picked must fall after the minimum playing time the seat started with: the call time it makes is more than that minimum, and never less than the call time owed now. Once set, the time must fall after the current end: the call time it makes is more than the call time now. Only a seat with a call time (more than nought minutes) sets or extends one. A call time is at most a day, 1,440 minutes, in all. `opens` is the seconds from now after which a picked time is open, which the app and the floor show: nought once the bound has passed, none for a seat with no call time. The database's private.call_time_until and private.call_time_opens_after are proved equal on these cases and refuse with null.",
+  "cases": [
+    {
+      "description": "Not set: a time two hours ahead, an hour and forty minutes into a three-hour minimum, makes three hours forty.",
+      "operation": "until",
+      "inputs": { "current": "180", "played": "6000", "initial": "180", "set": "no", "ahead": "7200" },
+      "expected": { "minutes": "220", "refusal": "" }
+    },
+    {
+      "description": "Not set: a time just when the three-hour minimum ends is not after it, and is refused.",
+      "operation": "until",
+      "inputs": { "current": "180", "played": "6000", "initial": "180", "set": "no", "ahead": "4800" },
+      "expected": { "minutes": "", "refusal": "too_early" }
+    },
+    {
+      "description": "Not set: a time a second after the minimum ends is open, and makes three hours and a minute.",
+      "operation": "until",
+      "inputs": { "current": "180", "played": "6000", "initial": "180", "set": "no", "ahead": "4801" },
+      "expected": { "minutes": "181", "refusal": "" }
+    },
+    {
+      "description": "Not set: played seconds count, so a time when the minimum ends, half a minute into the minute, is still refused.",
+      "operation": "until",
+      "inputs": { "current": "180", "played": "6030", "initial": "180", "set": "no", "ahead": "4770" },
+      "expected": { "minutes": "", "refusal": "too_early" }
+    },
+    {
+      "description": "Not set: a time an hour ahead, before the minimum ends, is refused.",
+      "operation": "until",
+      "inputs": { "current": "180", "played": "6000", "initial": "180", "set": "no", "ahead": "3600" },
+      "expected": { "minutes": "", "refusal": "too_early" }
+    },
+    {
+      "description": "Not set and past the minimum: a time half an hour ahead, four hours in, makes four and a half hours.",
+      "operation": "until",
+      "inputs": { "current": "180", "played": "14400", "initial": "180", "set": "no", "ahead": "1800" },
+      "expected": { "minutes": "270", "refusal": "" }
+    },
+    {
+      "description": "Not set: seconds played below nought count as nought, so a time four hours ahead at the start makes four hours.",
+      "operation": "until",
+      "inputs": { "current": "180", "played": "-5", "initial": "180", "set": "no", "ahead": "14400" },
+      "expected": { "minutes": "240", "refusal": "" }
+    },
+    {
+      "description": "Not set, the floor having raised the call time to four hours: a time making three hours forty is below it, and refused.",
+      "operation": "until",
+      "inputs": { "current": "240", "played": "6000", "initial": "180", "set": "no", "ahead": "7200" },
+      "expected": { "minutes": "", "refusal": "too_early" }
+    },
+    {
+      "description": "Not set, the call time raised to four hours: a time making exactly four hours is open.",
+      "operation": "until",
+      "inputs": { "current": "240", "played": "6000", "initial": "180", "set": "no", "ahead": "8400" },
+      "expected": { "minutes": "240", "refusal": "" }
+    },
+    {
+      "description": "Set: a time just when the call time ends now is not later than it, and is refused.",
+      "operation": "until",
+      "inputs": { "current": "220", "played": "7000", "initial": "180", "set": "yes", "ahead": "6200" },
+      "expected": { "minutes": "", "refusal": "too_early" }
+    },
+    {
+      "description": "Set: a time a second after the current end extends it to the next minute.",
+      "operation": "until",
+      "inputs": { "current": "220", "played": "7000", "initial": "180", "set": "yes", "ahead": "6201" },
+      "expected": { "minutes": "221", "refusal": "" }
+    },
+    {
+      "description": "Set: a time half an hour past the current end makes four hours ten.",
+      "operation": "until",
+      "inputs": { "current": "220", "played": "7000", "initial": "180", "set": "yes", "ahead": "8000" },
+      "expected": { "minutes": "250", "refusal": "" }
+    },
+    {
+      "description": "Set and run out: a time a minute ahead counts from now, rounded up to the minute.",
+      "operation": "until",
+      "inputs": { "current": "220", "played": "14000", "initial": "180", "set": "yes", "ahead": "60" },
+      "expected": { "minutes": "235", "refusal": "" }
+    },
+    {
+      "description": "Set: a time before the current end, even ahead of now, is refused.",
+      "operation": "until",
+      "inputs": { "current": "220", "played": "7000", "initial": "180", "set": "yes", "ahead": "600" },
+      "expected": { "minutes": "", "refusal": "too_early" }
+    },
+    {
+      "description": "A time making exactly a day is open.",
+      "operation": "until",
+      "inputs": { "current": "180", "played": "3600", "initial": "180", "set": "no", "ahead": "82800" },
+      "expected": { "minutes": "1440", "refusal": "" }
+    },
+    {
+      "description": "A time making a day and a minute is refused.",
+      "operation": "until",
+      "inputs": { "current": "180", "played": "3600", "initial": "180", "set": "no", "ahead": "82801" },
+      "expected": { "minutes": "", "refusal": "over_a_day" }
+    },
+    {
+      "description": "A time making more than a day is refused.",
+      "operation": "until",
+      "inputs": { "current": "180", "played": "3600", "initial": "180", "set": "no", "ahead": "83000" },
+      "expected": { "minutes": "", "refusal": "over_a_day" }
+    },
+    {
+      "description": "Set: extending past a day in all is refused.",
+      "operation": "until",
+      "inputs": { "current": "1400", "played": "60000", "initial": "180", "set": "yes", "ahead": "26500" },
+      "expected": { "minutes": "", "refusal": "over_a_day" }
+    },
+    {
+      "description": "A seat with no call time sets none.",
+      "operation": "until",
+      "inputs": { "current": "0", "played": "600", "initial": "0", "set": "no", "ahead": "3600" },
+      "expected": { "minutes": "", "refusal": "no_call_time" }
+    },
+    {
+      "description": "A time now, not ahead of it, is refused.",
+      "operation": "until",
+      "inputs": { "current": "180", "played": "14400", "initial": "180", "set": "no", "ahead": "0" },
+      "expected": { "minutes": "", "refusal": "not_ahead" }
+    },
+    {
+      "description": "A time gone by is refused.",
+      "operation": "until",
+      "inputs": { "current": "220", "played": "14000", "initial": "180", "set": "yes", "ahead": "-60" },
+      "expected": { "minutes": "", "refusal": "not_ahead" }
+    },
+    {
+      "description": "Not set: a time is open after the three-hour minimum ends, eighty minutes from now.",
+      "operation": "opens",
+      "inputs": { "current": "180", "played": "6000", "initial": "180", "set": "no" },
+      "expected": { "seconds": "4800" }
+    },
+    {
+      "description": "Not set and past the minimum: any time ahead is open.",
+      "operation": "opens",
+      "inputs": { "current": "180", "played": "14400", "initial": "180", "set": "no" },
+      "expected": { "seconds": "0" }
+    },
+    {
+      "description": "Not set, the call time raised to four hours: open once a time makes four hours, past three hours fifty-nine.",
+      "operation": "opens",
+      "inputs": { "current": "240", "played": "6000", "initial": "180", "set": "no" },
+      "expected": { "seconds": "8340" }
+    },
+    {
+      "description": "Set: a time is open after the current end.",
+      "operation": "opens",
+      "inputs": { "current": "220", "played": "7000", "initial": "180", "set": "yes" },
+      "expected": { "seconds": "6200" }
+    },
+    {
+      "description": "Set and run out: any time ahead is open.",
+      "operation": "opens",
+      "inputs": { "current": "220", "played": "14000", "initial": "180", "set": "yes" },
+      "expected": { "seconds": "0" }
+    },
+    {
+      "description": "Seconds played below nought count as nought.",
+      "operation": "opens",
+      "inputs": { "current": "180", "played": "-5", "initial": "180", "set": "no" },
+      "expected": { "seconds": "10800" }
+    },
+    {
+      "description": "A seat with no call time opens none.",
+      "operation": "opens",
+      "inputs": { "current": "0", "played": "600", "initial": "0", "set": "no" },
+      "expected": { "seconds": "" }
+    }
+  ]
+}

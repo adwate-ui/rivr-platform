@@ -6,6 +6,7 @@ import { NextBonusChips } from './NextBonusChips.tsx';
 import { OrderTracker } from './OrderTracker.tsx';
 import { OrderToSeat, SeatActions, SeatStatus } from './SeatActions.tsx';
 import { SeatSheets, type SeatSheet } from './SeatSheets.tsx';
+import { Tablemates } from './Tablemates.tsx';
 
 /** The call time left now: counted down from the server's end of it, or as it stands while the member is away. */
 export function callSecondsLeft(seat: MySeat, now: Date): number {
@@ -43,14 +44,15 @@ interface SeatedViewProps {
 
 /**
  * Seated (brief 3.4 E): when the member sat down, and the call time they set; the three round actions and their sheets;
- * the next play-time bonus; Order to my seat; tonight's order on its way; and the seat's open requests, any place on a
- * list among them.
+ * the others at the table and their call time (the owner, 22 Nov); the next play-time bonus; Order to my seat; tonight's
+ * order on its way; and the seat's open requests, any place on a list among them.
  */
 export function SeatedView({ seat, places, now, sheet, onSheet }: SeatedViewProps) {
   return (
     <>
       <PlayingSince seat={seat} now={now} />
       <SeatActions seat={seat} onOpen={onSheet} />
+      <Tablemates seat={seat} />
       <NextBonusChips />
       <OrderToSeat />
       <OrderTracker />
