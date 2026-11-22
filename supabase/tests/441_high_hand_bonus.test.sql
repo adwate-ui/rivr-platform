@@ -131,8 +131,9 @@ select throws_ok($$ select pg_temp.log(pg_temp.table_of('1', 'Table 3'), '211', 
   'Only super admins, admins and floor managers log a high hand', 'a dealer logs no high hand');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
 select throws_ok($$ select pg_temp.log(pg_temp.table_of('1', 'Table 3'), '211', 'royal_flush', null, '01') $$, '42501', null, 'nor a host');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select throws_ok($$ select pg_temp.log(pg_temp.table_of('1', 'Table 3'), '211', 'royal_flush', null, '01') $$, '42501', null, 'a dealer logs no high hand');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+select throws_ok($$ select pg_temp.log(pg_temp.table_of('1', 'Table 3'), '212', 'royal_flush', null, '01') $$, 'RVHHS', null,
+  'a cashier passes the role check (bonus.give; the owner, 22 Nov), refused here only for a player not seated');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select throws_ok($$ select pg_temp.log(pg_temp.table_of('1', 'Table 3'), '211', 'royal_flush', null, '01') $$, '42501', null, 'nor marketing, who do not seat players');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');

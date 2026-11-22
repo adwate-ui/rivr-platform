@@ -3,6 +3,8 @@
 -- Bonus by hand and use it without a seat (bonus.give, within the by-hand caps), and, with super admins, reverse any Bonus
 -- given and add a use a seat missed: a permission of its own, bonus.correct, in place of the super-admin check. Bonus
 -- from a file, approving a promotion's Bonus, a member's phone, overrides, erasure and ID documents stay with super admins.
+-- A missed use takes a balance below zero only by a super admin's hand: anyone else's stays within the Bonus in force,
+-- with none owed, as Use Bonus does (the security review, 22 Nov; a question to the owner).
 
 insert into public.role_permission (role, permission)
 select 'cashier', permission from unnest(array['members.phone', 'bonus.give', 'bonus.correct']) as permission;
@@ -95,7 +97,7 @@ begin
 end;
 $function$;
 
--- A use a seat missed, added to that seat.
+-- A use a seat missed, added to that seat; past the Bonus in force, or with some owed, by a super admin alone.
 CREATE OR REPLACE FUNCTION private.add_bonus_use(p_session_id uuid, p_chips integer, p_reason text, p_request_id uuid)
  RETURNS uuid
  LANGUAGE plpgsql
@@ -151,6 +153,9 @@ begin
   from (    select g.id, g.created_at, g.remaining_paise, private.bonus_end_in_force(g.venue_id, g.expires_at) as expires_at
           from public.bonus_grant g where g.member_id = v_session.member_id and g.expired_at is null for update) g;
   select t.taken, t.owed into v_taken, v_owed from private.bonus_takes(v_amount, v_remaining, v_expires, now(), null) t;
+  if (v_owed > 0 or private.bonus_owed_by(v_session.member_id) > 0) and not coalesce(private.is_super_admin(v_session.venue_id), false) then
+    raise exception 'More than the Bonus in force' using errcode = 'RVBON';
+  end if;
   for i in 1 .. coalesce(array_length(v_ids, 1), 0) loop
     continue when v_taken[i] = 0;
     update public.bonus_grant set remaining_paise = remaining_paise - v_taken[i] where id = v_ids[i];

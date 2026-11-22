@@ -22,7 +22,7 @@ export const PERMISSIONS = [
   'members.override_features', // grant or revoke one feature for one member
   'members.erase', // erase one member's personal data on request, super_admin only (decision 0207)
   'members.change_phone', // change a member's phone number, their login, super_admin only (decision 0248)
-  'members.phone', // see members' mobile numbers on the Door and open their History: floor and up (the owner, 18 Nov; decision 0690)
+  'members.phone', // see members' mobile numbers on the Door and Members and open their History: floor and up (decision 0690) and cashiers (decision 0709)
   'kyc.review',
   'kyc.in_person', // check a member in person at the desk: hosts and the floor too (decision 0301)
   'tiers.manage', // tiers and the tier x feature matrix

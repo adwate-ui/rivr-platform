@@ -1,4 +1,4 @@
-import { useAddBonusUse, useBonusUseSeats, type BonusUseSeat, type CorrectBonusFailure } from '@rivr/db/bonus';
+import { useAddBonusUse, useBonusUseSeats, type BonusUseSeat, type MissedUseFailure } from '@rivr/db/bonus';
 import { formatDateTime, formatNumber, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ConfirmButton, ErrorMessage, Heading, Input, LoadState, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
@@ -8,7 +8,7 @@ import { chipsFrom } from './GiveBonusChips.tsx';
 const seatLine = (seat: BonusUseSeat) =>
   t('console.members.bonus.missedUse.seatLine', { table: seat.tableName, seat: String(seat.seat), when: formatDateTime(new Date(seat.startedAt)) });
 
-type Outcome = { readonly added: number } | { readonly failure: CorrectBonusFailure } | null;
+type Outcome = { readonly added: number } | { readonly failure: MissedUseFailure } | null;
 
 /** Seats shown at first, and how many more each Show earlier adds. */
 const PAGE = 10;
@@ -36,8 +36,8 @@ function SeatChoice({ seats, count, sessionId, onPick, onMore }: SeatChoiceProps
 }
 
 /**
- * A Bonus use a seat missed, added by a super admin (#1077, the owner, 18 Nov): any seat of the member's, from any visit
- * (the owner, 19 Nov), whole fifties and a reason kept on the record, asked twice. It counts on that seat's day, with no visit limit, and may take the balance below
+ * A Bonus use a seat missed, added by a super admin or a cashier (#1077, the owner, 18 Nov; decision 0709): any seat of the member's, from any visit
+ * (the owner, 19 Nov), whole fifties and a reason kept on the record, asked twice. It counts on that seat's day, with no visit limit; a super admin's alone may take the balance below
  * zero. One request id until it goes through, is refused or what is chosen changes, so pressing again never adds twice.
  */
 export function AddBonusUse({ venueId, memberId }: { venueId: string; memberId: string }) {

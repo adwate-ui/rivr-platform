@@ -33,8 +33,8 @@ function lineCopy(line: MemberBonusLine): { label: string; value: string } {
 }
 
 /**
- * The member's bonus history, the newest first, with Show earlier while there may be more. With `onReverse` (a super admin,
- * #1077) each Bonus given opens to reverse it, unless it was reversed or all of it expired; its reversal and its expiry are
+ * The member's bonus history, the newest first, with Show earlier while there may be more. With `onReverse` (bonus.correct:
+ * super admins and cashiers, #1077) each Bonus given opens to reverse it, unless it was reversed or all of it expired; its reversal and its expiry are
  * newer than it and carry its id, so they are on the page too.
  */
 function BonusHistory({ venueId, memberId, onReverse }: { venueId: string; memberId: string; onReverse: ((reversing: Reversing) => void) | null }) {

@@ -237,7 +237,7 @@ export function useUseBonus(venueId: string, memberId: string) {
 }
 
 /**
- * Why a reversal or a missed use did not go: not a super admin, their own record, not whole fifties, the reason or seat,
+ * Why a reversal or a missed use did not go: not one who corrects Bonus (bonus.correct), their own record, not whole fifties, the reason or seat,
  * nothing of the grant left (it expired), frozen, too many at once, or the line.
  */
 export type CorrectBonusFailure = 'not_allowed' | 'own_record' | 'invalid_chips' | 'invalid' | 'nothing_left' | 'paused' | 'busy' | 'unavailable';
@@ -247,8 +247,13 @@ const CORRECT_FAILURE_BY_CODE: Readonly<Record<string, CorrectBonusFailure>> = {
   RVMBR: 'paused', RVRAT: 'busy',
 };
 
+/** Why a missed use did not go: as a reversal, or, for anyone but a super admin, past the Bonus in force or with some owed (decision 0709). */
+export type MissedUseFailure = CorrectBonusFailure | 'bonus_short';
+
+const MISSED_USE_FAILURE_BY_CODE: Readonly<Record<string, MissedUseFailure>> = { ...CORRECT_FAILURE_BY_CODE, RVBON: 'bonus_short' };
+
 /**
- * A super admin reverses a Bonus given (#1077, the owner, 18 Nov): the whole of it comes back, even if part was used, less
+ * Super admins and cashiers (bonus.correct, decision 0709) reverse a Bonus given (#1077, the owner, 18 Nov): the whole of it comes back, even if part was used, less
  * what expired, so the balance may go below zero. Resolves to what came back; null when it was reversed already.
  */
 export function useReverseBonus(venueId: string, memberId: string) {
@@ -301,19 +306,19 @@ export interface MissedBonusUse {
 }
 
 /**
- * A super admin adds a Bonus use a seat missed (#1077): it counts on the seat's own day, with no visit cap, and may take the
- * balance below zero. The same request id again is the same use.
+ * Super admins and cashiers add a Bonus use a seat missed (#1077): it counts on the seat's own day, with no visit cap; a super
+ * admin's alone may take the balance below zero (decision 0709). The same request id again is the same use.
  */
 export function useAddBonusUse(venueId: string, memberId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (use: MissedBonusUse): Promise<Result<null, CorrectBonusFailure>> => {
+    mutationFn: async (use: MissedBonusUse): Promise<Result<null, MissedUseFailure>> => {
       const { error } = await client.rpc('add_bonus_use', {
         p_session_id: use.sessionId, p_chips: use.chips, p_reason: use.reason, p_request_id: use.requestId,
       });
       await queryClient.invalidateQueries({ queryKey: queryKeys.memberBonus(userId ?? 'signed-out', venueId, memberId) });
-      return error ? err(CORRECT_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
+      return error ? err(MISSED_USE_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });
 }

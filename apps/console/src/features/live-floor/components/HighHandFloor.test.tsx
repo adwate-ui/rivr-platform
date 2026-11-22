@@ -149,6 +149,11 @@ describe('the high hand on the Live floor (redesign RD-24)', () => {
     expect(within(shown).queryByRole('button', { name: 'Log a high hand' })).toBeNull();
   });
 
+  it('gives a cashier Log a high hand, as they add Bonus by hand (decision 0709)', async () => {
+    await renderFloor(floorWith({ role: 'cashier' }));
+    expect(await within(await strip()).findByRole('button', { name: 'Log a high hand' })).toBeDefined();
+  });
+
   it('opens the panel once when the promotions record sends its Log a high hand here, and clears the address', async () => {
     const { router } = await renderFloor(floorWith(), '/?log=high-hand');
     const panel = await screen.findByRole('dialog', { name: 'Log a high hand' });
