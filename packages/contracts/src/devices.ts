@@ -30,11 +30,15 @@ export type TvMode = (typeof TV_MODES)[number];
 export const TV_LEADERBOARD_PERIODS = ['tonight', 'week', 'month', 'all'] as const;
 export type TvLeaderboardPeriod = (typeof TV_LEADERBOARD_PERIODS)[number];
 
-/** Staff pair a TV on the console: the code it shows, a name, and what it shows. */
+/**
+ * Staff pair a TV on the console: the code it shows, a name, the boards it shows in order (the first its main one, the rest
+ * those it turns to; the owner, 22 Nov), and the tables its call time board shows, none for every table.
+ */
 export const tvPairSchema = z.object({
   code: pairingCodeSchema,
   name: z.string().trim().min(1).max(60),
-  mode: z.enum(TV_MODES),
+  boards: z.array(z.enum(TV_MODES)).min(1).max(TV_MODES.length).refine((boards) => new Set(boards).size === boards.length),
+  tables: z.array(z.uuid()).max(50).refine((tables) => new Set(tables).size === tables.length),
 });
 
 /** Staff add a dealer tablet by name, on the console. */

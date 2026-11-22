@@ -107,18 +107,18 @@ export const tvs = {
   pairTitle: 'Pair a TV',
   /** Opens the panel that pairs one (redesign RD-38). */
   pairOpen: 'Add a TV',
-  /** Window-only pairing (#325): the owner's switch, and Pair a TV for staff who manage devices. */
-  windowOnly: 'Pair TVs only after Pair a TV is pressed',
-  openWindow: 'Pair a TV',
-  windowOpenUntil: 'A TV gets a code until {time}.',
-  windowShut: 'Press Pair a TV, then pair within ten minutes.',
   notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No TVs yet.',
   code: 'Code on the TV',
   codeHint: 'The six digits on the TV.',
   name: 'TV name',
   nameHint: 'For example, Bar TV.',
-  mode: 'What it shows',
+  /** Pairing picks its boards as its row has them (the owner, 22 Nov): its main board, then those it turns to in between. */
+  boards: 'What it shows',
+  turnsTo: 'What it turns to in between',
+  /** The tables its call time board shows. */
+  tables: 'Call time tables',
+  tablesHint: 'None picked shows every table.',
   /** Above the form: the venue the TV joins, the one the console is on. */
   venue: 'A TV paired here joins {venue}.',
   practiceVenue: 'Pairs to {venue}, the practice venue: training figures only.',
@@ -141,6 +141,7 @@ export const tvs = {
   /** The boards a TV turns to after its main one (decision 0163). */
   rotationFor: 'What {name} turns to in between',
   rotationHint: 'Each board shows for the time set in Rotation.',
+  tablesFor: 'Call time tables on {name}',
   unpair: 'Unpair',
   unpairReason: 'Why it is unpaired',
   unpairConfirm: 'Unpair the TV',
@@ -159,8 +160,6 @@ export const tvPairing = {
   changes: 'The code changes at {time}.',
   loading: 'Getting a code.',
   tooMany: 'Too many screens asked. Retrying in a minute.',
-  /** The venue pairs TVs only after staff press Pair a TV (#325). */
-  windowClosed: 'Press Pair a TV on the console. The code shows within a minute.',
   unavailable: 'No connection. Retrying in a minute.',
 };
 

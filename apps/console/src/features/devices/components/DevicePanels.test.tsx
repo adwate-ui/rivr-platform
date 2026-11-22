@@ -59,7 +59,35 @@ describe('the devices’ panels at the side (redesign RD-38)', () => {
     fireEvent.click(panel.getByRole('button', { name: 'Pair the TV' }));
     expect(await screen.findByText('Bar TV is paired.')).toBeDefined();
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(bodiesOf('claim_tv_pairing').at(-1)).toEqual({ p_venue_id: 'v1', p_code: '123456', p_name: 'Bar TV', p_mode: 'waitlist' });
+    expect(bodiesOf('claim_tv_pairing').at(-1)).toEqual({ p_venue_id: 'v1', p_code: '123456', p_name: 'Bar TV', p_boards: ['waitlist'], p_tables: [] });
+  });
+
+  it('pairs a TV with its boards in the order pressed and the tables of its call time board (the owner, 22 Nov)', async () => {
+    answers['claim_tv_pairing'] = () => Response.json('d1');
+    const table = { is_open: true, seats: 9, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main', min_buy_in_paise: 500000 };
+    answers['game_table'] = () => Response.json([{ ...table, id: '00000000-0000-4000-8000-0000000000a1', venue_id: 'v1', name: 'Table 1', position: 1 },
+      { ...table, id: '00000000-0000-4000-8000-0000000000a2', venue_id: 'v1', name: 'Table 2', position: 2 }, { ...table, id: 'x1', venue_id: 'v2', name: 'Elsewhere', position: 1 }]);
+    answers['table_type'] = () => Response.json([{ id: 'tt1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, straddle_paise: null }]);
+    renderPanel(<PairTvForm venueId="v1" venueName="RIVR Gurugram" isPractice={false} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add a TV' }));
+    const panel = within(screen.getByRole('dialog', { name: 'Pair a TV' }));
+    fireEvent.change(panel.getByRole('textbox', { name: 'Code on the TV' }), { target: { value: '123456' } });
+    fireEvent.change(panel.getByRole('textbox', { name: 'TV name' }), { target: { value: 'Rail TV' } });
+    // No call time board yet: no tables to pick.
+    expect(panel.queryByRole('group', { name: 'Call time tables' })).toBeNull();
+    // The call time board its main one, then the waitlist and promotions in between, in the order pressed.
+    fireEvent.click(within(panel.getByRole('radiogroup', { name: 'What it shows' })).getByRole('radio', { name: 'Call-time board' }));
+    const turnsTo = within(panel.getByRole('group', { name: 'What it turns to in between' }));
+    expect(turnsTo.queryByRole('button', { name: 'Call-time board' })).toBeNull();
+    fireEvent.click(turnsTo.getByRole('button', { name: 'Promotions' }));
+    fireEvent.click(turnsTo.getByRole('button', { name: 'Waitlist board' }));
+    const tables = within(await panel.findByRole('group', { name: 'Call time tables' }));
+    expect((await tables.findAllByRole('button')).map((chip) => chip.textContent)).toEqual(['Table 1', 'Table 2']);
+    expect(panel.getByText('None picked shows every table.')).toBeDefined();
+    fireEvent.click(tables.getByRole('button', { name: 'Table 2' }));
+    fireEvent.click(panel.getByRole('button', { name: 'Pair the TV' }));
+    await waitFor(() => expect(bodiesOf('claim_tv_pairing').at(-1))
+      .toEqual({ p_venue_id: 'v1', p_code: '123456', p_name: 'Rail TV', p_boards: ['call_time', 'promotions', 'waitlist'], p_tables: ['00000000-0000-4000-8000-0000000000a2'] }));
   });
 
   it('stops a TV with no code or name at the fields, before any call', async () => {

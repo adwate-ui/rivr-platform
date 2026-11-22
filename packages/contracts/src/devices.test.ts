@@ -46,9 +46,15 @@ describe('TV pairing schemas (#49)', () => {
     expect(devicePairRequestSchema.safeParse({ tv: 'pair' }).success).toBe(false);
   });
 
-  it('pairs a TV with its code, a trimmed name and one of the modes', () => {
-    expect(tvPairSchema.parse({ code: '000417', name: ' Bar TV ', mode: 'waitlist' })).toEqual({ code: '000417', name: 'Bar TV', mode: 'waitlist' });
-    expect(tvPairSchema.safeParse({ code: '000417', name: 'Bar TV', mode: 'menu' }).success).toBe(false);
-    expect(tvPairSchema.safeParse({ code: '000417', name: ' ', mode: 'jackpot' }).success).toBe(false);
+  it('pairs a TV with its code, a trimmed name, its boards in order and its tables (the owner, 22 Nov)', () => {
+    const table = '00000000-0000-4000-8000-00000000a001';
+    expect(tvPairSchema.parse({ code: '000417', name: ' Bar TV ', boards: ['call_time', 'waitlist'], tables: [table] }))
+      .toEqual({ code: '000417', name: 'Bar TV', boards: ['call_time', 'waitlist'], tables: [table] });
+    expect(tvPairSchema.safeParse({ code: '000417', name: 'Bar TV', boards: ['waitlist'], tables: [] }).success).toBe(true);
+    expect(tvPairSchema.safeParse({ code: '000417', name: 'Bar TV', boards: [], tables: [] }).success).toBe(false);
+    expect(tvPairSchema.safeParse({ code: '000417', name: 'Bar TV', boards: ['waitlist', 'waitlist'], tables: [] }).success).toBe(false);
+    expect(tvPairSchema.safeParse({ code: '000417', name: 'Bar TV', boards: ['menu'], tables: [] }).success).toBe(false);
+    expect(tvPairSchema.safeParse({ code: '000417', name: 'Bar TV', boards: ['waitlist'], tables: [table, table] }).success).toBe(false);
+    expect(tvPairSchema.safeParse({ code: '000417', name: ' ', boards: ['waitlist'], tables: [] }).success).toBe(false);
   });
 });

@@ -6,7 +6,7 @@ import { DotStatus, ErrorMessage, Inline, OverflowMenu, ReasonForm, Stack, Text 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-import { ModeChips, RotationChips, TV_FAILURE_COPY } from './tvCopy.tsx';
+import { ModeChips, RotationChips, TableChips, TV_FAILURE_COPY, useVenueTables } from './tvCopy.tsx';
 
 type Outcome = { ok: true } | { ok: false; error: TvFailure };
 
@@ -33,7 +33,18 @@ export function TvStatus({ tv }: { tv: VenueTv }) {
   return <DotStatus tone="inactive" label={tv.lastSeenAt === null ? t('console.tvs.offline') : t('console.tvs.lastSeen', { when: formatDateTime(new Date(tv.lastSeenAt)) })} />;
 }
 
-/** One TV: whether it is on, what it shows, what it turns to in between (decision 0163), and Unpair behind its ⋯. */
+/** The tables a TV's call time board shows (the owner, 22 Nov), while that board is its main one or among those it turns to. */
+function TvTables({ venueId, tv, onDone }: { venueId: string; tv: VenueTv; onDone: (outcome: Outcome) => void }) {
+  const { setTables } = useTvActions(venueId);
+  const tables = useVenueTables(venueId);
+  if (tv.mode !== 'call_time' && !tv.rotation.includes('call_time')) return null;
+  return (
+    <TableChips label={t('console.tvs.tablesFor', { name: tv.name })} tables={tables} value={tv.tables} isDisabled={setTables.isPending}
+      onChange={(chosen) => void setTables.mutateAsync({ deviceId: tv.deviceId, tables: chosen }).then(onDone)} />
+  );
+}
+
+/** One TV: whether it is on, what it shows, what it turns to in between (decision 0163), its tables, and Unpair behind its ⋯. */
 export function TvRow({ venueId, tv }: { venueId: string; tv: VenueTv }) {
   const { setMode, setRotation } = useTvActions(venueId);
   const [isUnpairing, setIsUnpairing] = useState(false);
@@ -60,6 +71,7 @@ export function TvRow({ venueId, tv }: { venueId: string; tv: VenueTv }) {
           <Text variant="small" tone="muted">{t('console.tvs.rotationHint')}</Text>
         </Stack>
       )}
+      <TvTables venueId={venueId} tv={tv} onDone={settle} />
       {isUnpairing ? (
         <UnpairForm venueId={venueId} tv={tv} onDone={(outcome) => {
           setIsUnpairing(false);

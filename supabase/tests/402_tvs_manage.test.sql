@@ -30,12 +30,12 @@ insert into public.device (id, venue_id, kind, name) values
 insert into public.tv_screen (device_id, venue_id, mode) values ('00000000-0000-4000-8000-0000000d4021', '00000000-0000-4000-8000-000000000001', 'waitlist');
 
 select pg_temp.as_who('floor');
-select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', '000000', 'TV', 'waitlist') $$, 'RVCOD', null, 'the floor may pair a TV: the code is all that is wrong');
-select lives_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from screen), 'Hall TV', 'waitlist') $$, 'and with a live code, pairs it');
+select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', '000000', 'TV', array['waitlist']::public.tv_mode[], '{}') $$, 'RVCOD', null, 'the floor may pair a TV: the code is all that is wrong');
+select lives_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from screen), 'Hall TV', array['waitlist']::public.tv_mode[], '{}') $$, 'and with a live code, pairs it');
 select lives_ok($$ select public.set_tv_mode('00000000-0000-4000-8000-0000000d4021', 'call_time') $$, 'and choose what one shows');
 select lives_ok($$ select public.set_tv_rotation('00000000-0000-4000-8000-0000000d4021', array['waitlist']::public.tv_mode[]) $$, 'and what it turns to');
-select is((select count(*)::integer from public.tv_pairing_policy('00000000-0000-4000-8000-000000000001')), 1, 'and read the pairing policy, which Pair a TV needs');
-select lives_ok($$ select public.open_tv_pairing_window('00000000-0000-4000-8000-000000000001') $$, 'and open the pairing window');
+select lives_ok($$ select public.set_tv_tables('00000000-0000-4000-8000-0000000d4021', array(select id from public.game_table
+                     where venue_id = '00000000-0000-4000-8000-000000000001' order by position limit 2)) $$, 'and the tables its call time board shows');
 select throws_ok($$ select public.start_device_pairing('00000000-0000-4000-8000-0000000d4022') $$, '42501', null, 'but not pair a dealer tablet');
 select throws_ok($$ insert into public.device (venue_id, kind, name) values ('00000000-0000-4000-8000-000000000001', 'cage', 'Another cage') $$, '42501', null, 'nor add a cage computer');
 update public.device set revoked_at = now(), revoked_reason = 'Mine now' where id = '00000000-0000-4000-8000-0000000d4022';
@@ -55,7 +55,7 @@ reset role;
 select ok((select revoked_at is not null from public.device where id = '00000000-0000-4000-8000-0000000d4021'), 'and unpairs one');
 
 select pg_temp.as_who('host');
-select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', '000000', 'TV', 'waitlist') $$, '42501', null, 'a host pairs none');
+select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', '000000', 'TV', array['waitlist']::public.tv_mode[], '{}') $$, '42501', null, 'a host pairs none');
 reset role;
 
 -- A venue freeze: a TV stays on its "club closed" screen.
