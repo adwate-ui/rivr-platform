@@ -22,9 +22,9 @@ function failureAt(outcome: Outcome, place: 'chips' | 'reason' | 'form'): string
 }
 
 /**
- * Bonus used without a seat (the owner, 20 Nov), for super admins, admins and floor managers: on the member's record beside
+ * Bonus used without a seat (the owner, 20 Nov), for super admins, admins, floor managers and cashiers: on the member's record beside
  * Add Bonus, and in a sheet from their row at the Door. How many, in whole fifties, and why, asked twice. The database takes
- * it only while the member is checked in, within what they hold and their visit's limit; a refusal is said under the field it
+ * it checked in or not (the owner, 22 Nov), within what they hold and the visit's limit; a refusal is said under the field it
  * is about. One request id until it goes through, is refused or what is typed changes, so pressing again never uses twice.
  */
 export function UseBonus({ venueId, memberId }: { venueId: string; memberId: string }) {

@@ -53,8 +53,19 @@ function useRowActions(venueId: string) {
   };
 }
 
-/** A checked-in member's first row: it alone carries their day's Bonus given (`bonus`), and the Bonus they use without a seat. */
-const isFirstRowInClub = (player: DoorPlayer) => player.list === 'in_club' && player.checkedOutAt === null && player.bonus !== null;
+/** A member's first row, whatever their list: it alone carries their day's Bonus given (`bonus`), and the Bonus they use without a seat. */
+const isFirstRow = (player: DoorPlayer) => player.bonus !== null;
+
+/** A row's one button (redesign correction 3): Check out for a member in the room, Check in for one expected; none once they have left. */
+function rowButton(player: DoorPlayer, actions: ReturnType<typeof useRowActions>) {
+  if (player.list === 'in_club') {
+    return <Button variant="subtle" size="small" isDisabled={actions.isBusy} aria-label={t('console.checkIn.checkOutMember', { name: player.fullName })}
+      onClick={() => void actions.release(player.memberId)}>{t('console.checkIn.checkOut')}</Button>;
+  }
+  if (player.list !== 'expected') return null;
+  return <Button variant="subtle" size="small" isDisabled={actions.isBusy} aria-label={t('console.checkIn.checkInMember', { name: player.fullName })}
+    onClick={() => void actions.admit(player.memberId)}>{t('console.checkIn.checkIn')}</Button>;
+}
 
 /** Use Bonus's form in the panel at the side, for the member whose row opened it (the owner, 20 Nov). */
 function BonusSheet({ venueId, using, form, onClose }: { venueId: string; using: DoorPlayer | null; form: BonusForm | undefined; onClose: () => void }) {
@@ -72,21 +83,16 @@ function OpenBonusSheet({ venueId, using, form: Form, onClose }: { venueId: stri
 function CheckIn({ venueId, history: History, bonusForm }: { venueId: string; history?: ComponentType<{ venueId: string; memberId: string }> | undefined; bonusForm?: BonusForm | undefined }) {
   const actions = useRowActions(venueId);
   const [using, setUsing] = useState<DoorPlayer | null>(null);
-  // A row's one button (redesign correction 3): Check out for a member in the room, Check in for one expected; none once they have left.
-  // A checked-in member's first row has Use Bonus too, for those who give Bonus by hand: a text button, as History is, so
-  // the two share a line in the row's cell (doorColumns) and Check out goes beneath them (the UI review, 20 Nov).
+  // A member's first row, whatever their list, has Use Bonus too, for those who give Bonus by hand, checked in or not (the
+  // owner, 22 Nov): a text button, as History is, so the two share a line in the row's cell (doorColumns) and the row's
+  // button goes beneath them (the UI review, 20 Nov).
   const action = (player: DoorPlayer) => {
-    if (player.list === 'in_club') {
-      const checkOut = <Button variant="subtle" size="small" isDisabled={actions.isBusy} aria-label={t('console.checkIn.checkOutMember', { name: player.fullName })}
-        onClick={() => void actions.release(player.memberId)}>{t('console.checkIn.checkOut')}</Button>;
-      if (bonusForm === undefined || !isFirstRowInClub(player)) return checkOut;
-      const useBonus = <Button variant="text" size="small" aria-label={t('console.checkIn.useBonusMember', { name: player.fullName })}
-        onClick={() => setUsing(player)}>{t('console.checkIn.useBonus')}</Button>;
-      return History === undefined ? <Inline gap={2} justify="end" wrap>{useBonus}{checkOut}</Inline> : <>{useBonus}{checkOut}</>;
-    }
-    if (player.list !== 'expected') return null;
-    return <Button variant="subtle" size="small" isDisabled={actions.isBusy} aria-label={t('console.checkIn.checkInMember', { name: player.fullName })}
-      onClick={() => void actions.admit(player.memberId)}>{t('console.checkIn.checkIn')}</Button>;
+    const button = rowButton(player, actions);
+    if (bonusForm === undefined || !isFirstRow(player)) return button;
+    const useBonus = <Button variant="text" size="small" aria-label={t('console.checkIn.useBonusMember', { name: player.fullName })}
+      onClick={() => setUsing(player)}>{t('console.checkIn.useBonus')}</Button>;
+    if (button === null) return useBonus;
+    return History === undefined ? <Inline gap={2} justify="end" wrap>{useBonus}{button}</Inline> : <>{useBonus}{button}</>;
   };
   return (
     <Screen title={t('console.checkIn.title')}>

@@ -169,6 +169,19 @@ describe('Check-in (the door as one table from the server, redesign RD-30)', () 
     expect(await within(panel).findByText('Bonus: 5,500')).toBeDefined();
   });
 
+  it('gives Use Bonus on the first row of a member expected or gone too, checked in or not (the owner, 22 Nov)', async () => {
+    const IRA = { ...NAKUL, member_id: 'm3', full_name: 'Ira Kapoor', status: 'left', list: 'left', checked_out_at: '2026-11-03T18:00:00Z', session_id: 's3',
+      visit_id: 'v3', linked_member_id: 'm3' };
+    rows = [KABIR, IRA, { ...IRA, session_id: 's4', bonus_paise: null, wallet_paise: null }];
+    // No one is in the room, where the door opens: its empty state, then the lists.
+    renderAs('floor');
+    fireEvent.click(await screen.findByRole('radio', { name: /^Expected tonight/ }, { timeout: 5000 }));
+    expect(await screen.findByRole('button', { name: 'Use Bonus for Kabir Sethi' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Check in Kabir Sethi' })).toBeDefined();
+    fireEvent.click(screen.getByRole('radio', { name: /^Left/ }));
+    expect(await screen.findAllByRole('button', { name: 'Use Bonus for Ira Kapoor' })).toHaveLength(1);
+  });
+
   it('asks the server for the members expected, and checks one in from their row', async () => {
     const { asked, calls } = renderAs('host');
     await door();

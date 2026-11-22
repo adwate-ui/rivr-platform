@@ -60,13 +60,13 @@ export const memberBonus = {
     },
   },
   /**
-   * Bonus used without a seat (the owner, 20 Nov), by those who add it by hand: while the member is checked in, whole
+   * Bonus used without a seat (the owner, 20 Nov), by those who add it by hand, checked in or not (the owner, 22 Nov): whole
    * fifties, never more than they hold or their visit's limit, with a reason. `{chips}` is the number, as `1,500`.
    */
   use: {
     title: 'Use Bonus',
     chips: 'Bonus',
-    chipsHint: 'Whole fifties, while checked in.',
+    chipsHint: 'Whole fifties.',
     reason: 'Reason',
     /** The member sees no reason for a use, as for a use added. */
     reasonHint: 'Kept on the record and in Activity.',
@@ -78,7 +78,6 @@ export const memberBonus = {
       own_record: 'Not on your own record. Ask someone else who can.',
       invalid_chips: 'Give whole fifties from 50 to 1,00,000.',
       invalid_reason: 'Give a reason of 3 to 200 characters.',
-      not_checked_in: 'Not checked in. Check them in first.',
       /** More than the Bonus in force, or some is owed. */
       bonus_short: 'More than their Bonus. Type less.',
       /** More than the visit's limit leaves (bonus.visit_cap). */
