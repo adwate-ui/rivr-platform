@@ -18,6 +18,15 @@ describe('CameraButton', () => {
     expect(input).toHaveAttribute('accept', 'image/*');
   });
 
+  it('opens nothing while held, as while a file chosen before is saved', async () => {
+    const { container } = renderIn(<CameraButton camera="none" isDisabled onPhoto={() => undefined}>Choose another file</CameraButton>);
+    const opened = vi.fn();
+    container.querySelector('input[type="file"]')?.addEventListener('click', opened);
+    expect(screen.getByRole('button', { name: 'Choose another file' })).toBeDisabled();
+    await userEvent.click(screen.getByRole('button', { name: 'Choose another file' }));
+    expect(opened).not.toHaveBeenCalled();
+  });
+
   it('offers only the files asked for, from the file picker without a camera', () => {
     const { container } = renderIn(<CameraButton camera="none" accept="image/png,image/svg+xml" onPhoto={() => undefined}>Upload a logo</CameraButton>);
     const input = container.querySelector('input[type="file"]');

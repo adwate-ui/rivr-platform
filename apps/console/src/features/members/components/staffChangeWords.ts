@@ -17,10 +17,13 @@ const KYC_WORDS: Readonly<Partial<Record<string, MemberKycStatus>>> = {
   verified: 'verified', needs_review: 'in_review', in_review: 'in_review', at_desk: 'at_desk', refused: 'refused',
 };
 
+/** Fields that count chips of ₹1: a Bonus line's, what is owed, and a Bonus file's Add or Use (the owner, 22 Nov). */
+const CHIP_FIELDS = new Set(['chips', 'owed_chips', 'added_chips', 'used_chips']);
+
 /** A number by what its field counts: paise, chips, seconds, minutes or hours; anything else as it is. */
 function numberWords(field: string, value: number): string {
   if (field.endsWith('_paise')) return formatChips(BigInt(Math.round(value)));
-  if (field === 'chips' || field === 'owed_chips') return formatChips(BigInt(Math.round(value * 100)));
+  if (CHIP_FIELDS.has(field)) return formatChips(BigInt(Math.round(value * 100)));
   if (field.endsWith('_seconds')) return formatDuration(value);
   if (field === 'call_time_minutes') return formatDuration(value * 60);
   return field === 'session_reminder_hours' ? formatDuration(value * 3600) : String(value);

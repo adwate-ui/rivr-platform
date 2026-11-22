@@ -1,0 +1,72 @@
+{
+  "rule": "bonusFile",
+  "about": "A Bonus file (the owner, 22 Nov; decision 0707): a super admin's file of lines, each an Add or a Use of whole ₹50 chips for a member, run in the file's order. An Add pays what the member owes first and they keep the rest (bonusPayOff). A Use is refused while any Bonus is owed, or when it is more than the Bonus in force by then, Adds above it included; a refused line changes nothing and the lines after it read on. Nothing is rounded. Holdings are written member ₹in force owing ₹owed, lines member add|use ₹amount, separated by |; refusals are none, owed or bonus_short, one for each line in its order. A member not held starts with nothing. The database's private.bonus_from_file runs a file the same way and refuses it whole if any line is refused (pgTAP 597).",
+  "cases": [
+    {
+      "description": "Ritika holds ₹1,000: an Add of ₹500, then a Use of ₹1,500, the Add above paying for it. Nothing left.",
+      "operation": "run",
+      "inputs": { "held": "Ritika ₹1,000 owing ₹0", "lines": "Ritika add ₹500 | Ritika use ₹1,500" },
+      "expected": { "refusals": "none | none", "after": "Ritika ₹0 owing ₹0" }
+    },
+    {
+      "description": "The same lines the other way round: the Use comes before the Add, so ₹1,500 is more than her ₹1,000; the Add still goes.",
+      "operation": "run",
+      "inputs": { "held": "Ritika ₹1,000 owing ₹0", "lines": "Ritika use ₹1,500 | Ritika add ₹500" },
+      "expected": { "refusals": "bonus_short | none", "after": "Ritika ₹1,500 owing ₹0" }
+    },
+    {
+      "description": "Exactly what is in force, ₹1,000, goes; the next ₹50 is one chip too many.",
+      "operation": "run",
+      "inputs": { "held": "Ritika ₹1,000 owing ₹0", "lines": "Ritika use ₹1,000 | Ritika use ₹50" },
+      "expected": { "refusals": "none | bonus_short", "after": "Ritika ₹0 owing ₹0" }
+    },
+    {
+      "description": "₹1,000 against ₹950 held: ₹50 over, refused.",
+      "operation": "run",
+      "inputs": { "held": "Ritika ₹950 owing ₹0", "lines": "Ritika use ₹1,000" },
+      "expected": { "refusals": "bonus_short", "after": "Ritika ₹950 owing ₹0" }
+    },
+    {
+      "description": "The most a line holds, ₹1,00,000, added and then used.",
+      "operation": "run",
+      "inputs": { "held": "", "lines": "Kunal add ₹1,00,000 | Kunal use ₹1,00,000" },
+      "expected": { "refusals": "none | none", "after": "Kunal ₹0 owing ₹0" }
+    },
+    {
+      "description": "A member who holds nothing: ₹50 is more than nothing.",
+      "operation": "run",
+      "inputs": { "held": "", "lines": "Kunal use ₹50" },
+      "expected": { "refusals": "bonus_short", "after": "" }
+    },
+    {
+      "description": "Neel owes ₹1,000: a Use is refused; an Add of ₹1,500 pays the ₹1,000 and he keeps ₹500, which the next Use spends.",
+      "operation": "run",
+      "inputs": { "held": "Neel ₹0 owing ₹1,000", "lines": "Neel use ₹50 | Neel add ₹1,500 | Neel use ₹500" },
+      "expected": { "refusals": "owed | none | none", "after": "Neel ₹0 owing ₹0" }
+    },
+    {
+      "description": "An Add of ₹500 pays half of what Neel owes: ₹500 still owed, so a Use after it is refused.",
+      "operation": "run",
+      "inputs": { "held": "Neel ₹0 owing ₹1,000", "lines": "Neel add ₹500 | Neel use ₹50" },
+      "expected": { "refusals": "none | owed", "after": "Neel ₹0 owing ₹500" }
+    },
+    {
+      "description": "Each member's own Bonus: Kunal's ₹500 is more than his ₹200, Ritika's ₹500 is not.",
+      "operation": "run",
+      "inputs": { "held": "Ritika ₹1,000 owing ₹0 | Kunal ₹200 owing ₹0", "lines": "Kunal use ₹500 | Ritika use ₹500" },
+      "expected": { "refusals": "bonus_short | none", "after": "Ritika ₹500 owing ₹0 | Kunal ₹200 owing ₹0" }
+    },
+    {
+      "description": "A file's totals: two Adds and a Use.",
+      "operation": "totals",
+      "inputs": { "lines": "Ritika add ₹500 | Ritika use ₹1,500 | Kunal add ₹1,00,000" },
+      "expected": { "added": "₹1,00,500", "used": "₹1,500" }
+    },
+    {
+      "description": "A file of Uses alone adds nothing.",
+      "operation": "totals",
+      "inputs": { "lines": "Ritika use ₹50" },
+      "expected": { "added": "₹0", "used": "₹50" }
+    }
+  ]
+}

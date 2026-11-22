@@ -1,8 +1,12 @@
+import { bonusFile } from './bonusFile.ts';
+
 /**
  * The record's bonus chips (decision 0504; owner, 8 Nov): the balance with its name, line and look, as the app shows it to the
  * member; then each bonus line, the newest first; bonus chips are added by hand here, on the record.
  */
 export const memberBonus = {
+  /** Bonus from a file, on Members for super admins (the owner, 22 Nov). */
+  file: bonusFile,
   chipsLabel: 'Bonus',
   /** The Members list's column: each member's Bonus in force (redesign RD-29). */
   column: 'Bonus',

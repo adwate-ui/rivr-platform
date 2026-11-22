@@ -30,7 +30,7 @@ const FIELD_WORDS: Readonly<Record<string, string>> = {
   decision: 'Decision', outcome: 'Outcome', kind: 'Kind', taken_at: 'Taken', retake_asked_at: 'Retake asked', retake_reason: 'Retake reason',
   amount_paise: 'Amount', remaining_paise: 'Left', expires_at: 'Expires', expired_at: 'Expired', reversed_at: 'Reversed', reversal_reason: 'Why reversed',
   reversal_paise: 'Amount reversed', used_at: 'Used', trigger: 'Why given', effect: 'Effect', cost_paise: 'Amount', club_day: 'Club day', fulfilled_at: 'Given',
-  chips: 'Chips', owed_chips: 'Chips owed', perk: 'Perk', points: 'Points', table_name: 'Table', table_id: 'Table', reason: 'Reason',
+  chips: 'Chips', owed_chips: 'Chips owed', added_chips: 'Bonus added', used_chips: 'Bonus used', perk: 'Perk', points: 'Points', table_name: 'Table', table_id: 'Table', reason: 'Reason',
   opened_at: 'Checked in', closed_at: 'Checked out', close_reason: 'Why closed', bonus_at_first_seat_paise: 'Bonus at first use',
   seat: 'Seat', started_at: 'Seated', seated_here_at: 'Seated here', ended_at: 'Left', end_reason: 'Why left', leave_reason: 'Why left',
   away_since: 'Away since', away_seconds: 'Time away', call_time_minutes: 'Call time', call_time_completed_at: 'Call time met', call_time_first_met_at: 'Call time first met',

@@ -15,6 +15,7 @@ export * from './StatusMessage/index.ts';
 export * from './UrgentChime/index.ts';
 export * from './Container/index.ts';
 export * from './Screen/index.ts';
+export * from './SheetFile/index.ts';
 
 // Type
 export * from './Text/index.ts';

@@ -2766,6 +2766,14 @@ isOneToOne: false
 "begin_sign_up_photo":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"bonus_file_members":
+{ Args: { "p_keys": (string)[],"p_venue_id": string }; Returns: {
+              "full_name": string,"in_force_paise": number,"is_frozen": boolean,"is_own": boolean,"key": string,"member_id": string,"member_number": number,"owed_paise": number
+            }[]
+                           },
+"bonus_from_file":
+{ Args: { "p_lines": Json,"p_request_id": string,"p_venue_id": string }; Returns: number
+                           },
 "bonus_given_page":
 { Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
               "amount_paise": number,"full_name": string,"given_at": string,"grant_id": string,"member_id": string,"member_number": number,"promotion_name": string,"reason": string,"source": string,"staff_name": string,"total": number

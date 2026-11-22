@@ -21,6 +21,14 @@ describe('ErrorMessage', () => {
     expect(container.querySelector('.bg-alert.rounded-full')).not.toBeNull();
   });
 
+  it('is not announced when it is one of many shown at once, and looks the same (decision 0707)', async () => {
+    const { container } = renderIn(<ErrorMessage isAnnounced={false}>Line 4: write add or use under type.</ErrorMessage>);
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByText('Line 4: write add or use under type.')).toBeVisible();
+    expect(container.querySelector('svg')).not.toBeNull();
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<ErrorMessage>Not enough seats left in this batch. Choose another batch.</ErrorMessage>);
     expect(await axeViolations(container)).toEqual([]);

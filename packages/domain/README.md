@@ -90,6 +90,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `bonusPayOff(given, owed)`, `BonusPaidOff` | Bonus given while some is owed pays it first; the member keeps the rest. `private.bonus_pay_off` is its twin on `bonus.json`. |
 | `bonusEnd(givenAt, days, since)` | When a grant ends once a venue sets `bonus.expiry_days` (decision 0579): N days after it was given, or after the switch-on for chips held before; never at 0 days. `private.bonus_end` is its twin on `bonus.json`. |
 | `visitBonusCap(heldAtFirstUse, basisPoints)`, `visitBonusLeft(cap, redeemed)` | The most bonus one visit redeems under `bonus.visit_cap` (decision 0579): that share of the bonus held at its first Bonus use, a seat's buy-in or a use without a seat (decision 0706), rounded down to whole ₹50 chips; and what is left of it. `private.visit_bonus_cap` and `private.visit_bonus_left` are their twins on `bonus.json`. |
+| `bonusFileRun(lines, held)`, `bonusFileTotals(lines)`, `BonusFileLine`, `BonusHolding`, `BonusFileLineRefusal`, `BonusFileRun` | A Bonus file's lines in its order (decision 0707): an Add pays what is owed first, then the member keeps the rest; a Use is refused while any is owed (`owed`) or above what is in force by then (`bonus_short`), and a refused line changes nothing. Gives each line's refusal and each member's Bonus after; and the file's Bonus added and used. `private.bonus_from_file` runs a file the same way and refuses it whole; golden cases in `bonusFile.json`, the sequence in pgTAP 597. |
 
 ### `@rivr/domain/notices`
 

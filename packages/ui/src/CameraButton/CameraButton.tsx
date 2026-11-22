@@ -16,6 +16,8 @@ export interface CameraButtonProps {
   variant?: ButtonVariant;
   /** Shows the loading label while the photo is sent. */
   isLoading?: boolean;
+  /** Not to be pressed now, such as while what was chosen before is being saved (decision 0707). */
+  isDisabled?: boolean;
   /** Its name for screen readers where the words on it are the same on every row: `Add a photo of Paneer tikka`. */
   'aria-label'?: string;
   fullWidth?: boolean;

@@ -9,6 +9,7 @@
     "./siteEditor": "./src/siteEditor.ts",
     "./referral": "./src/referral.ts",
     "./bonus": "./src/bonus.ts",
+    "./bonusFile": "./src/bonusFile.ts",
     "./sessions": "./src/sessions.ts",
     "./houseRules": "./src/houseRules.ts",
     "./fnb": "./src/fnb.ts",
