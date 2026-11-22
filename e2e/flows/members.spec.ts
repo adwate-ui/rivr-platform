@@ -39,8 +39,13 @@ test.describe('Members', () => {
     await page.getByRole('link', { name: 'Tier and break' }).click();
     await expect(page.getByRole('heading', { name: 'Break', level: 3 })).toBeVisible();
     await expect(page.getByRole('radiogroup', { name: 'How long' }).getByRole('radio', { name: '1 year' })).toBeVisible();
-    // Feature overrides, the number and erasure, the Account part, are for super admins alone (#61).
-    await expect(page.getByRole('link', { name: 'Account', exact: true })).toHaveCount(0);
+    // The Account part, to view (the owner, 22 Nov: staff who read mobiles see every part): its feature overrides, with no
+    // way to change them, the number or erasure, which stay with super admins (#61).
+    await page.getByRole('link', { name: 'Account', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Feature overrides' })).toBeVisible();
+    for (const changing of ['New override', 'Phone number', 'Erasure on request']) {
+      await expect(page.getByRole('heading', { name: changing })).toHaveCount(0);
+    }
 
     await search.fill('9000000202');
     await page.getByRole('button', { name: 'Kabir Sethi', exact: true }).click();
