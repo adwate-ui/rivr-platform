@@ -1,4 +1,4 @@
--- Bonus chips by hand past super admins (the owner, 9 Nov): admins and floor managers add them, cashiers and hosts do not. Below
+-- Bonus chips by hand past super admins (the owner, 9 Nov): admins, floor managers and cashiers (22 Nov) add them, hosts do not. Below
 -- a super admin each person adds at most the club's bonus.daily_staff_cap in a club day: past it nothing is added and the owner
 -- hears of it once a person a night. None set is no cap; a retry of one that went through is answered with it; last night's do
 -- not count tonight; only a super admin changes the limit. 211 is the member.
@@ -38,7 +38,7 @@ select isnt(pg_temp.give(20000, gen_random_uuid()), null, 'with no limit set, an
 select pg_temp.as_who('floor');
 select isnt(pg_temp.give(500, gen_random_uuid()), null, 'a floor manager adds some too');
 select pg_temp.as_who('cashier');
-select throws_ok($$ select pg_temp.give(500, gen_random_uuid()) $$, '42501', null, 'a cashier, who gives points, adds no bonus chips');
+select isnt(pg_temp.give(500, gen_random_uuid()), null, 'a cashier adds some too (the owner, 22 Nov)');
 select pg_temp.as_who('host');
 select throws_ok($$ select pg_temp.give(500, gen_random_uuid()) $$, '42501', null, 'nor does a host');
 reset role;

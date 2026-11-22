@@ -142,8 +142,8 @@ describe('the high hand on the Live floor (redesign RD-24)', () => {
     expect(screen.queryByText(/Bonus paid to/)).toBeNull();
   });
 
-  it('lets a cashier read the strip, with no Log a high hand: only those who add Bonus by hand log a hit', async () => {
-    await renderFloor(floorWith({ role: 'cashier' }));
+  it('lets a host read the strip, with no Log a high hand: only those who add Bonus by hand log a hit', async () => {
+    await renderFloor(floorWith({ role: 'host' }));
     const shown = await strip();
     await within(shown).findByText('2 hands paid tonight');
     expect(within(shown).queryByRole('button', { name: 'Log a high hand' })).toBeNull();

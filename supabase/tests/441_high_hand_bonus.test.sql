@@ -2,7 +2,7 @@
 -- one runs in a venue. The floor logs a hit against a table, a player seated at it and a hand; the Bonus is paid at once,
 -- every time, as one ledger entry, within the promotion's budget and apart from the daily limit on Bonus added by hand. 101
 -- Vikram (super admin), 103 Aditya (admin, the floor), 104 Sana (cashier), 106 Pema (dealer), 107 Ishita (marketing), 108 Karan
--- (host). Those who add Bonus by hand log a hit (bonus.give): a cashier and a host seat players and read the strip, and log none.
+-- (host). Those who add Bonus by hand log a hit (bonus.give, cashiers too since 22 Nov): a host seats players and reads the strip, and logs none.
 -- Ishaan (211) and Kunal (216) sit at Table 3, Mihir (213) at Table 5; Vihaan (212) is not seated. The twins are proved on
 -- the golden file (024_golden_twins).
 begin;
@@ -125,10 +125,10 @@ create temporary table opening on commit drop as
   select pg_temp.movements() as movements, pg_temp.bonus_of('211') as ishaan, (select count(*)::integer from public.outbox_event) as events,
          (select count(*)::integer from public.promotion_grant) as grants, (select count(*)::integer from public.audit_log) as audits;
 
--- Who may: those who add Bonus by hand (bonus.give: super admins, admins, floor managers), nobody else.
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
+-- Who may: those who add Bonus by hand (bonus.give: super admins, admins, floor managers and cashiers), nobody else.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select pg_temp.log(pg_temp.table_of('1', 'Table 3'), '211', 'royal_flush', null, '01') $$, '42501',
-  'Only super admins, admins and floor managers log a high hand', 'a cashier, who seats players, logs no high hand');
+  'Only super admins, admins and floor managers log a high hand', 'a dealer logs no high hand');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
 select throws_ok($$ select pg_temp.log(pg_temp.table_of('1', 'Table 3'), '211', 'royal_flush', null, '01') $$, '42501', null, 'nor a host');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');

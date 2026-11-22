@@ -50,7 +50,8 @@ export const PERMISSIONS = [
   'sops.manage',
   'aml.review',
   'feedback.manage', // the General Manager's feedback tickets (decision 0165)
-  'bonus.give', // add bonus chips to a member by hand, never to oneself: super admins, admins and floor managers (the owner, 9 Nov)
+  'bonus.give', // add bonus chips to a member by hand and use them without a seat, never one's own: super admins, admins, floor managers and cashiers (the owner, 9 and 22 Nov)
+  'bonus.correct', // reverse any Bonus given and add a use a seat missed: super admins and cashiers (the owner, 22 Nov; decision 0709)
   'treasury.manage', // payment accounts, transfers, expense categories and approving expenses (decision 0167)
   'top_ups.manage', // top-up requests and nothing else: guest relations' whole role (redesign RD-32); admins hold it to give the role
 ] as const;
@@ -74,10 +75,11 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
   floor: [
     'members.read', 'members.phone', 'waitlist.manage', 'floor.manage', 'call_time.override', 'fnb.serve', 'bonus.give', 'kyc.in_person', 'tvs.manage',
   ],
-  // The floor's modules less the food and drink orders (#644), beside the cage's (hidden, decision 0284).
+  // The floor's modules less the food and drink orders (#644), beside the cage's (hidden, decision 0284); all of Members to
+  // view and the Bonus: added, used, a missed use added and reversed (the owner, 22 Nov; decision 0709).
   cashier: [
-    'members.read', 'cage.transact', 'cage.second_approve',
-    'ledger.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'tvs.manage',
+    'members.read', 'members.phone', 'cage.transact', 'cage.second_approve',
+    'ledger.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'tvs.manage', 'bonus.give', 'bonus.correct',
   ],
   dealer: ['hands.log'],
   marketing: ['promotions.manage', 'website.edit'],

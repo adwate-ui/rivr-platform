@@ -78,7 +78,7 @@ function Balance({ venueId, memberId }: { venueId: string; memberId: string }) {
 /**
  * Bonus chips on the member's record (decision 0504; owner, 8 Nov): the balance on its tile (gold with a chip, used with a
  * buy-in; below zero while some is owed), then, for staff with bonus.give (`canGive`), Bonus to add by hand (redesign of 15
- * Nov) and to use without a seat (the owner, 20 Nov); for a super admin (`canCorrect`, #1077), a use a seat missed, and
+ * Nov) and to use without a seat (the owner, 20 Nov); for super admins and cashiers (`canCorrect`, bonus.correct, #1077; the owner, 22 Nov), a use a seat missed, and
  * Reverse on each Bonus given; and every line of bonus chips, the newest first. Chips are redeemed in the seat sheets.
  */
 export function MemberBonus({ venueId, memberId, canGive, canCorrect }: { venueId: string; memberId: string; canGive: boolean; canCorrect: boolean }) {

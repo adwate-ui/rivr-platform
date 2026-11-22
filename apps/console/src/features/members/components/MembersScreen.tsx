@@ -42,20 +42,30 @@ export function MembersScreen(props: MembersScreenProps) {
     withdrawDeparture: staff.venue.role === 'super_admin',
     resetHours: staff.venue.role === 'super_admin',
     giveBonus: permissions.includes('bonus.give'),
-    correctBonus: staff.venue.role === 'super_admin',
+    // Super admins and cashiers reverse a Bonus given and add a use a seat missed (the owner, 22 Nov; decision 0709).
+    correctBonus: permissions.includes('bonus.correct'),
     viewsAll: permissions.includes('members.phone'),
   };
   // Floor and up open a member's History of changes by staff, as the Door's History (#1073).
-  return <Members title={title} venueId={venueId} can={can} seesHistory={permissions.includes('members.phone')} {...props} />;
+  return <Members title={title} venueId={venueId} can={can} seesHistory={permissions.includes('members.phone')} usesFiles={staff.venue.role === 'super_admin'} {...props} />;
 }
 
-function Members({ title, venueId, can, seesHistory, memberId, part, onNavigate }: MembersScreenProps & { title: string; venueId: string; can: RecordAccess; seesHistory: boolean }) {
+interface MembersProps extends MembersScreenProps {
+  title: string;
+  venueId: string;
+  can: RecordAccess;
+  seesHistory: boolean;
+  /** Bonus from a file: super admins alone (the owner, 22 Nov). */
+  usesFiles: boolean;
+}
+
+function Members({ title, venueId, can, seesHistory, usesFiles, memberId, part, onNavigate }: MembersProps) {
   const tonight = useTonight(venueId);
   // The table's Export sits beside the title, as the prototype has it.
   const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
   // Bonus from a file beside it, for super admins (the owner, 22 Nov).
   return (
-    <Screen title={title} actions={can.correctBonus ? <BonusFilePanel venueId={venueId} /> : undefined} onActionsSlot={setExportIn}>
+    <Screen title={title} actions={usesFiles ? <BonusFilePanel venueId={venueId} /> : undefined} onActionsSlot={setExportIn}>
       {can.erase ? <ErasureRequests venueId={venueId} onOpen={(id) => onNavigate(recordHref(id))} /> : null}
       {/* The list stays in place as a record opens, so the search typed stays (C-02). */}
       <SplitView layout="docked" recordKey={memberId} backLabel={t('console.members.back')} onBack={() => onNavigate('/members')} onClose={() => onNavigate('/members')}
