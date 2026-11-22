@@ -176,6 +176,12 @@ select set_eq($$ select member_id from public.members_page('00000000-0000-4000-8
   $$ select id from club where phone like '%90000002%' $$, 'and finds a mobile by digits from its middle');
 select is_empty($$ select 1 from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{}')) where phone is not null $$,
   'but no full number in a bulk read');
+-- A bulk read, as an export, holds the members the list shows: searched and filtered by mobile as the list is.
+select set_eq($$ select member_id from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{"query": "90000 002"}')) $$,
+  $$ select id from club where phone like '%90000002%' $$, 'a bulk read searches the middle of a mobile as the list does');
+select set_eq($$ select member_id from public.members_page('00000000-0000-4000-8000-000000000001',
+                  pg_temp.view('{"filters": {"mobile": {"kind": "text", "typed": "90000002"}}}')) $$,
+  $$ select id from club where phone like '%90000002%' $$, 'and filters by the Mobile column as the list does');
 
 -- A host reads no full number, and finds a mobile only by its last four digits.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');

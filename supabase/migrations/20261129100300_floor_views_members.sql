@@ -3,9 +3,10 @@
 -- stays with the permissions that had it. A member's PAN and Aadhaar photos, date of birth and address stay with super
 -- admins (9 Nov), as before.
 
--- The list's mobile column, its search by any digits, and the record's number. The list reads 50 members a page; a bulk
--- read, as an export's 1,000 a page, gives full mobiles to super admins (members.change_phone) alone, so the floor and
--- admins view them and never copy them out whole.
+-- The list's mobile column, its search by any digits and its Mobile filter, and the record's number. The floor and admins
+-- search and filter by mobile at any page size, so an export holds the members the list shows; full mobiles come back to
+-- them a page of the list at a time (50), as the list shows them, and in a bulk read, as an export's 1,000 a page, to
+-- super admins (members.change_phone) alone: the floor and admins view mobiles, and an export carries none for them.
 create or replace function private.members_page_json(p_venue_id uuid, p_view jsonb)
 returns jsonb
 language plpgsql
@@ -17,15 +18,16 @@ declare
   v_view jsonb := coalesce(p_view, '{}'::jsonb);
   v_reads boolean := coalesce(private.has_permission(p_venue_id, 'members.read'), false);
   v_size integer := least(greatest(coalesce((v_view ->> 'page_size')::integer, 50), 1), 1000);
-  v_sees_phone boolean := coalesce(private.has_permission(p_venue_id, 'members.change_phone'), false)
-                          or (v_size <= 50 and coalesce(private.has_permission(p_venue_id, 'members.phone'), false));
+  v_searches_phone boolean := coalesce(private.has_permission(p_venue_id, 'members.phone'), false)
+                              or coalesce(private.has_permission(p_venue_id, 'members.change_phone'), false);
+  v_sees_phone boolean := coalesce(private.has_permission(p_venue_id, 'members.change_phone'), false) or (v_size <= 50 and v_searches_phone);
   v_sees_identity boolean := coalesce(private.is_super_admin(p_venue_id), false);
   v_page integer := greatest(coalesce((v_view ->> 'page')::integer, 1), 1);
   v_list record;
   v_total bigint;
   v_rows jsonb;
 begin
-  select * into v_list from private.members_list_sql(v_view, v_sees_phone);
+  select * into v_list from private.members_list_sql(v_view, v_searches_phone);
   execute 'select count(*) from public.member m' || v_list.o_joins || ' where $2 and ' || v_list.o_where into v_total using p_venue_id, v_reads;
   execute
     'select coalesce(jsonb_agg(to_jsonb(r)), ''[]''::jsonb) from (
