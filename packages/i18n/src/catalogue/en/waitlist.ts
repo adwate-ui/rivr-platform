@@ -26,6 +26,8 @@ export const tonight = {
     too_early: 'Pick a later time.',
     /** One that would run past a day in all, after a very long night. */
     too_long: 'Call time cannot run past a day.',
+    /** Six changes of call time in ten minutes already. */
+    too_many: 'Changed too often. Try again shortly.',
     stopped: 'Account paused. Ask at the front desk.',
     paused: 'The club is paused. Try again later.',
     unavailable: 'Not sent. Try again.',

@@ -51,6 +51,8 @@ select is(public.set_my_call_time(now() + interval '2 hours', '00000000-0000-400
 select throws_ok($$ select public.set_my_call_time(now() + interval '3 hours', '00000000-0000-4000-8000-00000000c526'::uuid) $$, '22023', null,
   'a request id is for one call time');
 select ok((select call_time_set_at is not null from public.my_seat()), 'his seat now says he set it');
+select is((select add_time_choices || call_time_choices_open from public.my_seat()), '{}'::integer[],
+  'for this release the old lengths read empty, so an app open from before offers none');
 select is((select call_time_minutes from public.my_seat()), 220, 'and shows three hours forty');
 -- Once set, a time extends it past its current end, two hours from now.
 select is((select call_time_after_at from public.my_seat()), now() + interval '2 hours', 'once set, a time opens after the current end');
@@ -96,6 +98,23 @@ where id = (select id from sess);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select throws_ok($$ select public.set_my_call_time(now() + interval '30 minutes', gen_random_uuid()) $$, 'RVCTX', null,
   'half an hour on, at 23 h 40 played, would pass a day');
+select throws_ok($$ select public.set_my_call_time(now() + interval '4000 years', gen_random_uuid()) $$, 'RVCTX', null,
+  'a time thousands of years on is past a day, never an error of size');
+select throws_ok($$ select public.set_my_call_time(now() - interval '4000 years', gen_random_uuid()) $$, 'RVCTE', null,
+  'and one thousands of years gone is gone by');
+select throws_ok($$ select public.set_my_call_time(null, '00000000-0000-4000-8000-00000000c526'::uuid) $$, '22023', null,
+  'a request id sent again with no time is refused, not taken as a repeat');
+reset role;
+
+-- Six changes in ten minutes at most (security review): each tells the floor and his devices. Three made so far; three more.
+update public.seat_session set started_at = now() - interval '260 minutes', seated_here_at = now() - interval '260 minutes'
+where id = (select id from sess);
+select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
+select is(public.set_my_call_time(now() + interval '40 minutes', gen_random_uuid()), 300, 'a fourth change');
+select is(public.set_my_call_time(now() + interval '50 minutes', gen_random_uuid()), 310, 'a fifth');
+select is(public.set_my_call_time(now() + interval '60 minutes', gen_random_uuid()), 320, 'a sixth');
+select throws_ok($$ select public.set_my_call_time(now() + interval '70 minutes', gen_random_uuid()) $$, 'RVRAT', null,
+  'a seventh in ten minutes waits');
 reset role;
 
 -- A seat with no call time sets none: none is made from nothing (security review).

@@ -93,6 +93,12 @@
       "expected": { "minutes": "1440", "refusal": "" }
     },
     {
+      "description": "A time making a day and a minute is refused.",
+      "operation": "until",
+      "inputs": { "current": "180", "played": "3600", "initial": "180", "set": "no", "ahead": "82801" },
+      "expected": { "minutes": "", "refusal": "over_a_day" }
+    },
+    {
       "description": "A time making more than a day is refused.",
       "operation": "until",
       "inputs": { "current": "180", "played": "3600", "initial": "180", "set": "no", "ahead": "83000" },

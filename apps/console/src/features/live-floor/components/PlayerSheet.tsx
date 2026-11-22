@@ -147,7 +147,8 @@ export function PlayerSheet(props: PlayerSheetProps) {
         );
       })}
       {permissions.includes('call_time.override') && player.callTimeAfterAt !== null
-        ? <CallTimePicker key={player.sessionId} player={player} after={new Date(player.callTimeAfterAt)} now={now} changes={changes.seats} /> : null}
+        ? <CallTimePicker key={`${player.sessionId}:${player.callTimeChangeId ?? ''}`} player={player} after={new Date(player.callTimeAfterAt)} now={now}
+          changes={changes.seats} /> : null}
       <Move {...props} changes={changes.seats} />
       {drawBonusByHand !== null && permissions.includes('bonus.give') ? drawBonusByHand({ venueId, memberId: player.memberId }) : null}
       <MemberRecordLink memberId={player.memberId} permissions={permissions} />

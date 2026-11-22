@@ -102,13 +102,14 @@ export type Leaving = 'left' | 'leaving';
 
 /**
  * Why a seat action did not go through: not seated any more, the feature not open to them (a seat with no call time sets
- * none), a call time not after the minimum or the current end, or run past a day (#1059; the owner, 22 Nov), the account
- * or venue frozen, or anything else.
+ * none), a call time not after the minimum or the current end, run past a day (#1059; the owner, 22 Nov), or changed six
+ * times in ten minutes already, the account or venue frozen, or anything else.
  */
-export type MySeatFailure = 'not_seated' | 'not_allowed' | 'too_early' | 'too_long' | 'stopped' | 'paused' | 'unavailable';
+export type MySeatFailure = 'not_seated' | 'not_allowed' | 'too_early' | 'too_long' | 'too_many' | 'stopped' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, MySeatFailure>> = {
-  '22023': 'not_seated', '42501': 'not_allowed', RVCTN: 'not_allowed', RVCTE: 'too_early', RVCTX: 'too_long', RVMBR: 'stopped', RVFRZ: 'paused',
+  '22023': 'not_seated', '42501': 'not_allowed', RVCTN: 'not_allowed', RVCTE: 'too_early', RVCTX: 'too_long', RVRAT: 'too_many',
+  RVMBR: 'stopped', RVFRZ: 'paused',
 };
 
 /**

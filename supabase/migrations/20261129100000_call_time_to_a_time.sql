@@ -33,8 +33,8 @@ set search_path = ''
 as $$
   select case when p_current > 0 and p_seconds_ahead > 0 and t.total <= 1440
                and case when p_is_set then t.total > p_current else t.total > coalesce(p_initial, p_current) and t.total >= p_current end
-              then t.total end
-  from (select ceil((greatest(coalesce(p_played_seconds, 0), 0) + p_seconds_ahead) / 60.0)::integer as total) t;
+              then t.total::integer end
+  from (select ceil((greatest(coalesce(p_played_seconds, 0), 0) + p_seconds_ahead) / 60.0) as total) t;
 $$;
 
 -- The seconds from now after which a picked time is open: the end of the minimum until set, the current end once set,
@@ -90,7 +90,8 @@ begin
   where r.venue_id = v_session.venue_id and r.idempotency_key = p_idempotency_key and r.member_id = v_session.member_id;
   if v_done.id is not null then
     -- Only this member's own set, for this seat and time, is a repeat; a request the floor decides is not.
-    if v_done.session_id <> v_session.id or v_done.until_at is distinct from p_until or v_done.status <> 'approved' or v_done.decided_by_staff_id is not null then
+    if v_done.session_id <> v_session.id or p_until is null or v_done.until_at is distinct from p_until or v_done.status <> 'approved'
+       or v_done.decided_by_staff_id is not null then
       raise exception 'That request id was for another call time' using errcode = '22023';
     end if;
     return v_session.call_time_minutes;
@@ -100,6 +101,11 @@ begin
   end if;
   if v_session.call_time_minutes <= 0 then
     raise exception 'Only a seat with a call time sets one' using errcode = 'RVCTN';
+  end if;
+  -- Six changes in ten minutes at most: each tells the floor and the member's devices, and a time a minute on is always open.
+  if (select count(*) from public.call_time_request r
+      where r.session_id = v_session.id and r.decided_by_staff_id is null and r.decided_at > now() - interval '10 minutes') >= 6 then
+    raise exception 'Six changes of call time in ten minutes at most. Try again shortly.' using errcode = 'RVRAT';
   end if;
   v_played := private.seconds_played(v_session, now());
   v_minutes := private.call_time_until(v_session.call_time_minutes, v_played, private.initial_call_time(v_session),
@@ -158,7 +164,7 @@ begin
   end if;
   select * into v_done from public.call_time_request r where r.venue_id = v_session.venue_id and r.idempotency_key = p_idempotency_key;
   if v_done.id is not null then
-    if v_done.session_id <> v_session.id or v_done.until_at is distinct from p_until then
+    if v_done.session_id <> v_session.id or p_until is null or v_done.until_at is distinct from p_until then
       raise exception 'That request id was for another call time' using errcode = '22023';
     end if;
     return;
@@ -200,7 +206,7 @@ create function private.my_seat()
 returns table (table_name text, seat integer, is_away boolean, has_call_time boolean, call_time_left integer, played_seconds integer,
                is_leaving boolean, top_up text, call_time_minutes integer, started_at timestamptz, call_time_ends_at timestamptz,
                table_type_name text, small_blind_paise bigint, big_blind_paise bigint, game text, straddle_paise bigint,
-               call_time_set_at timestamptz, call_time_after_at timestamptz)
+               call_time_set_at timestamptz, call_time_after_at timestamptz, add_time_choices integer[], call_time_choices_open integer[])
 language sql
 stable
 security definer
@@ -214,7 +220,9 @@ as $$
               then now() + make_interval(secs => private.session_call_time(s, now())) end,
          t.name, t.small_blind_paise, t.big_blind_paise, t.game, t.straddle_paise,
          case when f.sees_call_time then s.call_time_set_at end,
-         case when f.sees_call_time then private.call_time_after_at(s) end
+         case when f.sees_call_time then private.call_time_after_at(s) end,
+         -- Empty for this release only: an app open from before reads no lengths and offers no Set or Extend.
+         '{}'::integer[], '{}'::integer[]
   from public.seat_session s
   join public.game_table g on g.id = s.table_id
   join public.table_type t on t.id = g.table_type_id
@@ -225,7 +233,7 @@ create function public.my_seat()
 returns table (table_name text, seat integer, is_away boolean, has_call_time boolean, call_time_left integer, played_seconds integer,
                is_leaving boolean, top_up text, call_time_minutes integer, started_at timestamptz, call_time_ends_at timestamptz,
                table_type_name text, small_blind_paise bigint, big_blind_paise bigint, game text, straddle_paise bigint,
-               call_time_set_at timestamptz, call_time_after_at timestamptz)
+               call_time_set_at timestamptz, call_time_after_at timestamptz, add_time_choices integer[], call_time_choices_open integer[])
 language sql
 stable
 set search_path = ''
@@ -242,7 +250,7 @@ create function private.floor_seats(p_venue_id uuid)
 returns table (session_id uuid, table_id uuid, seat integer, member_id uuid, full_name text, tier_name text, started_at timestamptz,
                must_move_order integer, away_since timestamptz, call_time_left integer, leaving_at timestamptz, top_up text,
                call_time_set_at timestamptz, call_time_ends_at timestamptz, owes_call_time boolean, call_time_after_at timestamptz,
-               call_time_set_by_member boolean, call_time_change_id uuid)
+               call_time_set_by_member boolean, call_time_change_id uuid, call_time_choices_open integer[], add_time_choices integer[])
 language sql
 stable
 security definer
@@ -258,7 +266,9 @@ as $$
          case when s.call_time_set_at is not null and s.call_time_minutes > 0 and s.away_since is null
               then now() + make_interval(secs => private.session_call_time(s, now())) end,
          private.owes_call_time(s, now()), private.call_time_after_at(s),
-         latest.by_member, latest.id
+         latest.by_member, latest.id,
+         -- Empty for this release only: a console open from before reads no lengths and offers none.
+         '{}'::integer[], '{}'::integer[]
   from public.seat_session s
   join public.game_table g on g.id = s.table_id
   join public.member m on m.id = s.member_id
@@ -275,7 +285,7 @@ create function public.floor_seats(p_venue_id uuid)
 returns table (session_id uuid, table_id uuid, seat integer, member_id uuid, full_name text, tier_name text, started_at timestamptz,
                must_move_order integer, away_since timestamptz, call_time_left integer, leaving_at timestamptz, top_up text,
                call_time_set_at timestamptz, call_time_ends_at timestamptz, owes_call_time boolean, call_time_after_at timestamptz,
-               call_time_set_by_member boolean, call_time_change_id uuid)
+               call_time_set_by_member boolean, call_time_change_id uuid, call_time_choices_open integer[], add_time_choices integer[])
 language sql
 stable
 set search_path = ''

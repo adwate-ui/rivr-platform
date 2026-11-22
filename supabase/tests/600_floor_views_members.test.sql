@@ -18,8 +18,10 @@ create function pg_temp.as_who(p_who text) returns void language sql as $$
          set_config('role', 'authenticated', true);
 $$;
 grant execute on function pg_temp.as_who(text) to authenticated;
-create function pg_temp.view() returns jsonb language sql as $$ select '{"page": 1, "page_size": 1000}'::jsonb $$;
-grant execute on function pg_temp.view() to authenticated;
+-- A page of the list as the console reads it (50 members), and a bulk read as an export does (1,000).
+create function pg_temp.view() returns jsonb language sql as $$ select '{"page": 1, "page_size": 50}'::jsonb $$;
+create function pg_temp.bulk() returns jsonb language sql as $$ select '{"page": 1, "page_size": 1000}'::jsonb $$;
+grant execute on function pg_temp.view(), pg_temp.bulk() to authenticated;
 
 -- Kabir's photos: the desk's and his PAN card's; and a feature override on his account.
 insert into storage.objects (bucket_id, name) values
@@ -35,6 +37,8 @@ select pg_temp.as_who('floor');
 select is_empty($$ select 1 from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view()) p
                    join phones m on m.id = p.member_id where p.phone is distinct from m.phone $$,
   'the floor reads every full mobile in the list');
+select is_empty($$ select 1 from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.bulk()) where phone is not null $$,
+  'but none in a bulk read, as an export: the floor views mobiles and never copies them out whole');
 select is_empty($$ select 1 from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view())
                    where date_of_birth is not null or pan is not null or masked_aadhaar is not null or address is not null $$,
   'and no identity document');
@@ -60,8 +64,11 @@ select throws_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-0
 select is_empty($$ select * from public.member_feature_overrides('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202') $$,
   'nor the feature overrides');
 
--- A super admin still sees the PAN card.
+-- A super admin still sees the PAN card, and reads every mobile in bulk, as before.
 select pg_temp.as_who('super_admin');
+select is_empty($$ select 1 from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.bulk()) p
+                   join phones m on m.id = p.member_id where p.phone is distinct from m.phone $$,
+  'a super admin exports every full mobile');
 select lives_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000202/doc-pan-00000000-0000-4000-8000-0000000006a1.jpg') $$,
   'a super admin sees the PAN card, as before');
 reset role;

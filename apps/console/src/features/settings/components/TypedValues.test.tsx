@@ -15,9 +15,9 @@ describe('Call time, one typed value per stake (redesign RD-19)', () => {
   it('says each stake\'s call time on its own line in the row, and saves only the stakes whose value changed', async () => {
     const written = renderFloor([inForce('call_time.minutes', 'nlh-50-100', { minutes: 180 })]);
     expect(await screen.findByText('NLH 50/100 3 h', {}, { timeout: 5000 })).toBeDefined();
-    const panel = await openPanel('Call time');
+    const panel = await openPanel('Minimum playing time');
     expect(panel.getByText('Least time at the table, per stake')).toBeDefined();
-    const stakes = within(panel.getByRole('group', { name: 'Call time' }));
+    const stakes = within(panel.getByRole('group', { name: 'Minimum playing time' }));
     expect(stakes.getByRole('textbox', { name: 'NLH 50/100' }).getAttribute('value')).toBe('180');
     expect(stakes.getByRole('textbox', { name: 'NLH 100/200' }).getAttribute('value')).toBe('');
     save(panel);
@@ -30,7 +30,7 @@ describe('Call time, one typed value per stake (redesign RD-19)', () => {
 
   it('saves nothing while a stake holds a time it refuses', async () => {
     const written = renderFloor([inForce('call_time.minutes', 'nlh-50-100', { minutes: 180 })]);
-    const panel = await openPanel('Call time');
+    const panel = await openPanel('Minimum playing time');
     fireEvent.change(panel.getByRole('textbox', { name: 'NLH 50/100' }), { target: { value: '0' } });
     expect(panel.getByText('Between 1 and 1,440 minutes.')).toBeDefined();
     save(panel);
@@ -46,7 +46,7 @@ describe('Call time, one typed value per stake (redesign RD-19)', () => {
     const row = (await screen.findByText('NLH 50/100 3 h', {}, { timeout: 5000 })).closest('[role="row"]');
     expect(row?.textContent).not.toContain('plo-old');
     expect(row?.textContent).toContain('–');
-    const panel = await openPanel('Call time');
+    const panel = await openPanel('Minimum playing time');
     expect(panel.queryByRole('textbox', { name: 'plo-old' })).toBeNull();
     expect(panel.queryByRole('radio', { name: 'plo-old' })).toBeNull();
     expect(panel.getByRole('radio', { name: 'NLH 50/100' })).toBeDefined();
@@ -61,7 +61,7 @@ describe('Call time, one typed value per stake (redesign RD-19)', () => {
     const row = (await screen.findByText('NLH 50/100 4 h', {}, { timeout: 5000 })).closest('[role="row"]');
     expect(within(row instanceof HTMLElement ? row : document.body).getByText(/^From .*, 18:00:$/)).toBeDefined();
     // The first stake was saved for that moment and the second refused: both are typed again, and only the second is sent.
-    const panel = await openPanel('Call time');
+    const panel = await openPanel('Minimum playing time');
     fireEvent.change(panel.getByRole('textbox', { name: 'NLH 50/100' }), { target: { value: '240' } });
     fireEvent.change(panel.getByRole('textbox', { name: 'NLH 100/200' }), { target: { value: '240' } });
     fireEvent.click(panel.getByRole('radio', { name: 'From a day and time' }));

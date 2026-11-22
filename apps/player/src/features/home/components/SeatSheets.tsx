@@ -63,6 +63,8 @@ function SetCallTimeSheet({ seat, now, onClose }: SheetProps & { seat: MySeat; n
   const isSet = seat.callTimeSetAt !== null;
   const action = t(isSet ? 'player.live.seat.extendCallTime' : 'player.live.seat.setCallTime');
   const after = seat.callTimeAfterAt === null ? now : new Date(seat.callTimeAfterAt);
+  // The time to beat, and once set Extend's note (#1089), both the field's description (#1099).
+  const hint = [t('player.live.seat.callTimeAfter', { time: formatTime(after) }), isSet ? t('player.live.seat.extendNote') : ''].join(' ').trim();
   const [time, setTime] = useState(() => clockTimeAfter(after, 5));
   const [error, setError] = useState<string | null>(null);
   const requestIds = useRef(new Map<string, string>());
@@ -79,9 +81,8 @@ function SetCallTimeSheet({ seat, now, onClose }: SheetProps & { seat: MySeat; n
   return (
     <Sheet isOpen onClose={onClose} title={action}>
       <Stack gap={4}>
-        <Input variant="inset" type="time" label={t('player.live.seat.until')} value={time} error={error ?? undefined}
-          hint={t('player.live.seat.callTimeAfter', { time: formatTime(after) })} onChange={(event) => { setTime(event.target.value); setError(null); }} />
-        {isSet ? <Text variant="caption" tone="muted">{t('player.live.seat.extendNote')}</Text> : null}
+        <Input variant="inset" type="time" label={t('player.live.seat.until')} value={time} error={error ?? undefined} hint={hint}
+          onChange={(event) => { setTime(event.target.value); setError(null); }} />
         <Button variant="primary" size="tall" fullWidth isDisabled={send.isOffline} isLoading={setCallTime.isPending} onClick={() => void set()}>
           {action}
         </Button>

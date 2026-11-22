@@ -2995,7 +2995,7 @@ isOneToOne: false
                            },
 "floor_seats":
 { Args: { "p_venue_id": string }; Returns: {
-              "away_since": string,"call_time_after_at": string,"call_time_change_id": string,"call_time_ends_at": string,"call_time_left": number,"call_time_set_at": string,"call_time_set_by_member": boolean,"full_name": string,"leaving_at": string,"member_id": string,"must_move_order": number,"owes_call_time": boolean,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string,"top_up": string
+              "add_time_choices": (number)[],"away_since": string,"call_time_after_at": string,"call_time_change_id": string,"call_time_choices_open": (number)[],"call_time_ends_at": string,"call_time_left": number,"call_time_set_at": string,"call_time_set_by_member": boolean,"full_name": string,"leaving_at": string,"member_id": string,"must_move_order": number,"owes_call_time": boolean,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string,"top_up": string
             }[]
                            },
 "floor_taken_seats":
@@ -3394,7 +3394,7 @@ isOneToOne: false
                            },
 "my_seat":
 { Args: Record<PropertyKey, never>; Returns: {
-              "big_blind_paise": number,"call_time_after_at": string,"call_time_ends_at": string,"call_time_left": number,"call_time_minutes": number,"call_time_set_at": string,"game": string,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"small_blind_paise": number,"started_at": string,"straddle_paise": number,"table_name": string,"table_type_name": string,"top_up": string
+              "add_time_choices": (number)[],"big_blind_paise": number,"call_time_after_at": string,"call_time_choices_open": (number)[],"call_time_ends_at": string,"call_time_left": number,"call_time_minutes": number,"call_time_set_at": string,"game": string,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"small_blind_paise": number,"started_at": string,"straddle_paise": number,"table_name": string,"table_type_name": string,"top_up": string
             }[]
                            },
 "my_sessions":

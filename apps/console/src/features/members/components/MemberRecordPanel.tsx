@@ -163,7 +163,7 @@ function Record({ venueId, record, can, part, tonight, onNavigate }: RecordProps
       <RecordHeader venueId={venueId} record={record} can={can} />
       {tonight?.kind === 'seated' ? <SeatLine name={record.fullName} seat={tonight} onNavigate={onNavigate} /> : null}
       {parts.length > 1 ? (
-        <Tabs label={t('console.members.parts.label', { name: record.fullName })} current={current} onNavigate={onNavigate}
+        <Tabs look="pill" label={t('console.members.parts.label', { name: record.fullName })} current={current} onNavigate={onNavigate}
           tabs={parts.map((id) => ({ id, label: t(PART_LABELS[id]), href: recordHref(record.memberId, id) }))} />
       ) : null}
       <PartContent part={current} venueId={venueId} record={record} can={can} />

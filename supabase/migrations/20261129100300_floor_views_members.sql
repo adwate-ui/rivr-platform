@@ -3,7 +3,9 @@
 -- stays with the permissions that had it. A member's PAN and Aadhaar photos, date of birth and address stay with super
 -- admins (9 Nov), as before.
 
--- The list's mobile column, its search by any digits, and the record's number.
+-- The list's mobile column, its search by any digits, and the record's number. The list reads 50 members a page; a bulk
+-- read, as an export's 1,000 a page, gives full mobiles to super admins (members.change_phone) alone, so the floor and
+-- admins view them and never copy them out whole.
 create or replace function private.members_page_json(p_venue_id uuid, p_view jsonb)
 returns jsonb
 language plpgsql
@@ -14,9 +16,10 @@ as $$
 declare
   v_view jsonb := coalesce(p_view, '{}'::jsonb);
   v_reads boolean := coalesce(private.has_permission(p_venue_id, 'members.read'), false);
-  v_sees_phone boolean := coalesce(private.has_permission(p_venue_id, 'members.phone'), false);
-  v_sees_identity boolean := coalesce(private.is_super_admin(p_venue_id), false);
   v_size integer := least(greatest(coalesce((v_view ->> 'page_size')::integer, 50), 1), 1000);
+  v_sees_phone boolean := coalesce(private.has_permission(p_venue_id, 'members.change_phone'), false)
+                          or (v_size <= 50 and coalesce(private.has_permission(p_venue_id, 'members.phone'), false));
+  v_sees_identity boolean := coalesce(private.is_super_admin(p_venue_id), false);
   v_page integer := greatest(coalesce((v_view ->> 'page')::integer, 1), 1);
   v_list record;
   v_total bigint;

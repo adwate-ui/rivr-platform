@@ -165,15 +165,17 @@ select is((select sum(members) from public.members_choices('00000000-0000-4000-8
 select is((select sum(members) from public.members_choices('00000000-0000-4000-8000-000000000001', '{"query": "verma"}') where column_key = 'status'),
   (select count(*) from club where full_name ilike '%verma%')::numeric, 'and the search narrows them too');
 
--- An admin, as the floor (members.phone), reads every full number and finds one by any of its digits, but no identity
--- document (the owner, 22 Nov).
+-- An admin, as the floor (members.phone), reads every full number on a page of the list and finds one by any of its digits,
+-- but no identity document, and no number in a bulk read, as an export (the owner, 22 Nov).
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is_empty($$ select 1 from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{}')) p join club c on c.id = p.member_id
+select is_empty($$ select 1 from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{"page_size": 50}')) p join club c on c.id = p.member_id
                    where p.phone is distinct from c.phone or p.date_of_birth is not null or p.pan is not null or p.masked_aadhaar is not null
                       or p.address is not null $$,
-  'an admin is given each full number and no identity document');
-select set_eq($$ select member_id from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{"query": "90000 002"}')) $$,
+  'an admin is given each full number on a page and no identity document');
+select set_eq($$ select member_id from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{"query": "90000 002", "page_size": 50}')) $$,
   $$ select id from club where phone like '%90000002%' $$, 'and finds a mobile by digits from its middle');
+select is_empty($$ select 1 from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{}')) where phone is not null $$,
+  'but no full number in a bulk read');
 
 -- A host reads no full number, and finds a mobile only by its last four digits.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');

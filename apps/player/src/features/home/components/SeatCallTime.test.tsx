@@ -53,11 +53,26 @@ describe('Tonight › call time at the seat', () => {
     // Set, and ending at 01:25 IST.
     const { asked } = renderTonight([], [{ ...SEAT, call_time_set_at: '2026-11-15T17:00:00Z' }]);
     const { sheet, pick } = await openCallTime('Extend call time');
-    expect(sheet.getByText('After 01:25.')).toBeDefined();
-    // Extend adds beyond the current end, and the sheet says so (#1089, the owner, 19 Nov).
-    expect(sheet.getByText('Extend adds time beyond the current end.')).toBeDefined();
+    // Extend adds beyond the current end, and the field says so with the time to beat, as its description (#1089, #1099).
+    const hint = sheet.getByText('After 01:25. Extend adds time beyond the current end.');
+    expect(sheet.getByLabelText('Until').getAttribute('aria-describedby')).toBe(hint.id);
     pick('02:25');
     await vi.waitFor(() => expect(setsUntil(asked)).toEqual(['2026-11-15T20:55:00.000Z']));
+  });
+
+  it('Set call time keeps its request id for the same time after no answer, and takes a new one for another time', async () => {
+    const { asked } = renderTonight([], [SEAT], { '/rpc/set_my_call_time': new Response(JSON.stringify({ code: 'XX000', message: 'lost' }), { status: 500 }) });
+    const { pick } = await openCallTime('Set call time');
+    const keys = () => asked.filter((call) => call.startsWith('set_my_call_time')).map((call) => /"p_idempotency_key":"([^"]+)"/.exec(call)?.[1]);
+    pick('02:00');
+    await vi.waitFor(() => expect(keys()).toHaveLength(1));
+    pick('02:00');
+    await vi.waitFor(() => expect(keys()).toHaveLength(2));
+    pick('02:30');
+    await vi.waitFor(() => expect(keys()).toHaveLength(3));
+    const [first, again, other] = keys();
+    expect(again).toBe(first);
+    expect(other).not.toBe(first);
   });
 
   it('Seated: the others at the table, by seat, with their first name and call time (the owner, 22 Nov)', async () => {

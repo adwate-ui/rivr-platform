@@ -132,6 +132,24 @@ describe('The player sheet (console v3)', () => {
     expect(within(await sheet('Kabir Sethi')).queryByText(/^Set · leaves/)).toBeNull();
   });
 
+  it('keeps a time\'s request id after no answer, takes a new one for another time, and starts again after a change', async () => {
+    const { rpcs } = await renderFloor({ ...FLOOR, replies: { add_seat_call_time: { status: 500, body: { code: 'XX000', message: 'lost' } } } });
+    fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
+    const player = await sheet('Kabir Sethi');
+    const until = within(player).getByLabelText('Until');
+    const press = async (time: string, count: number) => {
+      fireEvent.change(until, { target: { value: time } });
+      fireEvent.click(within(player).getByRole('button', { name: 'Set call time' }));
+      await waitFor(() => expect(rpcs('add_seat_call_time')).toHaveLength(count));
+    };
+    await press('00:30', 1);
+    await press('00:30', 2);
+    await press('01:00', 3);
+    const [first, again, other] = rpcs('add_seat_call_time').map((body) => Reflect.get(Object(body), 'p_idempotency_key'));
+    expect(again).toBe(first);
+    expect(other).not.toBe(first);
+  });
+
   it('offers one Leave: the card\'s once the player has asked to go (audit F-131)', async () => {
     await renderFloor();
     fireEvent.click(screen.getByRole('button', { name: /^Seat 3, Rohan Bhatia/ }));

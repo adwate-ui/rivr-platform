@@ -1,7 +1,8 @@
 /** The rules under Settings, Floor, as staff read them: see settingKeys.ts. Apart to hold that file to its size. */
 export const floorSettingKeys = {
+  /** The stake's minimum playing time, as Tables setup and the seat sheets name it (the owner, 22 Nov). */
   'call_time.minutes': {
-    name: 'Call time',
+    name: 'Minimum playing time',
     help: 'Least time at the table, per stake',
     fields: { minutes: 'Minutes' },
   },

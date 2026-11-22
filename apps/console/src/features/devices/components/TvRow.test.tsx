@@ -50,9 +50,19 @@ describe('what a TV turns to in between (decision 0163)', () => {
 
 describe('the tables a TV\'s call time board shows (the owner, 22 Nov)', () => {
   it('offers each table by name, the ones picked pressed, and says none picked is every table', () => {
-    render(<TableChips label="Call time tables on Bar TV" tables={[{ id: 't1', name: 'Table 1' }, { id: 't2', name: 'Table 2' }]} value={['t2']} onChange={() => undefined} />);
+    render(<TableChips label="Call time tables on Bar TV" tables={{ tables: [{ id: 't1', name: 'Table 1' }, { id: 't2', name: 'Table 2' }], isError: false, retry: () => undefined }}
+      value={['t2']} onChange={() => undefined} />);
     const chips = within(screen.getByRole('group', { name: 'Call time tables on Bar TV' })).getAllByRole('button');
     expect(chips.map((chip) => [chip.textContent, chip.getAttribute('aria-pressed')])).toEqual([['Table 1', 'false'], ['Table 2', 'true']]);
     expect(screen.getByText('None picked shows every table.')).toBeDefined();
+  });
+});
+
+describe('the tables while they load (UI review)', () => {
+  it('says so while they load, and offers Retry when they could not be read', () => {
+    const { rerender } = render(<TableChips label="Call time tables" tables={{ tables: null, isError: false, retry: () => undefined }} value={[]} onChange={() => undefined} />);
+    expect(screen.queryByRole('group', { name: 'Call time tables' })).toBeNull();
+    rerender(<TableChips label="Call time tables" tables={{ tables: null, isError: true, retry: () => undefined }} value={[]} onChange={() => undefined} />);
+    expect(screen.getByRole('button', { name: /Try again|Retry/ })).toBeDefined();
   });
 });

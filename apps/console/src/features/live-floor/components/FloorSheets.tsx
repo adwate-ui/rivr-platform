@@ -54,7 +54,8 @@ export function useRequestOpeners(venueId: string, data: FloorData, onSheet: Dis
   // As the rail opens those screens: staff who cannot get a name without a link and no Check ID that ends in a refusal
   // (audit F-014, F-025).
   const canCheckId = permissions.some((permission) => permission === 'kyc.in_person' || permission === 'kyc.review');
-  const canOpenMembers = permissions.some((permission) => permission === 'members.manage' || permission === 'host_queue.manage');
+  // The floor opens Members to view (members.phone; the owner, 22 Nov).
+  const canOpenMembers = permissions.some((permission) => permission === 'members.manage' || permission === 'host_queue.manage' || permission === 'members.phone');
   const toRecord = (memberId: string) => void navigate({ href: `/members?member=${memberId}` });
   const readyToSeat = useReadyToSeat(venueId);
   return {
