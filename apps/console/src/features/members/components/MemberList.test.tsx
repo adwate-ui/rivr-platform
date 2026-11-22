@@ -44,8 +44,14 @@ describe('The Members list (console v3; on the server, redesign RD-29)', () => {
     expect(arjun.textContent).toContain('Due');
   });
 
+  it('gives the floor and up the mobile column (the owner, 22 Nov)', async () => {
+    renderAs('floor');
+    const list = await table();
+    expect(within(list).getByRole('columnheader', { name: /Mobile/ })).toBeDefined();
+  });
+
   it('keeps the mobile column from other staff, and asks the server for what they type', async () => {
-    const { asked } = renderAs('admin');
+    const { asked } = renderAs('host');
     const list = await table();
     expect(within(list).queryByRole('columnheader', { name: /Mobile/ })).toBeNull();
     fireEvent.change(screen.getByRole('searchbox', { name: 'Name, mobile or member number' }), { target: { value: '98100 00263' } });

@@ -25,7 +25,7 @@ const ACCOUNT_TONE: Readonly<Record<MemberAccountStatus['state'], DotStatusTone>
 const accountKind = (status: MemberAccountStatus | undefined): string => t(`console.members.accountStatus.${status?.state ?? 'active'}`);
 
 /** An account's state in words, a break with its last day. */
-function accountWords(status: MemberAccountStatus | undefined): string {
+export function accountWords(status: MemberAccountStatus | undefined): string {
   if (status?.state !== 'on_break' || status.until === null) return accountKind(status);
   return t('console.members.accountStatus.on_breakUntil', { date: formatDate(new Date(status.until)) });
 }
@@ -68,7 +68,7 @@ const KYC_TONE: Readonly<Record<MemberKycStatus, DotStatusTone>> = {
 const KYC_ORDER: readonly MemberKycStatus[] = ['at_desk', 'in_review', 'not_done', 'refused', 'verified'];
 
 /**
- * The mobile number, for super admins only (owner, 8 Nov): staff without members.change_phone have no such column. Two
+ * The mobile number, for the floor and up (owner, 8 and 22 Nov): staff without members.phone have no such column. Two
  * shares, so a number stays on one line beside the other columns at 1440 px.
  */
 const mobileColumn: DataTableColumn<MemberListRow> = {
@@ -102,6 +102,8 @@ function moreColumns(choices: MemberChoices | undefined): readonly DataTableColu
 /** How the list is drawn: whether the viewer sees full numbers, and what the server counted for each column's menu. */
 export interface MemberColumnsFor {
   readonly seesPhone: boolean;
+  /** Whether an export carries the mobiles: super admins alone, as before the floor saw them (the owner, 22 Nov: view only). */
+  readonly exportsPhone: boolean;
   /** Each choice column's values with the server's counts (redesign correction 4); undefined until they are read. */
   readonly choices: MemberChoices | undefined;
   /** Members on a break, frozen or erased, anyone else active; undefined until that is known. */
@@ -123,14 +125,15 @@ function historyColumn(onHistory: (row: MemberListRow) => void): DataTableColumn
 }
 
 /**
- * Members' columns (console v3; owner, 8 Nov): Name, No., Tier, the mobile for super admins, Status (F-121), ID check, Hours, City,
+ * Members' columns (console v3; owner, 8 Nov): Name, No., Tier, the mobile for the floor and up, Status (F-121), ID check, Hours, City,
  * Joined, Tonight, Visits and Bonus (redesign RD-29); the name opens the record. With a record open beside the list, every
  * one of them, the lines scrolling sideways (owner, 9 Nov). The list is one page from the server, so each column says its
  * kind of filter, and what it sorts by here only names the order the server gives.
  */
 export function memberColumns(tonight: ReadonlyMap<string, Tonight>, view: MemberColumnsFor): readonly DataTableColumn<MemberListRow>[] {
   const [name, number, tier, ...rest] = coreColumns(tonight, view.choices);
-  const more = [...(view.seesPhone ? [mobileColumn] : []), accountColumn(view.statuses, view.choices), ...moreColumns(view.choices)];
+  const mobile = view.exportsPhone ? mobileColumn : { ...mobileColumn, isExported: false };
+  const more = [...(view.seesPhone ? [mobile] : []), accountColumn(view.statuses, view.choices), ...moreColumns(view.choices)];
   const history = view.onHistory === undefined ? [] : [historyColumn(view.onHistory)];
   return [name, number, tier, ...more, ...rest, ...history].filter((column) => column !== undefined);
 }

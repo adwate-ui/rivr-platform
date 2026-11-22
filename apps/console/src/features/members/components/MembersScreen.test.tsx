@@ -96,8 +96,19 @@ describe('Members (console v3)', () => {
     expect(screen.getAllByText('Not given')).toHaveLength(2);
   });
 
-  it('keeps the Account part from an admin, and goes back to the list from the record', async () => {
-    const { onNavigate } = renderAs('admin', 'm1', 'account');
+  it('gives the floor and up the Account part to view: the mobile and the overrides, nothing to change (the owner, 22 Nov)', async () => {
+    renderAs('floor', 'm1', 'account');
+    expect(await screen.findByRole('heading', { name: 'Feature overrides' }, { timeout: 5000 })).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Account' }).getAttribute('aria-current')).toBe('page');
+    expect(screen.getByRole('link', { name: 'Tier and break' })).toBeDefined();
+    expect(screen.queryByRole('heading', { name: 'New override' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Phone number' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Erasure on request' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Lift / })).toBeNull();
+  });
+
+  it('keeps the Account part from a host, and goes back to the list from the record', async () => {
+    const { onNavigate } = renderAs('host', 'm1', 'account');
     expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();
     expect(screen.queryByRole('link', { name: 'Account' })).toBeNull();
     expect(screen.getByRole('link', { name: 'Visits' }).getAttribute('aria-current')).toBe('page');

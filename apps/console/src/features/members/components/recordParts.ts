@@ -6,13 +6,13 @@ export const RECORD_PARTS = ['visits', 'bonus', 'signUp', 'membership', 'account
 export type RecordPart = (typeof RECORD_PARTS)[number];
 
 /**
- * The parts a staff member may open: visits, bonus chips and sign-up for all, the tier and a break with members.manage,
- * the account's for super admins.
+ * The parts a staff member may open: visits, bonus chips and sign-up for all; the tier and a break, and the account's, for
+ * those who change them (members.manage; super admins) and, to view, for the floor and up (`viewsAll`, the owner, 22 Nov).
  */
-export function partsFor(can: { manage: boolean; override: boolean; changePhone: boolean; erase: boolean }): readonly RecordPart[] {
+export function partsFor(can: { manage: boolean; override: boolean; changePhone: boolean; erase: boolean; viewsAll: boolean }): readonly RecordPart[] {
   return RECORD_PARTS.filter((part) => {
-    if (part === 'membership') return can.manage;
-    if (part === 'account') return can.override || can.changePhone || can.erase;
+    if (part === 'membership') return can.manage || can.viewsAll;
+    if (part === 'account') return can.override || can.changePhone || can.erase || can.viewsAll;
     return true;
   });
 }

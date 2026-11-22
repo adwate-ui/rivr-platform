@@ -63,7 +63,8 @@ function LiftForm({ venueId, override, onDone, onCancel }: {
   );
 }
 
-function OverrideRow({ override, onLift }: { override: FeatureOverride; onLift: () => void }) {
+/** One override; one in force has Lift for those who may change them (`onLift`), none for those who only view them. */
+function OverrideRow({ override, onLift }: { override: FeatureOverride; onLift: (() => void) | undefined }) {
   const isInForce = override.standing === 'in_force';
   return (
     <Inline justify="between" align="center" gap={4}>
@@ -71,7 +72,7 @@ function OverrideRow({ override, onLift }: { override: FeatureOverride; onLift: 
         <Text tone={isInForce ? 'default' : 'muted'}>{line(override)}</Text>
         {isInForce ? null : <Text variant="small" tone="muted">{standing(override)}</Text>}
       </Stack>
-      {isInForce ? (
+      {isInForce && onLift !== undefined ? (
         <Button variant="text" aria-label={t('console.members.overrides.liftName', { feature: override.featureName })} onClick={onLift}>
           {t('console.members.overrides.lift')}
         </Button>
@@ -80,7 +81,7 @@ function OverrideRow({ override, onLift }: { override: FeatureOverride; onLift: 
   );
 }
 
-function OverrideList({ venueId, memberId, onOutcome }: { venueId: string; memberId: string; onOutcome: (outcome: Outcome) => void }) {
+function OverrideList({ venueId, memberId, canChange, onOutcome }: { venueId: string; memberId: string; canChange: boolean; onOutcome: (outcome: Outcome) => void }) {
   const overrides = useMemberFeatureOverrides(venueId, memberId);
   const [lifting, setLifting] = useState<FeatureOverride | null>(null);
   if (overrides.isError) return <LoadState isError onRetry={() => void overrides.refetch()} />;
@@ -89,7 +90,7 @@ function OverrideList({ venueId, memberId, onOutcome }: { venueId: string; membe
   return (
     <Stack gap={3}>
       <Stack gap={2} divided>
-        {overrides.data.map((override) => <OverrideRow key={override.overrideId} override={override} onLift={() => setLifting(override)} />)}
+        {overrides.data.map((override) => <OverrideRow key={override.overrideId} override={override} onLift={canChange ? () => setLifting(override) : undefined} />)}
       </Stack>
       {lifting === null ? null : (
         <LiftForm key={lifting.overrideId} venueId={venueId} override={lifting} onCancel={() => setLifting(null)}
@@ -148,18 +149,18 @@ function OverrideForm({ venueId, memberId, onOutcome }: { venueId: string; membe
 }
 
 /**
- * A member's feature overrides (#61; additions "Tier-gated features"), for super admins only: one
- * gateable feature granted or taken away for this member, with a reason and an optional last day, in
- * place of their tier's; one in force can be lifted early, with a reason.
+ * A member's feature overrides (#61; additions "Tier-gated features"): one gateable feature granted or taken away for this
+ * member, with a reason and an optional last day, in place of their tier's; one in force can be lifted early, with a
+ * reason. Super admins change them (`canChange`); the floor views them (the owner, 22 Nov).
  */
-export function FeatureOverrides({ venueId, memberId }: { venueId: string; memberId: string }) {
+export function FeatureOverrides({ venueId, memberId, canChange = true }: { venueId: string; memberId: string; canChange?: boolean }) {
   const [outcome, setOutcome] = useState<Outcome>(null);
   return (
     <Stack gap={3}>
       <Heading level={3}>{t('console.members.overrides.title')}</Heading>
-      <OverrideList venueId={venueId} memberId={memberId} onOutcome={setOutcome} />
-      <Heading level={4}>{t('console.members.overrides.newOverride')}</Heading>
-      <OverrideForm venueId={venueId} memberId={memberId} onOutcome={setOutcome} />
+      <OverrideList venueId={venueId} memberId={memberId} canChange={canChange} onOutcome={setOutcome} />
+      {canChange ? <Heading level={4}>{t('console.members.overrides.newOverride')}</Heading> : null}
+      {canChange ? <OverrideForm venueId={venueId} memberId={memberId} onOutcome={setOutcome} /> : null}
       <OutcomeLine outcome={outcome} />
     </Stack>
   );

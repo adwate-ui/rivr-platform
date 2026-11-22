@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { partsFor, recordHref } from './recordParts.ts';
 
-const NONE = { manage: false, seePhoto: false, override: false, erase: false, changePhone: false };
+const NONE = { manage: false, seePhoto: false, override: false, erase: false, changePhone: false, viewsAll: false };
 
 describe('partsFor', () => {
   it('gives every staff member who reads members the visits, Bonus (decision 0504) and sign-up (owner, 8 Nov)', () => {
@@ -16,6 +16,10 @@ describe('partsFor', () => {
     expect(partsFor({ ...NONE, manage: true, override: true, changePhone: true, erase: true }))
       .toEqual(['visits', 'bonus', 'signUp', 'membership', 'account']);
     expect(partsFor({ ...NONE, erase: true })).toEqual(['visits', 'bonus', 'signUp', 'account']);
+  });
+
+  it('gives the floor and up every part, to view (the owner, 22 Nov)', () => {
+    expect(partsFor({ ...NONE, viewsAll: true })).toEqual(['visits', 'bonus', 'signUp', 'membership', 'account']);
   });
 });
 

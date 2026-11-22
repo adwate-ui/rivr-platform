@@ -165,11 +165,21 @@ select is((select sum(members) from public.members_choices('00000000-0000-4000-8
 select is((select sum(members) from public.members_choices('00000000-0000-4000-8000-000000000001', '{"query": "verma"}') where column_key = 'status'),
   (select count(*) from club where full_name ilike '%verma%')::numeric, 'and the search narrows them too');
 
--- An admin reads no full number, and finds a mobile only by its last four digits.
+-- An admin, as the floor (members.phone), reads every full number and finds one by any of its digits, but no identity
+-- document (the owner, 22 Nov).
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select is_empty($$ select 1 from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{}')) p join club c on c.id = p.member_id
+                   where p.phone is distinct from c.phone or p.date_of_birth is not null or p.pan is not null or p.masked_aadhaar is not null
+                      or p.address is not null $$,
+  'an admin is given each full number and no identity document');
+select set_eq($$ select member_id from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{"query": "90000 002"}')) $$,
+  $$ select id from club where phone like '%90000002%' $$, 'and finds a mobile by digits from its middle');
+
+-- A host reads no full number, and finds a mobile only by its last four digits.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
 select is_empty($$ select 1 from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{}')) where phone is not null
                    or date_of_birth is not null or pan is not null or masked_aadhaar is not null or address is not null $$,
-  'an admin is given no full number and no identity document');
+  'a host is given no full number and no identity document');
 select is_empty($$ select 1 from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{}')) p join club c on c.id = p.member_id
                    where p.phone_last4 is distinct from right(c.phone, 4) $$, 'but each number''s last four digits');
 select set_eq($$ select member_id from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{"query": "0211"}')) $$,
@@ -177,7 +187,7 @@ select set_eq($$ select member_id from public.members_page('00000000-0000-4000-8
 select set_eq($$ select member_id from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{"query": "90000 002"}')) $$,
   $$ select id from club where right(phone, 4) = '0002' $$, 'more digits still find it only by its last four, never by its middle');
 select is((select count(*) from public.members_page('00000000-0000-4000-8000-000000000001', pg_temp.view('{"filters": {"mobile": {"kind": "text", "typed": "90000"}}}'))),
-  (select count(*) from club), 'and the mobile column, which an admin does not have, filters nothing');
+  (select count(*) from club), 'and the mobile column, which a host does not have, filters nothing');
 
 -- Staff who read no members are given none.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
