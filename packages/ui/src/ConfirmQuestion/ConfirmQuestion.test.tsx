@@ -31,6 +31,23 @@ describe('ConfirmQuestion', () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
+  it('with autoFocus, takes the focus to Yes as it opens, and Cancel gives it back to the asker', async () => {
+    function Asked() {
+      const [isAsking, setAsking] = useState(false);
+      return (
+        <>
+          <button type="button" onClick={() => setAsking(true)}>Set</button>
+          {isAsking ? <ConfirmQuestion question={QUESTION} confirm="Yes, change it" autoFocus onConfirm={() => undefined} onCancel={() => setAsking(false)} /> : null}
+        </>
+      );
+    }
+    renderIn(<Asked />);
+    await userEvent.click(screen.getByRole('button', { name: 'Set' }));
+    expect(screen.getByRole('button', { name: 'Yes, change it' })).toHaveFocus();
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getByRole('button', { name: 'Set' })).toHaveFocus();
+  });
+
   it('has the question read on the Yes button, and no accessibility violations', async () => {
     const { container } = renderIn(<ConfirmQuestion question={QUESTION} confirm="Yes, change it" onConfirm={() => undefined} onCancel={() => undefined} />);
     expect(screen.getByRole('button', { name: 'Yes, change it' })).toHaveAccessibleDescription(QUESTION);

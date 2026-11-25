@@ -60,17 +60,19 @@ export interface HeldSeat {
  * link to anything but an open main table of the same game (`must_move_invalid`), bonus chips redeemed with the seat
  * that are more than the member has, not whole 50s, on the staff member's own record, with promotions switched off, or
  * too many a minute (decision 0504), past what the visit may redeem (`visit_cap`, decision 0579), a seating whose Bonus was already redeemed with another
- * amount (`bonus_redeemed`, #1101), or anything else (#333).
+ * amount (`bonus_redeemed`, #1101), a call time the floor picks before the usual earliest or already gone, until confirmed
+ * (`call_time_early`, `call_time_gone`, #1132), one past a day (`call_time_too_long`), or anything else (#333).
  */
 export type SeatFailure = 'not_allowed' | 'occupied' | 'held' | 'seated' | 'kyc_needed' | 'on_break' | 'no_member' | 'stopped' | 'paused' | 'invalid'
   | 'call_time_done' | 'table_in_use' | 'must_move_invalid' | 'bonus_short' | 'not_chips' | 'own_record' | 'bonus_off' | 'too_many' | 'visit_cap' | 'bonus_redeemed'
-  | 'unavailable';
+  | 'call_time_early' | 'call_time_gone' | 'call_time_too_long' | 'unavailable';
 
 /** The failure each database refusal of a seat change stands for; anything else is `unavailable`. */
 export const SEAT_FAILURE_BY_CODE: Readonly<Record<string, SeatFailure>> = {
   '42501': 'not_allowed', RVOCC: 'occupied', RVHLD: 'held', RVSTD: 'seated', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVNOM: 'no_member',
   RVMBR: 'stopped', RVFRZ: 'paused', '22023': 'invalid', RVCTD: 'call_time_done', RVBON: 'bonus_short', RVCHP: 'not_chips', RVOWN: 'own_record',
-  RVKIL: 'bonus_off', RVRAT: 'too_many', RVVCP: 'visit_cap', RVBRD: 'bonus_redeemed',
+  RVKIL: 'bonus_off', RVRAT: 'too_many', RVVCP: 'visit_cap', RVBRD: 'bonus_redeemed', RVCTE: 'call_time_early', RVCTG: 'call_time_gone',
+  RVCTX: 'call_time_too_long', RVCTN: 'invalid',
 };
 
 /** A seating's bonus chips argument (decision 0504): none when there are none to redeem. */
@@ -222,15 +224,18 @@ export function useSetSeatCallTime(venueId: string) {
 
 /**
  * The floor's managers (call_time.override) set or extend a seated player's call time to a time (decision 0305; the owner,
- * 22 Nov), by the member's own rule: until set, the time falls after the minimum playing time, and counts as setting it;
- * once set, after the current end. The same `requestId` again sets nothing more, so a retry after a lost answer is safe.
+ * 22 Nov), which counts as setting it. A time before the usual earliest (after the minimum playing time until set, the
+ * current end once set) is refused as `call_time_early`, and one gone as `call_time_gone`, until sent again `confirmed`
+ * (the owner, 25 Nov; #1132). The same `requestId` again sets nothing more, so a retry after a lost answer is safe.
  */
 export function useAddCallTime(venueId: string) {
   const { client } = useRivrData();
   const settle = useSeatSettle(venueId);
   return useMutation({
-    mutationFn: async ({ sessionId, until, requestId }: { sessionId: string; until: Date; requestId: string }) =>
-      settle((await client.rpc('add_seat_call_time', { p_session_id: sessionId, p_until: until.toISOString(), p_idempotency_key: requestId })).error),
+    mutationFn: async ({ sessionId, until, requestId, isConfirmed = false }: { sessionId: string; until: Date; requestId: string; isConfirmed?: boolean }) =>
+      settle((await client.rpc('add_seat_call_time', {
+        p_session_id: sessionId, p_until: until.toISOString(), p_idempotency_key: requestId, ...(isConfirmed ? { p_confirmed: true } : {}),
+      })).error),
   });
 }
 

@@ -69,6 +69,20 @@ test.describe('Call time', () => {
     await (await ritikasRequest(floor, /^Call time set/)).getByRole('button', { name: 'Seen' }).click();
     await expect(floor.getByText('Ritika Das: call time seen')).toBeVisible();
 
+    // The floor may shorten it (the owner, 25 Nov; #1132): a time before her end is asked first, then set on Yes. Ten minutes
+    // from now she still owes call time, for the leaving below.
+    await floor.getByRole('button', { name: /^Seat 1, Ritika Das,/ }).click();
+    const sheet = floor.getByRole('dialog', { name: 'Ritika Das' });
+    const soon = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+      .format(new Date(Date.now() + 10 * 60_000));
+    await sheet.getByLabel('Until', { exact: true }).fill(soon);
+    await sheet.getByRole('button', { name: 'Extend call time' }).click();
+    await expect(sheet.getByText(new RegExp(`^${soon} is before \\d\\d:\\d\\d\\. Set it anyway\\?$`))).toBeVisible();
+    await sheet.getByRole('button', { name: 'Yes, set it' }).click();
+    await expect(floor.getByText(`Ritika Das: call time shortened to ${soon}`)).toBeVisible();
+    await sheet.getByRole('button', { name: 'Close' }).first().click();
+    await expect(floor.getByRole('button', { name: `Seat 1, Ritika Das, Leaves ${soon}` })).toBeVisible({ timeout: 15_000 });
+
     // A top-up the floor starts, then marks done (#634, decision 0299).
     await player.getByRole('button', { name: 'Top up' }).click();
     await player.getByRole('dialog', { name: 'Top up' }).getByRole('button', { name: 'Request top-up' }).click();

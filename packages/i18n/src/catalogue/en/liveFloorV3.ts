@@ -88,10 +88,14 @@ export const floor = {
     extendCallTime: 'Extend call time',
     /** Under Extend's time (the owner, 19 Nov). */
     extendNote: 'Extend adds time beyond the current end.',
-    /** The time field, and under it the time it must be later than, as the member's own sheet says. */
+    /** The time field, and under it the usual earliest: the floor may pick earlier after a warning (the owner, 25 Nov; #1132). */
     until: 'Until',
-    callTimeAfter: 'After {time}.',
-    pickAfter: 'Pick a time after {time}.',
+    callTimeAfter: 'Usually after {time}.',
+    pickTime: 'Pick a time.',
+    /** Asked before an early or gone time is set. */
+    confirmEarly: '{time} is before {after}. Set it anyway?',
+    confirmGone: '{time} has gone. The call time ends now. Set it anyway?',
+    confirmSet: 'Yes, set it',
     move: 'Move to another seat',
     moveTable: 'Table',
     moveSeat: 'Seat',
@@ -225,6 +229,8 @@ export const floor = {
     /** The floor set a call time (#1089): from now. */
     timeSet: '{name}: call time set until {time}',
     timeAdded: '{name}: call time extended until {time}',
+    /** Set once already, then a time confirmed before its end (#1132). */
+    timeShortened: '{name}: call time shortened to {time}',
     callTimeSeen: '{name}: call time seen',
     /** A member set or extended their call time from the app (#1076): the floor is told, with when they leave. */
     callTimeSet: '{name} set call time · leaves {time}',

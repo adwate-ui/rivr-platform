@@ -28,10 +28,10 @@ reset role;
 create temp table sess on commit drop as select (pg_temp.session()).id as id;
 grant select on sess to authenticated;
 
--- Seated just now, a time before the three hours end is refused: the floor's Set waits as the member's does.
+-- Seated just now, a time before the three hours end is refused until the floor confirms it (#1132).
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '90 minutes', gen_random_uuid()) $$, '22023', null,
-  'a time an hour and a half from now ends before the three hours, and is refused');
+select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '90 minutes', gen_random_uuid()) $$, 'RVCTE', null,
+  'a time an hour and a half from now ends before the three hours, and is refused unconfirmed');
 reset role;
 update public.seat_session set started_at = now() - interval '150 minutes', seated_here_at = now() - interval '150 minutes' where id = (select id from sess);
 
@@ -58,8 +58,8 @@ select is((select row(status, minutes, decided_by_staff_id is not null)::text fr
 select is((select count(*)::integer from public.outbox_event where event_type = 'call_time.updated' and payload ->> 'minutes' = '240'),
   1, 'the member''s devices are told, once');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '90 minutes', gen_random_uuid()) $$, '22023', null,
-  'once set, a time at the current end does not extend it');
+select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '90 minutes', gen_random_uuid()) $$, 'RVCTE', null,
+  'once set, a time at the current end does not extend it unconfirmed');
 select lives_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '135 minutes', gen_random_uuid()) $$,
   'a cashier, with the floor''s permissions, extends it too');
 reset role;
@@ -87,7 +87,7 @@ select is((select count(*)::integer from public.outbox_event where event_type = 
 -- Never past a day: eight hours played, a time making exactly a day is open, a minute later is not.
 update public.seat_session set call_time_minutes = 1380, call_time_completed_at = null where id = (select id from sess);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '961 minutes', gen_random_uuid()) $$, '22023', null,
+select throws_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '961 minutes', gen_random_uuid()) $$, 'RVCTX', null,
   'not past a day');
 select lives_ok($$ select public.add_seat_call_time((select id from sess), now() + interval '960 minutes', gen_random_uuid()) $$, 'a day at most');
 reset role;

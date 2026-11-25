@@ -56,6 +56,12 @@ export function requestRow({ kind, id, name, minutes, ...extra }: {
   };
 }
 
+/** A fake RPC's answer: its status and body. */
+export interface Reply {
+  status: number;
+  body: unknown;
+}
+
 export interface FloorApi {
   role?: string;
   tables?: unknown[];
@@ -65,8 +71,8 @@ export interface FloorApi {
   queues?: unknown[];
   /** Each table's list length and call time, as `waitlist_lengths` gives them. */
   lengths?: unknown[];
-  /** An RPC's own answer: a refusal, or a body. */
-  replies?: Record<string, { status: number; body: unknown }>;
+  /** An RPC's own answer: a refusal, or a body; or one by what was sent, none for the usual answer. */
+  replies?: Record<string, Reply | ((sent: unknown) => Reply | undefined)>;
 }
 
 const TYPES = [
@@ -93,10 +99,11 @@ function restOf(url: string, api: FloorApi): unknown {
 }
 
 /** The answer to one request of the fake API: a reply given, a read, else 204 for a change. */
-function answer(url: string, api: FloorApi): Response {
+function answer(url: string, api: FloorApi, sent: unknown): Response {
   const rpc = url.split('/rpc/')[1]?.split('?')[0];
   if (rpc === undefined) return Response.json(restOf(url, api));
-  const reply = api.replies?.[rpc];
+  const given = api.replies?.[rpc];
+  const reply = typeof given === 'function' ? given(sent) : given;
   if (reply !== undefined) return Response.json(reply.body, { status: reply.status });
   const reads = readsOf(api);
   return rpc in reads ? Response.json(reads[rpc]) : new Response(null, { status: 204 });
@@ -111,8 +118,9 @@ export function renderFloorScreen(Screen: ComponentType, api: FloorApi = {}, add
   const sent: { rpc: string; body: unknown }[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (init?.method === 'POST' && url.includes('/rpc/')) sent.push({ rpc: url.split('/rpc/')[1]?.split('?')[0] ?? '', body: JSON.parse(String(init.body ?? '{}')) });
-    return answer(url, api);
+    const body: unknown = init?.method === 'POST' ? JSON.parse(String(init.body ?? '{}')) : undefined;
+    if (init?.method === 'POST' && url.includes('/rpc/')) sent.push({ rpc: url.split('/rpc/')[1]?.split('?')[0] ?? '', body });
+    return answer(url, api, body);
   });
   const rootRoute = createRootRoute();
   const screenRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: () => <Screen /> });

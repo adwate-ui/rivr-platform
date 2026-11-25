@@ -103,8 +103,8 @@ create temp table vihaan on commit drop as select (pg_temp.seated('212')).id as 
 grant select on vihaan to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is((select after_at from pg_temp.floor_seat('212')), now() + interval '10 minutes', 'two hours fifty in, the floor may pick a time after the three hours');
-select throws_ok($$ select public.add_seat_call_time((select id from vihaan), now() + interval '5 minutes', gen_random_uuid()) $$, '22023', null,
-  'nor one before them');
+select throws_ok($$ select public.add_seat_call_time((select id from vihaan), now() + interval '5 minutes', gen_random_uuid()) $$, 'RVCTE', null,
+  'nor one before them, unconfirmed');
 select lives_ok($$ select public.add_seat_call_time((select id from vihaan), now() + interval '30 minutes', gen_random_uuid()) $$,
   'the floor sets a time half an hour from now');
 select ok((select set_at is not null and not by_member from pg_temp.floor_seat('212')), 'which sets his call time, by the floor');

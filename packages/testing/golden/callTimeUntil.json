@@ -1,6 +1,6 @@
 {
   "rule": "call time set or extended to a time",
-  "about": "A call time set or extended to a time on the clock, by the member from the seat or by the floor (the owner, 22 Nov). One rule for both. The time picked is given as the seconds from now to it, and must be ahead of now. The seat's call time becomes the whole seconds played (net of time away; none or below nought counting as nought) plus those seconds, in minutes rounded up. Until a call time is set, the time picked must fall after the minimum playing time the seat started with: the call time it makes is more than that minimum, and never less than the call time owed now. Once set, the time must fall after the current end: the call time it makes is more than the call time now. Only a seat with a call time (more than nought minutes) sets or extends one. A call time is at most a day, 1,440 minutes, in all. `opens` is the seconds from now after which a picked time is open, which the app and the floor show: nought once the bound has passed, none for a seat with no call time. The database's private.call_time_until and private.call_time_opens_after are proved equal on these cases and refuse with null.",
+  "about": "A call time set or extended to a time on the clock, by the member from the seat or by the floor (the owner, 22 Nov). One rule for both. The time picked is given as the seconds from now to it, and must be ahead of now. The seat's call time becomes the whole seconds played (net of time away; none or below nought counting as nought) plus those seconds, in minutes rounded up. Until a call time is set, the time picked must fall after the minimum playing time the seat started with: the call time it makes is more than that minimum, and never less than the call time owed now. Once set, the time must fall after the current end: the call time it makes is more than the call time now. Only a seat with a call time (more than nought minutes) sets or extends one. A call time is at most a day, 1,440 minutes, in all. `opens` is the seconds from now after which a picked time is open, which the app and the floor show: nought once the bound has passed, none for a seat with no call time. The database's private.call_time_until and private.call_time_opens_after are proved equal on these cases and refuse with null. `floor` is the time the floor picks (the owner, 25 Nov): a time the member's rule refuses is set all the same, with the warning `early`; one not ahead of now ends the call time now, at the whole minutes played (one at least, a day at most), with the warning `gone`. A day in all and a seat with a call time stay hard; private.floor_call_time_until is proved equal on these, refusing with null.",
   "cases": [
     {
       "description": "Not set: a time two hours ahead, an hour and forty minutes into a three-hour minimum, makes three hours forty.",
@@ -169,6 +169,84 @@
       "operation": "opens",
       "inputs": { "current": "0", "played": "600", "initial": "0", "set": "no" },
       "expected": { "seconds": "" }
+    },
+    {
+      "description": "Floor, not set: a time before the end of a three-hour minimum, an hour ahead at 1 h 40 played, warns early and makes 2 h 40.",
+      "operation": "floor",
+      "inputs": { "current": "180", "played": "6000", "initial": "180", "set": "no", "ahead": "3600" },
+      "expected": { "minutes": "160", "warning": "early", "refusal": "" }
+    },
+    {
+      "description": "Floor, not set: a time after the minimum, as the member's rule takes it, makes 3 h 40 with no warning.",
+      "operation": "floor",
+      "inputs": { "current": "180", "played": "6000", "initial": "180", "set": "no", "ahead": "7200" },
+      "expected": { "minutes": "220", "warning": "", "refusal": "" }
+    },
+    {
+      "description": "Floor, not set: after the minimum but short of the call time owed now warns early.",
+      "operation": "floor",
+      "inputs": { "current": "200", "played": "6000", "initial": "180", "set": "no", "ahead": "5400" },
+      "expected": { "minutes": "190", "warning": "early", "refusal": "" }
+    },
+    {
+      "description": "Floor, set: a time before the current end shortens it, with a warning: 2 h 10.",
+      "operation": "floor",
+      "inputs": { "current": "240", "played": "6000", "initial": "180", "set": "yes", "ahead": "1800" },
+      "expected": { "minutes": "130", "warning": "early", "refusal": "" }
+    },
+    {
+      "description": "Floor, set: a time after the current end extends it with no warning.",
+      "operation": "floor",
+      "inputs": { "current": "240", "played": "6000", "initial": "180", "set": "yes", "ahead": "9000" },
+      "expected": { "minutes": "250", "warning": "", "refusal": "" }
+    },
+    {
+      "description": "Floor: seconds ahead round up to the next minute.",
+      "operation": "floor",
+      "inputs": { "current": "180", "played": "6000", "initial": "180", "set": "no", "ahead": "7201" },
+      "expected": { "minutes": "221", "warning": "", "refusal": "" }
+    },
+    {
+      "description": "Floor: a time gone by ends the call time now, at the whole minutes played, with a warning.",
+      "operation": "floor",
+      "inputs": { "current": "240", "played": "6000", "initial": "180", "set": "yes", "ahead": "-120" },
+      "expected": { "minutes": "100", "warning": "gone", "refusal": "" }
+    },
+    {
+      "description": "Floor: a time that is now is gone too.",
+      "operation": "floor",
+      "inputs": { "current": "240", "played": "6000", "initial": "180", "set": "yes", "ahead": "0" },
+      "expected": { "minutes": "100", "warning": "gone", "refusal": "" }
+    },
+    {
+      "description": "Floor: a time gone with under a minute played ends at one minute, never none.",
+      "operation": "floor",
+      "inputs": { "current": "180", "played": "30", "initial": "180", "set": "no", "ahead": "-10" },
+      "expected": { "minutes": "1", "warning": "gone", "refusal": "" }
+    },
+    {
+      "description": "Floor: a time gone after more than a day played ends at a day.",
+      "operation": "floor",
+      "inputs": { "current": "180", "played": "90000", "initial": "180", "set": "yes", "ahead": "-1" },
+      "expected": { "minutes": "1440", "warning": "gone", "refusal": "" }
+    },
+    {
+      "description": "Floor: none or below nought played counts as nought.",
+      "operation": "floor",
+      "inputs": { "current": "180", "played": "-5", "initial": "180", "set": "no", "ahead": "3600" },
+      "expected": { "minutes": "60", "warning": "early", "refusal": "" }
+    },
+    {
+      "description": "Floor: more than a day in all is refused, warning or not.",
+      "operation": "floor",
+      "inputs": { "current": "180", "played": "6000", "initial": "180", "set": "no", "ahead": "82000" },
+      "expected": { "minutes": "", "warning": "", "refusal": "over_a_day" }
+    },
+    {
+      "description": "Floor: a seat with no call time sets none.",
+      "operation": "floor",
+      "inputs": { "current": "0", "played": "600", "initial": "0", "set": "no", "ahead": "3600" },
+      "expected": { "minutes": "", "warning": "", "refusal": "no_call_time" }
     }
   ]
 }

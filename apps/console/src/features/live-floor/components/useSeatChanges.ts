@@ -1,8 +1,9 @@
 import type { LeaveReason, SeatWho } from '@rivr/contracts';
+import type { FloorCallTimeWarning } from '@rivr/domain/callTime';
 import { useAddCallTime, useCheckOutActions, useFloorActions, useFloorUndo, useSeatActions, type FloorTable, type SeatedPlayer } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
 import { useRef } from 'react';
-import { useChangeToast } from './useChangeToast.ts';
+import { useChangeToast, type Outcome } from './useChangeToast.ts';
 
 /** Who the Seat sheet seats: the next on the table's list, or a member found by mobile or membership number. */
 export type Seating =
@@ -38,23 +39,41 @@ function useSeating(venueId: string) {
   };
 }
 
+/** The warning a refused time came back with, for the sheet to ask; none once confirmed, or for any other answer. */
+function warningOf(outcome: Outcome, isConfirmed: boolean): FloorCallTimeWarning | null {
+  if (outcome.ok || isConfirmed) return null;
+  if (outcome.error === 'call_time_early') return 'early';
+  return outcome.error === 'call_time_gone' ? 'gone' : null;
+}
+
+/** What the toast says it did: set, extended, or, confirmed once set, shortened (a time earlier than its end). */
+function doneKey(player: SeatedPlayer, isConfirmed: boolean) {
+  if (player.callTimeSetAt === null) return 'console.floor.toast.timeSet';
+  return isConfirmed ? 'console.floor.toast.timeShortened' : 'console.floor.toast.timeAdded';
+}
+
 /**
  * A call time the floor's managers set or extend to a time (decision 0305; the owner, 22 Nov), undone by its request id.
- * Each time keeps its request id until it goes through, so a press again after a lost answer sets it once.
+ * Each time keeps its request id until it goes through, so a press again after a lost answer sets it once. A time before
+ * the usual earliest, or gone, is not set but answered with its warning, for the sheet to ask and send again `confirmed`
+ * (the owner, 25 Nov; #1132); anything else is said in a toast.
  */
 function useAddTime(venueId: string) {
   const say = useChangeToast();
   const undo = useFloorUndo(venueId);
   const add = useAddCallTime(venueId);
   const requestIds = useRef(new Map<string, string>());
-  return async (player: SeatedPlayer, until: Date) => {
+  return async (player: SeatedPlayer, until: Date, isConfirmed = false): Promise<FloorCallTimeWarning | null> => {
     const key = `${player.sessionId}:${until.toISOString()}`;
     const requestId = requestIds.current.get(key) ?? crypto.randomUUID();
     requestIds.current.set(key, requestId);
-    const outcome = await add.mutateAsync({ sessionId: player.sessionId, until, requestId });
+    const outcome = await add.mutateAsync({ sessionId: player.sessionId, until, requestId, isConfirmed });
     if (outcome.ok) requestIds.current.delete(key);
-    say(outcome, t(player.callTimeSetAt === null ? 'console.floor.toast.timeSet' : 'console.floor.toast.timeAdded', { name: player.fullName, time: formatTime(until) }),
+    const warning = warningOf(outcome, isConfirmed);
+    if (warning !== null) return warning;
+    say(outcome, t(doneKey(player, isConfirmed), { name: player.fullName, time: formatTime(until) }),
       () => undo.mutateAsync({ kind: 'callTime', requestId }));
+    return null;
   };
 }
 

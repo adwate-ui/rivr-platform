@@ -2707,7 +2707,7 @@ isOneToOne: false
 { Args: { "p_min_buy_in_paise": number,"p_name": string,"p_room"?: string,"p_seats": number,"p_table_type_id": string,"p_venue_id": string }; Returns: string
                            },
 "add_seat_call_time":
-{ Args: { "p_idempotency_key": string,"p_session_id": string,"p_until": string }; Returns: undefined
+{ Args: { "p_confirmed"?: boolean,"p_idempotency_key": string,"p_session_id": string,"p_until": string }; Returns: undefined
                            },
 "add_table_type":
 { Args: { "p_big_blind_paise": number,"p_call_time_minutes"?: number,"p_name": string,"p_small_blind_paise": number,"p_straddle_paise"?: number,"p_venue_id": string }; Returns: string

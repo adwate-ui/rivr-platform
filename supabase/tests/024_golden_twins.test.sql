@@ -155,7 +155,7 @@ select results_eq(
 -- private.call_time_opens_after, and @rivr/domain callTimeUntil and callTimeOpensAfter (packages/testing/golden/callTimeUntil.json,
 -- the owner, 22 Nov). The SQL refuses with null, whatever the reason.
 select ok((select count(*) > 0 from golden.golden_case where file = 'callTimeUntil.json'), 'the call time to a time cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'callTimeUntil.json' and operation not in ('until', 'opens') $$,
+select is_empty($$ select operation from golden.golden_case where file = 'callTimeUntil.json' and operation not in ('until', 'opens', 'floor') $$,
   'every operation in callTimeUntil.json is proved here');
 select results_eq(
   $$ select description, private.call_time_until((inputs ->> 'current')::integer, (inputs ->> 'played')::integer,
@@ -171,6 +171,16 @@ select results_eq(
   $$ select description, nullif(expected ->> 'seconds', '')::integer
      from golden.golden_case where file = 'callTimeUntil.json' and operation = 'opens' order by position $$,
   'private.call_time_opens_after gives where every picked time opens in the golden file');
+-- The floor's time picked (the owner, 25 Nov; #1132): private.floor_call_time_until and @rivr/domain floorCallTimeUntil.
+select results_eq(
+  $$ select g.description, f.o_minutes, coalesce(f.o_warning, '')
+     from golden.golden_case g
+     left join lateral private.floor_call_time_until((g.inputs ->> 'current')::integer, (g.inputs ->> 'played')::integer,
+                                                     (g.inputs ->> 'initial')::integer, g.inputs ->> 'set' = 'yes', (g.inputs ->> 'ahead')::numeric) f on true
+     where g.file = 'callTimeUntil.json' and g.operation = 'floor' order by g.position $$,
+  $$ select description, nullif(expected ->> 'minutes', '')::integer, expected ->> 'warning'
+     from golden.golden_case where file = 'callTimeUntil.json' and operation = 'floor' order by position $$,
+  'private.floor_call_time_until gives every call time and warning the floor meets in the golden file, and refuses every refusal');
 
 -- A bonus: private.bonus_draws and private.bonus_expiring, and @rivr/domain bonusSpend and bonusExpired
 -- (packages/testing/golden/bonus.json). Grants are written "amount @ end | ...", the end "never" for one with none.

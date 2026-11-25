@@ -1,8 +1,9 @@
 import type { RequestTargets } from '@rivr/domain/floorRequests';
 import { openSeatsAt, type FloorRequest, type FloorTable, type HeldSeat, type SeatedPlayer } from '@rivr/db';
+import type { FloorCallTimeWarning } from '@rivr/domain/callTime';
 import { clockTimeAfter, nearestClockMoment } from '@rivr/domain/clubDay';
 import { formatDuration, formatTime, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Figure, Inline, Input, ProgressBar, RequestItem, Sheet, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ConfirmQuestion, ErrorMessage, Figure, Inline, Input, ProgressBar, RequestItem, Sheet, Stack, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useId, useState } from 'react';
 import { useBonusByHand } from './bonusByHand.ts';
@@ -64,34 +65,60 @@ function askTitle(request: FloorRequest): string {
   return t('console.floor.player.asksLeaving');
 }
 
+/** A time the database answered with a warning, waiting for Yes. */
+interface Asked {
+  readonly until: Date;
+  readonly warning: FloorCallTimeWarning;
+}
+
+/** What Yes sets, asked: a time gone ends the call time now; an early one is before the usual earliest. */
+function questionOf(asked: Asked, after: Date): string {
+  return asked.warning === 'gone'
+    ? t('console.floor.player.confirmGone', { time: formatTime(asked.until) })
+    : t('console.floor.player.confirmEarly', { time: formatTime(asked.until), after: formatTime(after) });
+}
+
 /**
  * Set call time, then Extend call time, to a time on the clock, as the member app (decision 0305; #1076; #1089; the owner,
- * 22 Nov), for the floor's managers, by the member's own rule: until set, a time after the minimum playing time, which
- * counts as setting it; once set, a time after the current end. The field starts at the five minutes after that, and the
- * time is the one the clock shows nearest now, so one gone by is refused here before anything is sent.
+ * 22 Nov), for the floor's managers; picking it counts as setting it. The field starts five minutes after the usual
+ * earliest (after the minimum playing time until set, the current end once set), and the time is the one the clock shows
+ * nearest now. The floor may pick earlier, or a time gone, which ends the call time now: the database answers with a
+ * warning, asked here, and Yes sends it again confirmed (the owner, 25 Nov; #1132).
  */
 function CallTimePicker({ player, after, now, changes }: { player: SeatedPlayer; after: Date; now: Date; changes: SeatChanges }) {
   const isSet = player.callTimeSetAt !== null;
   const ids = { after: useId(), note: useId(), error: useId() };
   const [time, setTime] = useState(() => clockTimeAfter(after, 5));
   const [error, setError] = useState<string | null>(null);
+  const [asked, setAsked] = useState<Asked | null>(null);
+  const [isBusy, setIsBusy] = useState(false);
   const action = t(isSet ? 'console.floor.player.extendCallTime' : 'console.floor.player.setCallTime');
+  const send = async (until: Date, isConfirmed: boolean) => {
+    setIsBusy(true);
+    const warning = await changes.addTime(player, until, isConfirmed);
+    setIsBusy(false);
+    setAsked(warning === null ? null : { until, warning });
+  };
   const set = () => {
     const until = nearestClockMoment(time, now);
-    if (until === null || until <= after) return setError(t('console.floor.player.pickAfter', { time: formatTime(after) }));
-    void changes.addTime(player, until);
+    if (until === null) return setError(t('console.floor.player.pickTime'));
+    void send(until, false);
   };
   const describedBy = [ids.after, isSet ? ids.note : '', error === null ? '' : ids.error].filter((id) => id !== '').join(' ');
   return (
     <Stack gap={2}>
       <Inline gap={3} align="end">
         <Input variant="subtle" type="time" label={t('console.floor.player.until')} value={time} aria-describedby={describedBy}
-          aria-invalid={error === null ? undefined : true} onChange={(event) => { setTime(event.target.value); setError(null); }} />
-        <Button variant="primary" size="compact" onClick={set}>{action}</Button>
+          aria-invalid={error === null ? undefined : true} onChange={(event) => { setTime(event.target.value); setError(null); setAsked(null); }} />
+        <Button variant="primary" size="compact" isLoading={isBusy} onClick={set}>{action}</Button>
       </Inline>
       <Text id={ids.after} variant="caption" tone="muted">{t('console.floor.player.callTimeAfter', { time: formatTime(after) })}</Text>
       {isSet ? <Text id={ids.note} variant="caption" tone="muted">{t('console.floor.player.extendNote')}</Text> : null}
       {error === null ? null : <ErrorMessage id={ids.error}>{error}</ErrorMessage>}
+      {asked === null ? null : (
+        <ConfirmQuestion question={questionOf(asked, after)} confirm={t('console.floor.player.confirmSet')} isBusy={isBusy} autoFocus
+          onConfirm={() => void send(asked.until, true)} onCancel={() => setAsked(null)} />
+      )}
     </Stack>
   );
 }
