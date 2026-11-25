@@ -92,12 +92,35 @@ reset role;
 select is((select call_table_id from public.waitlist_entry where id = (select id from ids where name = 'mihir')), null,
   'Mihir, next on Table 3''s list, is not called to Table 2');
 
--- A table's stake stays while its list has places.
+-- Since the owner's 25 Nov a table's stake changes while its list has places, the list staying with the table; set back
+-- for what follows.
+create temp table t3_stake on commit drop as select table_type_id as id from public.game_table where id = pg_temp.table_id('Table 3');
+grant select on t3_stake to authenticated;
+-- Mihir's place on Table 3's list, to compare.
+select set_config('request.jwt.claims', jsonb_build_object('sub', '00000000-0000-4000-8000-000000000213', 'role', 'authenticated')::text, true);
+create temp table mihir_was on commit drop as select place from public.my_waitlist() where table_name = 'Table 3';
+select isnt((select place from mihir_was), null, 'Mihir waits for Table 3');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select throws_ok($$ select public.set_game_table(pg_temp.table_id('Table 3'), 'Table 3',
+select lives_ok($$ select public.set_game_table(pg_temp.table_id('Table 3'), 'Table 3',
                       (select id from public.table_type where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'nlh_50_100'), 9) $$,
-  'RVSTD', null, 'Table 3''s stake stays while its list has places');
+  'Table 3''s stake changes while its list has places');
+select ok(exists (select 1 from public.waitlist_entry where table_id = pg_temp.table_id('Table 3') and status = 'waiting'), 'and its list stays');
 reset role;
+select is((select count(*)::integer from public.waitlist_entry
+           where table_id = pg_temp.table_id('Table 3') and status = 'waiting'
+             and table_type_id <> (select id from public.table_type where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'nlh_50_100')),
+  0, 'its places are at the new stake, so seating there closes them');
+select set_config('request.jwt.claims', jsonb_build_object('sub', '00000000-0000-4000-8000-000000000213', 'role', 'authenticated')::text, true);
+select results_eq($$ select table_name, big_blind_paise, place from public.my_waitlist() where table_name = 'Table 3' $$,
+  $$ select 'Table 3'::text, tt.big_blind_paise, (select place from mihir_was) from public.table_type tt
+     where tt.venue_id = '00000000-0000-4000-8000-000000000001' and tt.code = 'nlh_50_100' $$,
+  'Mihir keeps his place, at the new stake');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select lives_ok($$ select public.set_game_table(pg_temp.table_id('Table 3'), 'Table 3', (select id from t3_stake), 9) $$, 'and back');
+reset role;
+select is((select count(*)::integer from public.waitlist_entry
+           where table_id = pg_temp.table_id('Table 3') and status = 'waiting' and table_type_id <> (select id from t3_stake)),
+  0, 'its places go back with it');
 
 -- The floor adds by membership number as well as by mobile (console v3: "Add: mobile or member no."), one of the two.
 create temp table vihaan as select member_number from public.member where id = '00000000-0000-4000-8000-000000000212';

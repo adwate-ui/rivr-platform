@@ -28,6 +28,49 @@ const pressStep = (name: string, step: string) => {
 };
 const minBuyIn = (panel: HTMLElement) => within(panel).getByRole('textbox', { name: /Minimum buy-in/ });
 
+describe('tables setup: changed with players seated (the owner, 25 Nov)', () => {
+  it('names the seat taken when fewer seats are refused', async () => {
+    const seat9 = { session_id: 'p9', table_id: 't1', seat: 9, member_id: 'm9', full_name: 'Ritika Das', tier_name: 'Member', started_at: '2026-11-25T14:00:00Z' };
+    renderSetup(<TablesBlock venueId="v1" stakes={STAKES} tables={TABLES} />, { set_game_table: 'RVOCC' }, [seat9]);
+    fireEvent.click(screen.getByRole('button', { name: 'Change table Table 1' }));
+    const panel = await screen.findByRole('dialog');
+    fireEvent.click(within(panel).getByRole('radio', { name: '8' }));
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    expect(await within(panel).findByText('Seat 9 is taken. Move the player first.')).toBeDefined();
+  });
+
+  it('names the seats held for waitlist calls when none taken is seated', async () => {
+    const held = [8, 9].map((seat) => ({ table_id: 't1', seat, full_name: `Player ${seat}`, entry_id: `e${seat}` }));
+    renderSetup(<TablesBlock venueId="v1" stakes={STAKES} tables={TABLES} />, { set_game_table: 'RVOCC' }, [], held);
+    fireEvent.click(screen.getByRole('button', { name: 'Change table Table 1' }));
+    const panel = await screen.findByRole('dialog');
+    fireEvent.click(within(panel).getByRole('radio', { name: '7' }));
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    expect(await within(panel).findByText('Seats 8 and 9 are held for waitlist calls. Seat the players or hold their places first.')).toBeDefined();
+  });
+
+  it('names the seats taken and the seats held together', async () => {
+    const seat9 = { session_id: 'p9', table_id: 't1', seat: 9, member_id: 'm9', full_name: 'Ritika Das', tier_name: 'Member', started_at: '2026-11-25T14:00:00Z' };
+    renderSetup(<TablesBlock venueId="v1" stakes={STAKES} tables={TABLES} />, { set_game_table: 'RVOCC' }, [seat9],
+      [{ table_id: 't1', seat: 8, full_name: 'Player 8', entry_id: 'e8' }]);
+    fireEvent.click(screen.getByRole('button', { name: 'Change table Table 1' }));
+    const panel = await screen.findByRole('dialog');
+    fireEvent.click(within(panel).getByRole('radio', { name: '7' }));
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    expect(await within(panel).findByText(
+      'Seat 9 is taken. Move the player first. Seat 8 is held for a waitlist call. Seat the player or hold their place first.')).toBeDefined();
+  });
+
+  it('names the count chosen when the floor has not said which seats', async () => {
+    renderSetup(<TablesBlock venueId="v1" stakes={STAKES} tables={TABLES} />, { set_game_table: 'RVOCC' });
+    fireEvent.click(screen.getByRole('button', { name: 'Change table Table 1' }));
+    const panel = await screen.findByRole('dialog');
+    fireEvent.click(within(panel).getByRole('radio', { name: '7' }));
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    expect(await within(panel).findByText('A seat above 7 is taken or held.')).toBeDefined();
+  });
+});
+
 describe('tables setup: deactivate, reactivate and delete (decision 0466)', () => {
   it('says where each table stands, with its own minimum buy-in', () => {
     renderTables();

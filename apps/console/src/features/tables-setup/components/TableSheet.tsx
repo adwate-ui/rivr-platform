@@ -1,7 +1,7 @@
-import { useTablesSetupActions, type SetupStake, type SetupTable, type TableOrder } from '@rivr/db';
+import { useFloorSeats, useHeldSeats, useTablesSetupActions, type HeldSeat, type SeatedPlayer, type SetupStake, type SetupTable, type TableOrder } from '@rivr/db';
 import { chipsToPaise, fromPaise, paiseToChips } from '@rivr/domain/money';
 import { isMinBuyIn, isSeatCount, SEAT_COUNTS, stakeTableRefusal, suggestedMinBuyIn } from '@rivr/domain/tables';
-import { t } from '@rivr/i18n';
+import { formatList, t } from '@rivr/i18n';
 import { ChoiceChips, ErrorMessage, Input, Sheet, Stack, useToast } from '@rivr/ui';
 import { useState } from 'react';
 import { SaveFooter } from './SaveFooter.tsx';
@@ -57,6 +57,28 @@ function filledFor(stakeId: string | null, stakes: readonly SetupStake[], table:
   return stake === undefined ? {} : { minBuyIn: rupeesOf(suggestedMinBuyIn(fromPaise(stake.bigBlind))) };
 }
 
+/** The seats of `table` above `seats` in a list of the floor's, in order, as words: `8 and 9`. */
+function seatsAbove(table: SetupTable | null, seats: string, list: readonly { tableId: string; seat: number }[]): number[] {
+  return list.filter((one) => one.tableId === table?.id && one.seat > Number(seats)).map((one) => one.seat).sort((a, b) => a - b);
+}
+
+/** A save refused as fewer seats than one taken: its words are drawn with the floor's seats as they are then. */
+const SEATS_TAKEN = 'seats_taken';
+
+/**
+ * Fewer seats refused (#1137): the seats taken above the count chosen, named from who sits where on the floor, and those
+ * held for a waitlist call; the count chosen when neither is known.
+ */
+function seatsTakenText(table: SetupTable | null, seats: string, seated: readonly SeatedPlayer[], held: readonly HeldSeat[]): string {
+  const taken = seatsAbove(table, seats, seated);
+  const calls = seatsAbove(table, seats, held);
+  const said = [
+    ...(taken.length === 0 ? [] : [t(taken.length === 1 ? 'console.tablesSetup.seatTaken' : 'console.tablesSetup.seatsTaken', { seats: formatList(taken.map(String)) })]),
+    ...(calls.length === 0 ? [] : [t(calls.length === 1 ? 'console.tablesSetup.seatHeld' : 'console.tablesSetup.seatsHeld', { seats: formatList(calls.map(String)) })]),
+  ];
+  return said.length === 0 ? t('console.tablesSetup.seatsAbove', { count: seats }) : said.join(' ');
+}
+
 interface TableSheetProps {
   venueId: string;
   stakes: readonly SetupStake[];
@@ -68,18 +90,22 @@ interface TableSheetProps {
 /**
  * A table made or changed in the panel at the side (redesign RD-17): its name, its seats from the fixed row of 2 to 10 (@rivr/domain SEAT_COUNTS),
  * its stake, and its own minimum buy-in, filled in at 50 big blinds of the stake chosen (@rivr/domain suggestedMinBuyIn)
- * until the admin types another, always a whole ₹50. A stake with no call time is refused before it is sent. Saved, it
- * says so in a toast and closes; refused, it says why until a field is edited. The caller keys it by each opening.
+ * until the admin types another, always a whole ₹50. A stake with no call time is refused before it is sent. Any of them
+ * changes with players seated: a new stake starts their play at it, the play so far keeping the old (#1137, #1138); fewer
+ * seats than one taken is refused, naming it. Saved, it says so in a toast and closes; refused, it says why until a field
+ * is edited. The caller keys it by each opening.
  */
 export function TableSheet({ venueId, stakes, table, onClose }: TableSheetProps) {
   const { saveTable } = useTablesSetupActions(venueId);
+  const seated = useFloorSeats(venueId, table !== null).data ?? [];
+  const held = useHeldSeats(venueId).data ?? [];
   const toast = useToast();
   const [draft, setDraft] = useState(() => startFrom(table));
   const { failure, save, clearFailure } = useSave(async () => {
     const order = orderFrom(draft, stakes, table);
     if ('refusal' in order) return order.refusal;
     const done = await saveTable.mutateAsync(order);
-    if (!done.ok) return t(`console.tablesSetup.failures.${done.error}`);
+    if (!done.ok) return done.error === 'seats_taken' ? SEATS_TAKEN : t(`console.tablesSetup.failures.${done.error}`);
     toast(t(table === null ? 'console.tablesSetup.tableAdded' : 'console.tablesSetup.saved', { name: draft.name.trim() }));
     onClose();
     return null;
@@ -100,7 +126,7 @@ export function TableSheet({ venueId, stakes, table, onClose }: TableSheetProps)
           options={stakes.map((stake) => ({ value: stake.id, label: stake.name }))} onChange={(picked) => chooseStake(picked[0] ?? null)} />
         <Input label={t('console.tablesSetup.minBuyIn')} prefix={t('console.tablesSetup.rupee')} hint={t('console.tablesSetup.minBuyInRule')} value={draft.minBuyIn} inputMode="numeric" maxLength={9}
           onChange={(event) => set({ minBuyIn: event.target.value.trim(), hasOwnMinBuyIn: true })} />
-        {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
+        {failure === null ? null : <ErrorMessage>{failure === SEATS_TAKEN ? seatsTakenText(table, draft.seats, seated, held) : failure}</ErrorMessage>}
       </Stack>
     </Sheet>
   );

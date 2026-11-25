@@ -100,18 +100,19 @@ select throws_ok($$ select public.set_table_type((select id from ids where name 
 select lives_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000000001', 'The ceiling', 500000000, 1000000000) $$, 'a big blind of exactly ₹1,00,00,000 is taken');
 reset role;
 
--- A call time is a setting: tables.manage alone does not write one. Every seeded role that sets up tables changes settings
--- too, so an admin (103 Aditya) is given the one without the other here.
-select is_empty($$ select role from public.role_permission where permission = 'tables.manage'
-                   except select role from public.role_permission where permission = 'settings.manage' $$,
-  'every seeded role that sets up tables also changes settings');
+-- A stake's call time is set with the stake in Tables setup, so whoever sets up tables writes it as well as staff who
+-- change settings (the owner, 25 Nov: the floor sets up tables, and changes no settings). An admin (103 Aditya) is given
+-- the one without the other here.
+select ok(exists (select 1 from public.role_permission where role = 'floor' and permission = 'tables.manage')
+          and not exists (select 1 from public.role_permission where role = 'floor' and permission = 'settings.manage'),
+  'the floor sets up tables and changes no settings');
 select set_config('request.jwt.claims', '', true);
 delete from public.role_permission where role = 'admin' and permission = 'settings.manage';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000000001', 'NLH 600/1200', 60000, 120000, null, 180) $$,
-  '42501', 'Only staff who change settings set a stake''s call time', 'an admin who does not change settings adds no stake with a call time');
-select throws_ok($$ select public.set_table_type((select id from ids where name = 'timed'), 'NLH 200/400', 20000, 40000, null, 300) $$,
-  '42501', 'Only staff who change settings set a stake''s call time', 'nor changes a stake''s call time');
+select lives_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000000001', 'NLH 700/1400', 70000, 140000, null, 180) $$,
+  'an admin who sets up tables adds a stake with a call time, without changing settings');
+select lives_ok($$ select public.set_table_type((select id from ids where name = 'timed'), 'NLH 200/400', 20000, 40000, null, 300) $$,
+  'and changes a stake''s call time');
 select lives_ok($$ select public.set_table_type((select id from ids where name = 'timed'), 'NLH 200/400 late', 20000, 40000, null, 240) $$,
   'the same admin renames the stake, its call time sent as it stands');
 insert into ids select 'by_admin', public.add_table_type('00000000-0000-4000-8000-000000000001', 'NLH 600/1200', 60000, 120000);

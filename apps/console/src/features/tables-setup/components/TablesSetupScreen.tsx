@@ -16,10 +16,10 @@ export function TablesSetupScreen() {
   if (!staff.venue.permissions.includes('tables.manage')) {
     return <Screen title={t('console.tablesSetup.title')} status="error" errorText={t('console.tablesSetup.notAllowed')} />;
   }
-  return <Setup venueId={staff.venue.venueId} canSetCallTime={staff.venue.permissions.includes('settings.manage')} />;
+  return <Setup venueId={staff.venue.venueId} />;
 }
 
-function Setup({ venueId, canSetCallTime }: { venueId: string; canSetCallTime: boolean }) {
+function Setup({ venueId }: { venueId: string }) {
   const setup = useTablesSetup(venueId);
   const title = t('console.tablesSetup.title');
   if (setup.isPending) return <Screen title={title} status="loading" />;
@@ -27,7 +27,7 @@ function Setup({ venueId, canSetCallTime }: { venueId: string; canSetCallTime: b
   return (
     <Screen title={title}>
       <Stack gap={8}>
-        <StakesBlock venueId={venueId} stakes={setup.data.stakes} tables={setup.data.tables} canSetCallTime={canSetCallTime} />
+        <StakesBlock venueId={venueId} stakes={setup.data.stakes} tables={setup.data.tables} />
         <TablesBlock venueId={venueId} stakes={setup.data.stakes} tables={setup.data.tables} />
       </Stack>
     </Screen>

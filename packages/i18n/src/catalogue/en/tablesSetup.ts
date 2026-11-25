@@ -4,7 +4,7 @@
  */
 export const tablesSetup = {
   title: 'Tables setup',
-  notAllowed: 'Only the super admin sets up tables.',
+  notAllowed: 'Only admins and the floor set up tables.',
   stakes: 'Stakes',
   stakesLabel: 'The stakes the club runs',
   stakesEmpty: 'No stakes yet.',
@@ -27,8 +27,6 @@ export const tablesSetup = {
    * the same value Settings shows; a stake with none is given to no table.
    */
   callTime: 'Minimum playing time',
-  /** In place of the field, for staff who set up tables but do not change settings: the setting is not theirs to write. */
-  callTimeNotYours: 'Minimum playing time: not in your role. Ask an admin.',
   /** A stake's tables, counted: `1 table`, `4 tables`. */
   tablesColumn: 'Tables',
   tablesOne: '1 table',
@@ -81,6 +79,15 @@ export const tablesSetup = {
   stakeDeleted: '{name} deleted.',
   /** A stake's delete refused, said under the list, so it names the stake. */
   stakeInUse: '{name} is still used by a table or its history. Not deleted.',
+  /** A stake games were played at keeps their history (#1138). */
+  stakePlayed: 'Games were played at {name}. Not deleted.',
+  /** Fewer seats than one taken, naming the seats from the floor (#1137). */
+  seatTaken: 'Seat {seats} is taken. Move the player first.',
+  seatsTaken: 'Seats {seats} are taken. Move the players first.',
+  seatHeld: 'Seat {seats} is held for a waitlist call. Seat the player or hold their place first.',
+  seatsHeld: 'Seats {seats} are held for waitlist calls. Seat the players or hold their places first.',
+  /** Fewer seats refused when the floor's seats have not said which: the count chosen. */
+  seatsAbove: 'A seat above {count} is taken or held.',
   /** Deactivating, deleting or closing a table in play, refused before it is sent (@rivr/domain tableRetireRefusal). */
   retireRefusals: {
     players_seated: 'Players sit at {name}. Move them first.',
@@ -88,15 +95,16 @@ export const tablesSetup = {
   },
   failures: {
     invalid: 'Not saved. Check each field.',
-    players_seated: 'Move the players off this table before changing its stake.',
+    players_seated: 'Players sit at this table. Move them first.',
     /** Deactivating or deleting a table with players on its waitlist (decision 0466). */
     players_waiting: 'Take the players off this table’s waitlist first.',
-    seats_taken: 'More seats are taken. Free them first.',
+    seats_taken: 'A seat above that number is taken or held.',
     /** A table given a stake that has no call time yet (redesign RD-16). */
     stake_without_call_time: 'That stake has no call time. Give it one first.',
     /** A stake a table, or a deleted table's history, still uses (redesign RD-17). */
     stake_in_use: 'A table or its history still uses that stake. Not deleted.',
-    not_allowed: 'Only the super admin sets up tables.',
+    stake_played: 'Games were played at that stake. Not deleted.',
+    not_allowed: 'Not in your role. Ask an admin.',
     paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'Not sent. Try again.',
   },

@@ -45,7 +45,10 @@ function StakeActions({ venueId, stake, onChange, onOutcome }: StakeActionsProps
     const done = await removeStake.mutateAsync(stake.id);
     if (done.ok) return onOutcome({ ok: true, text: t('console.tablesSetup.stakeDeleted', { name }) });
     // Said under the list, not beside the row: a stake still in use is named.
-    return onOutcome({ ok: false, text: done.error === 'stake_in_use' ? t('console.tablesSetup.stakeInUse', { name }) : t(`console.tablesSetup.failures.${done.error}`) });
+    if (done.error === 'stake_in_use' || done.error === 'stake_played') {
+      return onOutcome({ ok: false, text: t(done.error === 'stake_in_use' ? 'console.tablesSetup.stakeInUse' : 'console.tablesSetup.stakePlayed', { name }) });
+    }
+    return onOutcome({ ok: false, text: t(`console.tablesSetup.failures.${done.error}`) });
   };
   const isUsed = stake.tables > 0;
   const items: readonly OverflowMenuItem[] = [{
@@ -87,15 +90,13 @@ interface StakesBlockProps {
   venueId: string;
   stakes: readonly SetupStake[];
   tables: readonly SetupTable[];
-  /** Whether the staff member changes settings, and so sets a stake's call time. */
-  canSetCallTime: boolean;
 }
 
 /**
  * The stakes (redesign RD-17): each with its blinds, call time and how many tables play it, Change on the row and Delete
  * behind its menu. New stake and Change open the panel at the side; with no stakes yet the new one is open.
  */
-export function StakesBlock({ venueId, stakes, tables, canSetCallTime }: StakesBlockProps) {
+export function StakesBlock({ venueId, stakes, tables }: StakesBlockProps) {
   const [open, setOpen] = useState<string | null>(stakes.length === 0 ? NEW : null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
@@ -105,12 +106,12 @@ export function StakesBlock({ venueId, stakes, tables, canSetCallTime }: StakesB
   return (
     <Screen level={2} title={t('console.tablesSetup.stakes')} onActionsSlot={setExportIn}
       actions={<Button variant="subtle" size="compact" onClick={() => show(NEW)}>{t('console.tablesSetup.newStake')}</Button>}>
-      <DataTable exportIn={exportIn} label={t('console.tablesSetup.stakesLabel')} columns={columns} rows={rows} narrowLayout="scroll" rowKey={(stake) => stake.id}
+      <DataTable exportIn={exportIn} label={t('console.tablesSetup.stakesLabel')} columns={columns} rows={rows} rowKey={(stake) => stake.id}
         emptyText={t('console.tablesSetup.stakesEmpty')} />
       <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
       {open === null ? null : (
-        <StakeSheet key={open} venueId={venueId} stake={rows.find((stake) => stake.id === open) ?? null} canSetCallTime={canSetCallTime} onClose={() => setOpen(null)} />
+        <StakeSheet key={open} venueId={venueId} stake={rows.find((stake) => stake.id === open) ?? null} onClose={() => setOpen(null)} />
       )}
     </Screen>
   );

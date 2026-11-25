@@ -12,11 +12,11 @@ grant execute on function pg_temp.as_person(text) to authenticated;
 
 select results_eq($$ select permission from public.role_permission where role = 'floor' order by 1 $$,
   $$ values ('bonus.give'::text), ('call_time.override'), ('floor.manage'), ('fnb.serve'), ('kyc.in_person'), ('members.phone'), ('members.read'),
-            ('members.referrer'), ('tvs.manage'), ('visits.add'), ('waitlist.manage') $$,
-  'the floor runs tonight, the waitlist, call time, today''s players, orders and bonus chips by hand, checks members in person (decision 0301), sees members'' phones on the Door (decision 0690), manages TVs, sets a member''s referrer and adds visits for a super admin to approve (the owner, 25 Nov)');
+            ('members.referrer'), ('tables.manage'), ('tvs.manage'), ('visits.add'), ('waitlist.manage') $$,
+  'the floor runs tonight, the waitlist, call time, today''s players, orders and bonus chips by hand, checks members in person (decision 0301), sees members'' phones on the Door (decision 0690), manages TVs, sets a member''s referrer, adds visits for a super admin to approve and sets up tables (the owner, 25 Nov)');
 select ok(not exists (select 1 from public.role_permission where role = 'floor'
-                      and permission in ('tables.manage', 'members.manage', 'tournaments.manage', 'promotions.manage', 'devices.manage')),
-  'but not tables setup, the member list, games history, tournaments, promotions or the cage''s computers');
+                      and permission in ('members.manage', 'tournaments.manage', 'promotions.manage', 'devices.manage')),
+  'but not the member list, tournaments, promotions or the cage''s computers; tables setup since the owner''s 25 Nov');
 select results_eq($$ select permission from public.role_permission where role = 'cashier'
                     and permission in ('waitlist.manage', 'floor.manage', 'call_time.override', 'devices.manage', 'fnb.serve') order by 1 $$,
   $$ values ('call_time.override'::text), ('floor.manage'), ('waitlist.manage') $$,
