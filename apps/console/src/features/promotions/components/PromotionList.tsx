@@ -5,12 +5,13 @@ import { Button, ChoiceChips, DataTable, ErrorMessage, Screen, Stack, Tabs } fro
 import { useState } from 'react';
 import { usePauseResume } from '../hooks/usePauseResume.ts';
 import { BonusApprovals } from './BonusApprovals.tsx';
+import { VisitApprovals } from './VisitApprovals.tsx';
 import { HighHandRecord, hasRecord } from './HighHandRecord.tsx';
 import { canOpen, endedColumns, listColumns } from './listColumns.tsx';
 import type { PromotionNames } from './promotionWords.ts';
 
 type Filter = Exclude<PromotionStatus, 'ended'> | 'all';
-const TABS = ['current', 'ended', 'bonus'] as const;
+const TABS = ['current', 'ended', 'bonus', 'visits'] as const;
 type View = (typeof TABS)[number];
 
 // The current list's status chips in the prototype's order, each with its count; ended promotions have their own tab.
@@ -30,7 +31,7 @@ interface PromotionListProps {
   names: PromotionNames;
   /** Opens a promotion's builder or approver view by its id, or the builder for a new one. */
   onOpen: (promotionId: string | 'new') => void;
-  /** The tab in the address: Current, Ended with `?tab=ended` (owner, 8 Nov) or To approve with `?tab=bonus`; and how a tab opens. */
+  /** The tab in the address: Current, Ended with `?tab=ended` (owner, 8 Nov) the Bonus to approve with `?tab=bonus` or the visits to approve with `?tab=visits`; and how a tab opens. */
   tab: string | undefined;
   onNavigate: (href: string) => void;
   /** Opens the Live floor's Log a high hand; none for staff who may not log one. */
@@ -54,21 +55,23 @@ function StatusChips({ current, filter, onChange }: { current: readonly Promotio
  * in the address, each with how many it holds.
  */
 function ViewTabs({ view, counts, canApprove, onNavigate }: {
-  view: View; counts: { current: number; ended: number; bonus: number | undefined }; canApprove: boolean; onNavigate: (href: string) => void;
+  view: View; counts: { current: number; ended: number; bonus: number | undefined; visits: number | undefined }; canApprove: boolean; onNavigate: (href: string) => void;
 }) {
   // The Bonus to approve before its count is read shows no number, never a 0 that may not be so.
-  const labelOf = (id: View) => (id === 'bonus' && counts.bonus === undefined
-    ? t('console.promotions.list.tabs.bonusUncounted')
-    : t(`console.promotions.list.tabs.${id}`, { count: String(counts[id]) }));
+  const labelOf = (id: View) => {
+    if (id === 'bonus' && counts.bonus === undefined) return t('console.promotions.list.tabs.bonusUncounted');
+    if (id === 'visits' && counts.visits === undefined) return t('console.promotions.list.tabs.visitsUncounted');
+    return t(`console.promotions.list.tabs.${id}`, { count: String(counts[id]) });
+  };
   return (
     <Tabs label={t('console.promotions.title')} current={view} onNavigate={onNavigate}
-      tabs={TABS.filter((id) => canApprove || id !== 'bonus').map((id) => ({ id, label: labelOf(id),
+      tabs={TABS.filter((id) => canApprove || (id !== 'bonus' && id !== 'visits')).map((id) => ({ id, label: labelOf(id),
         href: id === 'current' ? '/promotions' : `/promotions?tab=${id}` }))} />
   );
 }
 
 interface PromotionsShownProps extends Pick<PromotionListProps, 'venueId' | 'names' | 'onOpen' | 'onLogHighHand'> {
-  view: Exclude<View, 'bonus'>;
+  view: Exclude<View, 'bonus' | 'visits'>;
   overview: PromotionsOverview;
   current: readonly PromotionOverview[];
   ended: readonly PromotionOverview[];
@@ -109,16 +112,18 @@ function PromotionsShown({ venueId, names, onOpen, onLogHighHand, view, overview
 
 /** The tabs, then the promotions or, on a super admin's own tab, the Bonus waiting for approval, once the list has come. */
 function Listed({ venueId, names, onOpen, tab, onNavigate, onLogHighHand, canApprove, overview, exportIn }: PromotionListProps & { overview: PromotionsOverview; exportIn: HTMLElement | null }) {
-  const view: View = TABS.find((one) => one === tab && (canApprove || one !== 'bonus')) ?? 'current';
+  const view: View = TABS.find((one) => one === tab && (canApprove || (one !== 'bonus' && one !== 'visits'))) ?? 'current';
   const queues = useStaffQueueCounts(venueId).data;
   const waiting = queues === undefined ? undefined : (queues['bonusApprovals'] ?? 0);
+  const visitsWaiting = queues === undefined ? undefined : (queues['visitApprovals'] ?? 0);
   const current = overview.promotions.filter((promotion) => promotion.status !== 'ended').sort(byStatus);
   const ended = overview.promotions.filter((promotion) => promotion.status === 'ended');
   return (
     <Stack gap={4}>
-      <ViewTabs view={view} counts={{ current: current.length, ended: ended.length, bonus: waiting }} canApprove={canApprove} onNavigate={onNavigate} />
-      {view === 'bonus'
-        ? <BonusApprovals venueId={venueId} onNavigate={onNavigate} exportIn={exportIn} />
+      <ViewTabs view={view} counts={{ current: current.length, ended: ended.length, bonus: waiting, visits: visitsWaiting }} canApprove={canApprove} onNavigate={onNavigate} />
+      {view === 'visits' ? <VisitApprovals venueId={venueId} /> : null}
+      {view === 'bonus' ? <BonusApprovals venueId={venueId} onNavigate={onNavigate} exportIn={exportIn} /> : null}
+      {view === 'bonus' || view === 'visits' ? null
         : <PromotionsShown venueId={venueId} names={names} onOpen={onOpen} onLogHighHand={onLogHighHand} view={view} overview={overview}
             current={current} ended={ended} exportIn={exportIn} />}
     </Stack>

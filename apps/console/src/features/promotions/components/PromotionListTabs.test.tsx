@@ -11,15 +11,15 @@ function renderForSuperAdmin(counts: { status?: number; body: unknown }) {
     { '/rpc/staff_queue_counts': counts });
 }
 
-describe('Promotions › the To approve tab’s count (decision 0670)', () => {
+describe('Promotions › the Bonus tab’s count of Bonus to approve (decision 0670)', () => {
   it('shows no number until the count is read, never a 0 that is not so', async () => {
     renderForSuperAdmin({ status: 500, body: { message: 'down' } });
-    expect(await screen.findByRole('link', { name: 'To approve' })).toBeDefined();
-    expect(screen.queryByRole('link', { name: 'To approve 0' })).toBeNull();
+    expect(await screen.findByRole('link', { name: 'Bonus' })).toBeDefined();
+    expect(screen.queryByRole('link', { name: 'Bonus 0' })).toBeNull();
   });
 
   it('shows 0 once the count is read and nothing waits', async () => {
     renderForSuperAdmin({ body: [] });
-    expect(await screen.findByRole('link', { name: 'To approve 0' })).toBeDefined();
+    expect(await screen.findByRole('link', { name: 'Bonus 0' })).toBeDefined();
   });
 });

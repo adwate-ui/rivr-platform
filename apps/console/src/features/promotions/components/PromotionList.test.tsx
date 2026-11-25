@@ -207,7 +207,7 @@ describe('the promotions list (console v3)', () => {
     expect(screen.queryByRole('link', { name: /^To approve/ })).toBeNull();
     resetApi();
     const { onNavigate } = renderList(vi.fn(), undefined, ROWS, true);
-    fireEvent.click(await screen.findByRole('link', { name: 'To approve 3' }));
+    fireEvent.click(await screen.findByRole('link', { name: 'Bonus 3' }));
     expect(onNavigate).toHaveBeenCalledWith('/promotions?tab=bonus');
     resetApi();
     renderList(vi.fn(), 'bonus', ROWS, true);

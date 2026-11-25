@@ -206,6 +206,7 @@ The club's day runs 06:00 to 06:00 IST, so a night past midnight belongs to the 
 | `clubDay(at)` | The club's day a moment falls in, as `2026-11-15`: 02:00 IST on the 16th is still the 15th. |
 | `recentClubMonths(at, count)`, `lastDayOfMonth(first)` | The first days of the last club months, the one a moment falls in first, and a month's last day: Reports choose months by them (#99). |
 | `clubDaysPeriod(first, last)` | A run of club days as the moments it begins and ends: 06:00 IST on the first to 06:00 IST after the last. |
+| `clubNightSpan(day, checkIn, checkOut)` | A visit's check-in and check-out on a club night, as one added by hand or from a file names them (the owner, 25 Nov; #1134): each placed as `clubDayMoment` places it, a time before 06:00 the next morning; null for a date or time that is not one, or a check-out not after the check-in. |
 | `nearestClockMoment(time, at)`, `clockTimeAfter(at, step)` | A time a field gives (`23:40`, India's clock) as the moment it names nearest `at`, within twelve hours either side (01:30 picked at 23:50 is tonight's; 22:00 picked at 22:44 has gone by), null for anything but a time; and the first mark of `step` minutes after a moment, as a time field takes it (decision 0708). |
 | `dayAfter(day, count)`, `weekOf(day)` | The club day `count` days after another (before, when negative), and the Monday of a club day's week. |
 

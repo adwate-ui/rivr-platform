@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  clockTimeAfter, clubDay, clubDayMoment, clubDaysPeriod, dayAfter, lastDayOfMonth, nearestClockMoment, recentClubMonths, weekOf,
+  clockTimeAfter, clubDay, clubDayMoment, clubDaysPeriod, clubNightSpan, dayAfter, lastDayOfMonth, nearestClockMoment, recentClubMonths, weekOf,
 } from './clubDay.ts';
 
 describe('a time picked on India\'s clock', () => {
@@ -80,5 +80,26 @@ describe('clubDayMoment', () => {
     expect(clubDayMoment('2026-11-15', '06:00').toISOString()).toBe('2026-11-15T00:30:00.000Z');
     expect(clubDayMoment('2026-11-15', '05:59').toISOString()).toBe('2026-11-16T00:29:00.000Z');
     expect(clubDayMoment('2026-11-15', '02:00').toISOString()).toBe('2026-11-15T20:30:00.000Z');
+  });
+});
+
+describe('clubNightSpan (the owner, 25 Nov)', () => {
+  it('places a check-out after midnight on the next morning, and a check-in after midnight on that night', () => {
+    expect(clubNightSpan('2026-11-20', '20:00', '02:30')).toEqual({
+      openedAt: new Date('2026-11-20T14:30:00Z'), closedAt: new Date('2026-11-20T21:00:00Z'),
+    });
+    expect(clubNightSpan('2026-11-20', '01:00', '04:00')).toEqual({
+      openedAt: new Date('2026-11-20T19:30:00Z'), closedAt: new Date('2026-11-20T22:30:00Z'),
+    });
+  });
+
+  it('refuses a check-out not after the check-in, and anything but a date and two times', () => {
+    expect(clubNightSpan('2026-11-20', '22:00', '21:00')).toBeNull();
+    expect(clubNightSpan('2026-11-20', '22:00', '22:00')).toBeNull();
+    expect(clubNightSpan('2026-11-20', '03:00', '23:00')).toBeNull();
+    expect(clubNightSpan('20/11/2026', '20:00', '23:00')).toBeNull();
+    expect(clubNightSpan('2026-02-31', '20:00', '23:00')).toBeNull();
+    expect(clubNightSpan('2026-11-20', '8pm', '23:00')).toBeNull();
+    expect(clubNightSpan('2026-11-20', '20:00', '24:00')).toBeNull();
   });
 });

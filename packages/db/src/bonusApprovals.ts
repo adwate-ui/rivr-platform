@@ -53,7 +53,7 @@ export interface WaitingVisit extends VisitTimes {
 }
 
 /** The visit's seats as the database lists them, each read field by field; none that cannot be read. */
-function sessionsOf(value: unknown): WaitingSession[] {
+export function sessionsOf(value: unknown): WaitingSession[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((item: unknown): WaitingSession[] => {
     if (typeof item !== 'object' || item === null) return [];
