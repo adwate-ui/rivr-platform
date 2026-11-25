@@ -64,6 +64,10 @@ export const liveFloor = {
   leaveOwing: 'Leave owing',
   leftEarly: 'Released early.',
   callTimeDone: 'Call time done.',
+  /** A call time the floor picks, refused until confirmed (#1132): the sheet asks first, so these show only if it could not. */
+  callTimeEarly: 'Earlier than usual. Not set: confirm it on the player.',
+  callTimeGone: 'That time has gone. Not set: confirm it on the player.',
+  callTimeTooLong: 'Call time is a day at most. Not set.',
   /** Members still in the room who left their seat before its call time. `{time}`: 45 min. */
   leftOwingTitle: 'Left before call time',
   leftOwingLine: '{table} · {time} call time owed',

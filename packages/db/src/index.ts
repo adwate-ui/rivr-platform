@@ -98,14 +98,21 @@ export {
 } from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {
-  isMemberQuery, MATCHES_MOST, topMatches, useMemberActions, useMemberEarlyDepartures, useMemberAccountStatuses, type MemberAccountState, type MemberAccountStatus, useMemberVisits, type MemberVisit, useMemberHoursPlayed, useMemberRecord, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberTierFailure, type MemberKycStatus, type MemberListRow,
+  isMemberQuery, MATCHES_MOST, topMatches, useMemberActions, useMemberEarlyDepartures, useMemberAccountStatuses, type MemberAccountState, type MemberAccountStatus, useMemberHoursPlayed, useMemberRecord, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberTierFailure, type MemberKycStatus, type MemberListRow,
   type MemberRecord, type MemberRow, type TierChange, type VenueTier,
 } from './members.ts';
 export type { MemberExportDetails } from './memberDetails.ts';
 export {
   MEMBERS_PAGE, useEveryMember, useMemberChoices, useMembersPage, type MemberChoiceColumn, type MemberChoices, type MembersPage, type MembersView,
 } from './membersList.ts';
-export { useMemberSignUp, type MemberSignUp, type SignUpCampaign } from './memberSignUp.ts';
+export { useMemberVisits, type MemberVisit } from './memberVisits.ts';
+export {
+  useAddVisit, useDecideVisit, useMemberVisitRequests, useSaveVisitFile, useVisitsWaiting, type AddVisitFailure, type AddVisitOutcome, type VisitFileLine,
+  type VisitFileRefusal, type VisitRequest, type VisitToAdd, type WaitingVisitAdd,
+} from './visitsAdded.ts';
+export {
+  useMemberSignUp, useSetReferrer, type MemberSignUp, type Referrer, type ReferrerFailure, type ReferrerOutcome, type SignUpCampaign,
+} from './memberSignUp.ts';
 export { parseStaffChangeFields, useMemberStaffHistory, type MemberStaffChange, type MemberStaffChangeField } from './memberStaffHistory.ts';
 export { useResetMemberHours, type ResetHoursFailure } from './memberHours.ts';
 export { useChangeMemberPhone, type PhoneChangeFailure } from './memberPhone.ts';

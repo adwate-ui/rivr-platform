@@ -10,7 +10,7 @@ export type QueueCounts = Readonly<Record<string, number>>;
 
 /** The queues where minutes matter: they chime, and the tab's title counts them (decision 0301). */
 // Bonus to approve too (decision 0670): a member waits for it at the tables, so a super admin hears of it.
-export const URGENT_QUEUES: readonly string[] = ['topUps', 'callTimeSet', 'waitlist', 'fnb', 'fnbCancelled', 'liveFloor', 'seating', 'bonusApprovals'];
+export const URGENT_QUEUES: readonly string[] = ['topUps', 'callTimeSet', 'waitlist', 'fnb', 'fnbCancelled', 'liveFloor', 'seating', 'bonusApprovals', 'visitApprovals'];
 
 /** Urgent queues that only chime and count nowhere. None since a member's call time set waits in Requests until seen (#1090). */
 export const CHIME_ONLY_QUEUES: readonly string[] = [];

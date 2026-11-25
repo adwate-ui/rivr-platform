@@ -29,8 +29,8 @@ reset role;
 select is((pg_temp.session()).call_time_minutes, 200, 'three hours and 20 minutes');
 select is((select array_agg(minutes) from public.call_time_request where session_id = (select id from sess)), array[200], 'its request keeps the length to the time');
 
--- A request holds a length, never nought or more than a day.
-select throws_ok($$ update public.call_time_request set minutes = 0 where session_id = (select id from sess) $$, '23514', null, 'a request is never for nought minutes');
+-- A request holds a length, never below nought (a time gone is nought, #1132) or more than a day.
+select throws_ok($$ update public.call_time_request set minutes = -1 where session_id = (select id from sess) $$, '23514', null, 'a request is never for less than nought minutes');
 select throws_ok($$ update public.call_time_request set minutes = 1441 where session_id = (select id from sess) $$, '23514', null, 'nor for more than a day');
 
 -- A stake's call time written with a point is read as the whole number it is.

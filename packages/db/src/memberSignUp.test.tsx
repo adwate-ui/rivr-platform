@@ -33,7 +33,8 @@ function clientFor(rows: unknown[]) {
 const ROW = {
   signed_up_at: '2026-10-20T10:00:00Z', city: 'Gurugram', occupation: 'salaried', play_times: ['weekends', 'brunch'], games_played: ['plo'],
   referral_code: 'RIVR7', creator_code: null, utm_source: 'instagram', utm_medium: null, utm_campaign: 'diwali', utm_content: null, utm_term: null,
-  first_seen_at: '2026-10-19T18:00:00Z',
+  first_seen_at: '2026-10-19T18:00:00Z', referrer_member_id: 'm7', referrer_name: 'Rohan Bhatia', referrer_number: 1042, referral_completed_at: null,
+  has_sat: true,
 };
 
 afterEach(cleanup);
@@ -47,6 +48,7 @@ describe('useMemberSignUp', () => {
       signedUpAt: '2026-10-20T10:00:00Z', city: 'Gurugram', occupation: 'salaried', playTimes: ['weekends'], gamesPlayed: ['plo'],
       referralCode: 'RIVR7', creatorCode: null,
       campaign: { source: 'instagram', medium: null, campaign: 'diwali', content: null, term: null }, firstSeenAt: '2026-10-19T18:00:00Z',
+      referrer: { memberId: 'm7', fullName: 'Rohan Bhatia', memberNumber: 1042 }, referralCompletedAt: null, hasSat: true,
     });
     expect(calls.find((call) => call.url.includes('/rpc/member_sign_up'))?.body).toEqual({ p_venue_id: VENUE, p_member_id: MEMBER });
   });

@@ -10,7 +10,7 @@ import { MemberBonus } from './MemberBonus.tsx';
 import { MemberBreak } from './MemberBreak.tsx';
 import { MemberIdDocuments } from './MemberIdDocuments.tsx';
 import { MemberSignUp } from './MemberSignUp.tsx';
-import { MemberVisits } from './MemberVisits.tsx';
+import { MemberVisits, type EditVisitPanel } from './MemberVisits.tsx';
 import { PromotionGrants } from './PromotionGrants.tsx';
 import { partsFor, recordHref, type RecordPart } from './recordParts.ts';
 import { AccountView, MembershipView } from './RecordViews.tsx';
@@ -39,6 +39,10 @@ export interface RecordAccess {
   readonly correctBonus: boolean;
   /** The floor and up (members.phone) see every part, to view, where they may not change it (the owner, 22 Nov). */
   readonly viewsAll: boolean;
+  /** The floor and up (members.referrer) set who referred a member until it is paid (the owner, 25 Nov). */
+  readonly setReferrer: boolean;
+  /** The floor and up (visits.add) add a past visit: a super admin's counts at once, anyone else's waits (the owner, 25 Nov). */
+  readonly addVisits: boolean;
 }
 
 /** Member number, tier (and a change's last day), KYC and whether they are in the room. */
@@ -62,10 +66,12 @@ interface PartProps {
   venueId: string;
   record: MemberRecord;
   can: RecordAccess;
+  /** Edit on each visit, for a super admin: the panel the route hands in (#1134). */
+  editVisit?: EditVisitPanel | undefined;
 }
 
 /** Visits (console v3): how many and the last, each visit (F-017), for a super admin the reset of their hours, early departures, and what promotions gave the member. */
-function VisitsPart({ venueId, record, can }: PartProps) {
+function VisitsPart({ venueId, record, can, editVisit }: PartProps) {
   const last = record.lastVisitAt === null ? t('console.members.never') : formatDate(new Date(record.lastVisitAt));
   return (
     <Stack gap={6}>
@@ -73,7 +79,7 @@ function VisitsPart({ venueId, record, can }: PartProps) {
         <DetailRow label={t('console.members.visits')} value={formatNumber(record.visits)} labelTone="muted" size="small" />
         <DetailRow label={t('console.members.lastVisit')} value={last} labelTone="muted" size="small" isLast />
       </Stack>
-      <MemberVisits venueId={venueId} memberId={record.memberId} />
+      <MemberVisits venueId={venueId} memberId={record.memberId} fullName={record.fullName} canAdd={can.addVisits} edit={editVisit} />
       {can.resetHours ? <ResetHours venueId={venueId} memberId={record.memberId} name={record.fullName} /> : null}
       <EarlyDepartures venueId={venueId} memberId={record.memberId} canWithdraw={can.withdrawDeparture} />
       <PromotionGrants memberId={record.memberId} />
@@ -106,12 +112,12 @@ function AccountPart({ venueId, record, can }: PartProps) {
 }
 
 /** One part of the record: visits; bonus chips; sign-up; the tier and a break; or the account's. */
-function PartContent({ part, venueId, record, can }: PartProps & { part: RecordPart }) {
+function PartContent({ part, venueId, record, can, editVisit }: PartProps & { part: RecordPart }) {
   if (part === 'bonus') return <MemberBonus venueId={venueId} memberId={record.memberId} canGive={can.giveBonus} canCorrect={can.correctBonus} />;
-  if (part === 'signUp') return <MemberSignUp venueId={venueId} memberId={record.memberId} />;
+  if (part === 'signUp') return <MemberSignUp venueId={venueId} memberId={record.memberId} canSetReferrer={can.setReferrer} />;
   if (part === 'membership') return <MembershipPart venueId={venueId} record={record} can={can} />;
   if (part === 'account') return <AccountPart venueId={venueId} record={record} can={can} />;
-  return <VisitsPart venueId={venueId} record={record} can={can} />;
+  return <VisitsPart venueId={venueId} record={record} can={can} editVisit={editVisit} />;
 }
 
 /** How the account stands when it is not simply active; a dash until that is known, so a failed read never passes as active (F-121). */
@@ -155,7 +161,7 @@ interface RecordProps extends PartProps {
  * for members.manage, Account for super admins, and both to view for the floor and up (the owner, 22 Nov). A part the staff
  * member may not open shows Visits.
  */
-function Record({ venueId, record, can, part, tonight, onNavigate }: RecordProps) {
+function Record({ venueId, record, can, part, tonight, onNavigate, editVisit }: RecordProps) {
   const parts = partsFor(can);
   const current = parts.find((one) => one === part) ?? 'visits';
   return (
@@ -166,7 +172,7 @@ function Record({ venueId, record, can, part, tonight, onNavigate }: RecordProps
         <Tabs look="pill" label={t('console.members.parts.label', { name: record.fullName })} current={current} onNavigate={onNavigate}
           tabs={parts.map((id) => ({ id, label: t(PART_LABELS[id]), href: recordHref(record.memberId, id) }))} />
       ) : null}
-      <PartContent part={current} venueId={venueId} record={record} can={can} />
+      <PartContent part={current} venueId={venueId} record={record} can={can} editVisit={editVisit} />
     </Stack>
   );
 }

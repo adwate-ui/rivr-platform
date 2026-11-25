@@ -1,12 +1,14 @@
 import { useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen, SplitView } from '@rivr/ui';
+import { Inline, Screen, SplitView } from '@rivr/ui';
 import { useState } from 'react';
 import { useTonight } from '../hooks/useTonight.ts';
 import { BonusFilePanel } from './BonusFileImport.tsx';
+import { VisitFilePanel } from './VisitFileImport.tsx';
 import { MemberList } from './MemberList.tsx';
 import { ErasureRequests } from './ErasureRequests.tsx';
 import { MemberRecordPanel, type RecordAccess } from './MemberRecordPanel.tsx';
+import type { EditVisitPanel } from './MemberVisits.tsx';
 import { recordHref } from './recordParts.ts';
 
 export interface MembersScreenProps {
@@ -16,6 +18,8 @@ export interface MembersScreenProps {
   part: string | undefined;
   /** Goes to an address in the console: a record, one of its parts, the list, or a seat on the floor. */
   onNavigate: (href: string) => void;
+  /** The panel that edits a visit, which the route hands in (#1134); a super admin's alone. */
+  editVisit?: EditVisitPanel | undefined;
 }
 
 /**
@@ -45,9 +49,12 @@ export function MembersScreen(props: MembersScreenProps) {
     // Super admins and cashiers reverse a Bonus given and add a use a seat missed (the owner, 22 Nov; decision 0709).
     correctBonus: permissions.includes('bonus.correct'),
     viewsAll: permissions.includes('members.phone'),
+    setReferrer: permissions.includes('members.referrer'),
+    addVisits: permissions.includes('visits.add'),
   };
   // Floor and up open a member's History of changes by staff, as the Door's History (#1073).
-  return <Members title={title} venueId={venueId} can={can} seesHistory={permissions.includes('members.phone')} usesFiles={staff.venue.role === 'super_admin'} {...props} />;
+  return <Members title={title} venueId={venueId} can={can} seesHistory={permissions.includes('members.phone')} usesFiles={staff.venue.role === 'super_admin'} {...props}
+    editVisit={staff.venue.role === 'super_admin' ? props.editVisit : undefined} />;
 }
 
 interface MembersProps extends MembersScreenProps {
@@ -59,13 +66,14 @@ interface MembersProps extends MembersScreenProps {
   usesFiles: boolean;
 }
 
-function Members({ title, venueId, can, seesHistory, usesFiles, memberId, part, onNavigate }: MembersProps) {
+function Members({ title, venueId, can, seesHistory, usesFiles, memberId, part, onNavigate, editVisit }: MembersProps) {
   const tonight = useTonight(venueId);
   // The table's Export sits beside the title, as the prototype has it.
   const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
   // Bonus from a file beside it, for super admins (the owner, 22 Nov).
   return (
-    <Screen title={title} actions={usesFiles ? <BonusFilePanel venueId={venueId} /> : undefined} onActionsSlot={setExportIn}>
+    <Screen title={title} actions={usesFiles ? <Inline gap={2}><BonusFilePanel venueId={venueId} /><VisitFilePanel venueId={venueId} /></Inline> : undefined}
+      onActionsSlot={setExportIn}>
       {can.erase ? <ErasureRequests venueId={venueId} onOpen={(id) => onNavigate(recordHref(id))} /> : null}
       {/* The list stays in place as a record opens, so the search typed stays (C-02). */}
       <SplitView layout="docked" recordKey={memberId} backLabel={t('console.members.back')} onBack={() => onNavigate('/members')} onClose={() => onNavigate('/members')}
@@ -73,7 +81,7 @@ function Members({ title, venueId, can, seesHistory, usesFiles, memberId, part, 
           seesIdentity={can.seesIdentity} isDocked={memberId !== undefined} seesHistory={seesHistory} />}
         detail={memberId === undefined ? null : (
           <MemberRecordPanel key={memberId} venueId={venueId} memberId={memberId} can={can} part={part}
-            tonight={tonight.get(memberId)} onNavigate={onNavigate} />
+            tonight={tonight.get(memberId)} onNavigate={onNavigate} editVisit={editVisit} />
         )} />
     </Screen>
   );

@@ -51,7 +51,8 @@ const ANSWERS: Record<string, unknown> = {
   '/rpc/member_sign_up': [{
     signed_up_at: '2026-10-19T10:00:00Z', city: 'Gurugram', occupation: 'salaried', play_times: ['weekday_evenings', 'weekends'],
     games_played: ['poker', 'plo'], referral_code: null, creator_code: 'ASHU', utm_source: 'instagram', utm_medium: 'social', utm_campaign: 'diwali',
-    utm_content: null, utm_term: null, first_seen_at: null,
+    utm_content: null, utm_term: null, first_seen_at: null, referrer_member_id: null, referrer_name: null, referrer_number: null,
+    referral_completed_at: null, has_sat: true,
   }],
 };
 

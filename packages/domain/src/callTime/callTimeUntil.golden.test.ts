@@ -2,7 +2,7 @@ import { assertOperations, casesFor, goldenExpected, goldenInput, readGolden, ty
 import untilJson from '@rivr/testing/golden/callTimeUntil.json';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { CALL_TIME_CAP_MINUTES, callTimeOpensAfter, callTimeUntil, type SeatCallClock } from './index.ts';
+import { CALL_TIME_CAP_MINUTES, callTimeOpensAfter, callTimeUntil, floorCallTimeUntil, type SeatCallClock } from './index.ts';
 
 const golden = readGolden(untilJson);
 
@@ -13,7 +13,15 @@ const seatOf = (goldenCase: GoldenCase): SeatCallClock => ({
 
 describe('Call time set or extended to a time, golden fixtures (packages/testing/golden/callTimeUntil.json)', () => {
   it('tests every operation in the file', () => {
-    expect(() => assertOperations(golden, ['until', 'opens'])).not.toThrow();
+    expect(() => assertOperations(golden, ['until', 'opens', 'floor'])).not.toThrow();
+  });
+
+  it.each(casesFor(golden, 'floor'))('%s', (_description, goldenCase) => {
+    const refusal = goldenExpected(goldenCase, 'refusal');
+    const warning = goldenExpected(goldenCase, 'warning');
+    expect(floorCallTimeUntil(seatOf(goldenCase), Number(goldenInput(goldenCase, 'ahead')))).toEqual(refusal === ''
+      ? { ok: true, value: { minutes: Number(goldenExpected(goldenCase, 'minutes')), warning: warning === '' ? null : warning } }
+      : { ok: false, error: refusal });
   });
 
   it.each(casesFor(golden, 'until'))('%s', (_description, goldenCase) => {
@@ -60,6 +68,26 @@ describe('a call time set or extended to a time (the owner, 22 Nov)', () => {
         expect(result.value).toBeGreaterThanOrEqual(picked.currentMinutes);
       }
     }));
+  });
+
+  it('the floor sets what the member may with no warning, warns where the member is refused, and a time gone owes nothing more', () => {
+    fc.assert(fc.property(seat, seconds, (picked, ahead) => {
+      const asTheMember = callTimeUntil(picked, ahead);
+      const floor = floorCallTimeUntil(picked, ahead);
+      if (asTheMember.ok) expect(floor).toEqual({ ok: true, value: { minutes: asTheMember.value, warning: null } });
+      if (!floor.ok) {
+        expect(asTheMember.ok).toBe(false);
+        return;
+      }
+      expect(floor.value.minutes).toBeGreaterThanOrEqual(1);
+      expect(floor.value.minutes).toBeLessThanOrEqual(CALL_TIME_CAP_MINUTES);
+      if (floor.value.warning === 'gone') {
+        expect(ahead).toBeLessThanOrEqual(0);
+        expect(floor.value.minutes === 1 || floor.value.minutes * 60 <= Math.max(picked.playedSeconds, 0)).toBe(true);
+      }
+    }));
+    expect(floorCallTimeUntil({ currentMinutes: 180, initialMinutes: 180, isSet: false, playedSeconds: 600 }, Number.NaN))
+      .toEqual({ ok: false, error: 'no_time' });
   });
 
   it('floors seconds played, and reads none or not a number as nought', () => {

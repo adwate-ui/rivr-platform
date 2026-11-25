@@ -1,6 +1,7 @@
 import { createRoute } from '@tanstack/react-router';
 import { useNavigateKeepingViews } from '../features/frame/index.ts';
 import { MembersScreen } from '../features/members/index.ts';
+import { CorrectSession } from '../features/promotions/index.ts';
 import { frameRoute } from './frame.tsx';
 
 /** The record open and its part, in the address (console v3): `?member=…&part=…`. */
@@ -16,5 +17,6 @@ function MembersRoute() {
   const { member, part } = membersRoute.useSearch();
   // The list's own search and tier, and its table's view, stay as a record opens (owner, 9 Nov).
   const navigate = useNavigateKeepingViews(['q', 'tier']);
-  return <MembersScreen memberId={member} part={part} onNavigate={navigate} />;
+  // A visit's Edit (#1134): the promotions feature draws the panel Bonus approvals and Reports use.
+  return <MembersScreen memberId={member} part={part} onNavigate={navigate} editVisit={CorrectSession} />;
 }

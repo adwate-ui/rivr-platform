@@ -87,8 +87,8 @@ describe('The player sheet (console v3)', () => {
     expect(within(player).getByText('2 h left')).toBeDefined();
     expect(await within(player).findByText('Set call time')).toBeDefined();
     expect(within(player).getByRole('button', { name: 'Open member record' })).toBeDefined();
-    // None set yet: a time after the minimum, two hours from now at 00:00, the field starting at the five minutes after (the owner, 22 Nov).
-    expect(within(player).getByText('After 00:00.')).toBeDefined();
+    // None set yet: usually a time after the minimum, two hours from now at 00:00, the field starting at the five minutes after (the owner, 22 Nov).
+    expect(within(player).getByText('Usually after 00:00.')).toBeDefined();
     const until = within(player).getByLabelText('Until');
     expect(until).toHaveProperty('value', '00:05');
     fireEvent.change(until, { target: { value: '00:30' } });
@@ -101,28 +101,14 @@ describe('The player sheet (console v3)', () => {
     await waitFor(() => expect(rpcs('undo_call_time')).toEqual([{ p_request_id: Reflect.get(Object(added), 'p_idempotency_key') }]));
   });
 
-  it('refuses a time not after the minimum before anything is sent; set, Extend past the end and when they leave (the owner, 18, 19 and 22 Nov)', async () => {
-    const { rpcs } = await renderFloor();
-    fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
-    const player = await sheet('Kabir Sethi');
-    const until = within(player).getByLabelText('Until');
-    // 23:00 has not reached the minimum's end at 00:00; 21:30 has gone by.
-    for (const time of ['23:00', '21:30']) {
-      fireEvent.change(until, { target: { value: time } });
-      fireEvent.click(within(player).getByRole('button', { name: 'Set call time' }));
-      const why = await within(player).findByText('Pick a time after 00:00.');
-      expect(until.getAttribute('aria-invalid')).toBe('true');
-      expect(until.getAttribute('aria-describedby')?.split(' ')).toContain(why.id);
-    }
-    expect(rpcs('add_seat_call_time')).toEqual([]);
-    cleanup();
+  it('says when a set call time leaves, offers Extend past the end, and is just done once run out (the owner, 18, 19 and 22 Nov)', async () => {
     const set = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', set_at: '2026-11-15T15:00:00Z', ends_at: '2026-11-15T18:10:00Z', left: 6000 });
     await renderFloor({ ...FLOOR, seats: [set, ...(FLOOR.seats ?? []).slice(1)] });
     fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     const setSheet = await sheet('Kabir Sethi');
     expect(within(setSheet).getByText('Set · leaves 23:40')).toBeDefined();
     // Set, the seat offers Extend, to a time past the current end, and says so (#1089).
-    expect(within(setSheet).getByText('After 23:40.')).toBeDefined();
+    expect(within(setSheet).getByText('Usually after 23:40.')).toBeDefined();
     const note = within(setSheet).getByText('Extend adds time beyond the current end.');
     expect(within(setSheet).getByLabelText('Until').getAttribute('aria-describedby')?.split(' ')).toContain(note.id);
     expect(within(setSheet).getByRole('button', { name: 'Extend call time' })).toBeDefined();

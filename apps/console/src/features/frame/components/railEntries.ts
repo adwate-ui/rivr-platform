@@ -68,7 +68,7 @@ export const RAIL: readonly RailGroup[] = [
   },
   {
     id: 'marketing', label: 'console.rail.groups.marketing', entries: [
-      { id: 'promotions', label: 'console.rail.items.promotions', href: '/promotions', icon: 'promotions', anyOf: ['promotions.manage'], counts: ['promotions', 'bonusApprovals'], countWords: 'approvals' },
+      { id: 'promotions', label: 'console.rail.items.promotions', href: '/promotions', icon: 'promotions', anyOf: ['promotions.manage'], counts: ['promotions', 'bonusApprovals', 'visitApprovals'], countWords: 'approvals' },
       { id: 'tournaments', label: 'console.rail.items.tournaments', href: '/tournaments', icon: 'trophy', anyOf: ['tournaments.manage'] },
       { id: 'content', label: 'console.rail.items.content', href: '/content', icon: 'content', anyOf: [], tabs: [
         { id: 'website', label: 'console.rail.items.website', anyOf: ['website.edit'] },

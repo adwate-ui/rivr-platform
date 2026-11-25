@@ -117,6 +117,9 @@ export const queryKeys = {
   /** Every member's History, which a Bonus file changes for many at once (decision 0707). */
   memberStaffHistoryAll: (userId: string) => ['user', userId, 'member-staff-history'] as const,
   memberVisitsAll: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-visits', venueId, memberId] as const,
+  memberVisitsEvery: (userId: string, venueId: string) => ['user', userId, 'member-visits', venueId] as const,
+  memberVisitRequests: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-visit-requests', venueId, memberId] as const,
+  visitsWaiting: (userId: string, venueId: string) => ['user', userId, 'visits-waiting', venueId] as const,
   memberBonusHistory: (userId: string, venueId: string, memberId: string, count: number) =>
     ['user', userId, 'bonus', venueId, memberId, 'history', count] as const,
   /** Table-side food and drink (#123): the member's menu, a venue's, its items, and tonight's orders. */

@@ -1,6 +1,7 @@
 import { useMemberSignUp, type MemberSignUp as SignUp } from '@rivr/db';
 import { formatDate, formatDateTime, t } from '@rivr/i18n';
 import { DetailRow, Heading, LoadState, Stack } from '@rivr/ui';
+import { MemberReferrer } from './MemberReferrer.tsx';
 
 /** A list of answers in words, or Not given. */
 const listed = (words: readonly string[]) => (words.length === 0 ? t('console.members.signUp.notGiven') : words.join(', '));
@@ -29,8 +30,11 @@ function Answers({ signUp }: { signUp: SignUp }) {
   );
 }
 
-/** How they came: a referral or creator code, the campaign, and when the club first saw them; Not given for each the link lacked. */
-function HowTheyCame({ signUp }: { signUp: SignUp }) {
+/**
+ * How they came: a referral or creator code, the campaign, and when the club first saw them; Not given for each the link
+ * lacked. Then who referred them, which the floor and up set (the owner, 25 Nov).
+ */
+function HowTheyCame({ venueId, memberId, signUp, canSetReferrer }: { venueId: string; memberId: string; signUp: SignUp; canSetReferrer: boolean }) {
   return (
     <Stack gap={2}>
       <Heading level={3}>{t('console.members.signUp.howTheyCame')}</Heading>
@@ -38,15 +42,16 @@ function HowTheyCame({ signUp }: { signUp: SignUp }) {
         <DetailRow label={t('console.members.signUp.referralCode')} value={given(signUp.referralCode)} labelTone="muted" size="small" />
         <DetailRow label={t('console.members.signUp.creatorCode')} value={given(signUp.creatorCode)} labelTone="muted" size="small" />
         <DetailRow label={t('console.members.signUp.campaign')} value={given(campaignLine(signUp))} labelTone="muted" size="small" />
-        <DetailRow label={t('console.members.signUp.firstSeen')} labelTone="muted" size="small" isLast
+        <DetailRow label={t('console.members.signUp.firstSeen')} labelTone="muted" size="small"
           value={signUp.firstSeenAt === null ? t('console.members.signUp.notGiven') : formatDateTime(new Date(signUp.firstSeenAt))} />
       </Stack>
+      <MemberReferrer venueId={venueId} memberId={memberId} signUp={signUp} canSet={canSetReferrer} />
     </Stack>
   );
 }
 
-/** The member's sign-up on their record (owner, 8 Nov), read only: their answers, then how they came to the club. */
-export function MemberSignUp({ venueId, memberId }: { venueId: string; memberId: string }) {
+/** The member's sign-up on their record (owner, 8 Nov): their answers, then how they came to the club and who referred them. */
+export function MemberSignUp({ venueId, memberId, canSetReferrer = false }: { venueId: string; memberId: string; canSetReferrer?: boolean }) {
   const signUp = useMemberSignUp(venueId, memberId);
   if (signUp.isError) return <LoadState isError onRetry={() => void signUp.refetch()} />;
   if (signUp.data === undefined) return <LoadState />;
@@ -54,7 +59,7 @@ export function MemberSignUp({ venueId, memberId }: { venueId: string; memberId:
   return (
     <Stack gap={6}>
       <Answers signUp={signUp.data} />
-      <HowTheyCame signUp={signUp.data} />
+      <HowTheyCame venueId={venueId} memberId={memberId} signUp={signUp.data} canSetReferrer={canSetReferrer} />
     </Stack>
   );
 }

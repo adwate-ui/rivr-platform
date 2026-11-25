@@ -42,6 +42,36 @@ export function callTimeUntil(seat: SeatCallClock, secondsAhead: number): Result
   return isAfter ? ok(total) : err('too_early');
 }
 
+/** Why the floor is asked to confirm a time: one the member's rule refuses (`early`), or one not ahead of now (`gone`). */
+export type FloorCallTimeWarning = 'early' | 'gone';
+
+/** The seat's call time once the floor picks a time, and the warning, if any, to confirm past first. */
+export interface FloorCallTime {
+  readonly minutes: number;
+  readonly warning: FloorCallTimeWarning | null;
+}
+
+/** Why the floor's time is refused outright: a seat with no call time, no time picked, or more than a day in all. */
+export type FloorCallTimeRefusal = 'no_call_time' | 'no_time' | 'over_a_day';
+
+/**
+ * The seat's call time once the floor picks a time on the clock, `secondsAhead` from now (the owner, 25 Nov; #1132): the
+ * member's rule warns instead of refusing. A time the member's rule refuses as too early is set all the same, with the
+ * warning `early`; one not ahead of now ends the call time now, at the whole minutes played (one at least, a day at most),
+ * with the warning `gone`. A day in all and a seat with a call time stay hard. private.floor_call_time_until is proved
+ * equal on packages/testing/golden/callTimeUntil.json.
+ */
+export function floorCallTimeUntil(seat: SeatCallClock, secondsAhead: number): Result<FloorCallTime, FloorCallTimeRefusal> {
+  if (!hasCallTime(seat)) return err('no_call_time');
+  if (!Number.isFinite(secondsAhead)) return err('no_time');
+  const played = wholeSecondsPlayed(seat.playedSeconds);
+  if (secondsAhead <= 0) return ok({ minutes: Math.min(CALL_TIME_CAP_MINUTES, Math.max(1, Math.floor(played / 60))), warning: 'gone' });
+  const asTheMemberSets = callTimeUntil(seat, secondsAhead);
+  if (asTheMemberSets.ok) return ok({ minutes: asTheMemberSets.value, warning: null });
+  if (asTheMemberSets.error === 'over_a_day') return err('over_a_day');
+  return ok({ minutes: Math.ceil((played + secondsAhead) / 60), warning: 'early' });
+}
+
 /**
  * The seconds from now after which a picked time is open (callTimeUntil takes a time strictly later), for the app and the
  * floor to say "after 23:40": the end of the minimum playing time until set, the current end once set; nought once that

@@ -12,6 +12,11 @@ export interface ConfirmQuestionProps {
   confirm: string;
   /** While the change is saved: Yes shows it, and neither button takes a press, so it is never sent twice or seems undone. */
   isBusy?: boolean;
+  /**
+   * Takes the focus to Yes as it opens, which reads the question out: for a question that comes later than the press that
+   * asked it, such as the database's answer. Cancel and Yes give the focus back as ever.
+   */
+  autoFocus?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -21,7 +26,7 @@ export interface ConfirmQuestionProps {
  * "Yes, …" or Cancel. The question describes the Yes button, so a screen reader reads it there; once it is answered and
  * goes, the focus goes back to what asked, such as the switch. For a step asked twice on one button, use ConfirmButton.
  */
-export function ConfirmQuestion({ question, confirm, isBusy = false, onConfirm, onCancel }: ConfirmQuestionProps) {
+export function ConfirmQuestion({ question, confirm, isBusy = false, autoFocus = false, onConfirm, onCancel }: ConfirmQuestionProps) {
   const questionId = useId();
   const answers = useRef<HTMLDivElement>(null);
   // What had the focus when the question came; a layout effect's cleanup runs before the buttons leave the page.
@@ -32,6 +37,10 @@ export function ConfirmQuestion({ question, confirm, isBusy = false, onConfirm, 
       if (asker?.isConnected === true && buttons?.contains(document.activeElement) === true) asker.focus();
     };
   }, []);
+  // After the asker is noted above, so the focus still goes back to it.
+  useEffect(() => {
+    if (autoFocus) answers.current?.querySelector('button')?.focus();
+  }, [autoFocus]);
   // Escape while the answers have the focus cancels, unless the answer is being sent.
   useEffect(() => {
     const buttons = answers.current;

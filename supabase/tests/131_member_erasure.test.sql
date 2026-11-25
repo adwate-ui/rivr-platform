@@ -40,7 +40,7 @@ select set_eq(
      ('early_departure'), ('fnb_order'), ('invoice'), ('ledger_account'), ('member_tier_change'),
      ('promotion_grant'), ('high_hand_hit'), ('referral'), ('seat_session'), ('self_exclusion'),
      ('top_up_request'), ('call_time_request'), ('promotion_step_skip'),
-     ('visit'), ('waitlist_entry') $$,
+     ('visit'), ('visit_request'), ('waitlist_entry') $$,
   'every table naming a member is classified for erasure (a new one is a decision: delete, anonymise or keep)'
 );
 

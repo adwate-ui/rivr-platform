@@ -16,6 +16,20 @@ export function clubDayMoment(day: string, time: string): Date {
 // India's clock is UTC+05:30 all year.
 const IST_OFFSET_MS = 330 * 60 * 1000;
 const CLOCK_TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+const CLUB_DATE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+/**
+ * A visit's check-in and check-out on a club night (`2026-11-20`, `20:00`, `02:30`), as a visit added by hand or from a file
+ * names them (the owner, 25 Nov; #1134): each as clubDayMoment places it, so a time before 06:00 is the next morning.
+ * Null for a date or a time that is not one, or a check-out not after the check-in.
+ */
+export function clubNightSpan(day: string, checkIn: string, checkOut: string): { openedAt: Date; closedAt: Date } | null {
+  if (!CLUB_DATE.test(day) || !CLOCK_TIME.test(checkIn) || !CLOCK_TIME.test(checkOut)) return null;
+  const openedAt = clubDayMoment(day, checkIn);
+  const closedAt = clubDayMoment(day, checkOut);
+  if (Number.isNaN(openedAt.getTime()) || clubDay(openedAt) !== day || closedAt <= openedAt) return null;
+  return { openedAt, closedAt };
+}
 
 /**
  * The moment a time on India's clock (`23:40`, as a time field gives it) names nearest `at`, within twelve hours either side
