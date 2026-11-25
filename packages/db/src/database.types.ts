@@ -1837,14 +1837,14 @@ isOneToOne: false
                   ]
                 },"seat_move": {
                   Row: {
-                    "created_at": string,"from_seat": number,"from_table_id": string,"id": string,"moved_by_staff_id": string | null,"session_id": string,"to_seat": number,"to_table_id": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"from_seat": number,"from_table_id": string,"from_table_type_id": string,"id": string,"moved_by_staff_id": string | null,"session_id": string,"to_seat": number,"to_table_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"from_seat": number,"from_table_id": string,"id"?: string,"moved_by_staff_id"?: string | null,"session_id": string,"to_seat": number,"to_table_id": string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"from_seat": number,"from_table_id": string,"from_table_type_id": string,"id"?: string,"moved_by_staff_id"?: string | null,"session_id": string,"to_seat": number,"to_table_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"from_seat"?: number,"from_table_id"?: string,"id"?: string,"moved_by_staff_id"?: string | null,"session_id"?: string,"to_seat"?: number,"to_table_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"from_seat"?: number,"from_table_id"?: string,"from_table_type_id"?: string,"id"?: string,"moved_by_staff_id"?: string | null,"session_id"?: string,"to_seat"?: number,"to_table_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -1852,6 +1852,12 @@ isOneToOne: false
       columns: ["from_table_id","venue_id"]
 isOneToOne: false
       referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "seat_move_from_table_type_id_venue_id_fkey"
+      columns: ["from_table_type_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "table_type"
       referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "seat_move_moved_by_staff_id_venue_id_fkey"
@@ -1875,14 +1881,14 @@ isOneToOne: false
                   ]
                 },"seat_session": {
                   Row: {
-                    "away_seconds": number,"away_since": string | null,"call_time_completed_at": string | null,"call_time_first_met_at": string | null,"call_time_minutes": number,"call_time_set_at": string | null,"created_at": string,"end_reason": string | null,"ended_at": string | null,"ending_warned_at": string | null,"id": string,"leave_reason": string | null,"leaving_at": string | null,"leaving_by_staff_id": string | null,"member_id": string,"reminded_at": string | null,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"top_up_requested_at": string | null,"top_up_started_at": string | null,"updated_at": string,"venue_id": string,"visit_id": string
+                    "away_seconds": number,"away_since": string | null,"call_time_completed_at": string | null,"call_time_first_met_at": string | null,"call_time_minutes": number,"call_time_set_at": string | null,"created_at": string,"end_reason": string | null,"ended_at": string | null,"ending_warned_at": string | null,"id": string,"leave_reason": string | null,"leaving_at": string | null,"leaving_by_staff_id": string | null,"member_id": string,"reminded_at": string | null,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"table_type_id": string,"top_up_requested_at": string | null,"top_up_started_at": string | null,"updated_at": string,"venue_id": string,"visit_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_first_met_at"?: string | null,"call_time_minutes"?: number,"call_time_set_at"?: string | null,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leave_reason"?: string | null,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id": string,"reminded_at"?: string | null,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id": string,"visit_id": string
+                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_first_met_at"?: string | null,"call_time_minutes"?: number,"call_time_set_at"?: string | null,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leave_reason"?: string | null,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id": string,"reminded_at"?: string | null,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"table_type_id": string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id": string,"visit_id": string
                   }
                   Update: {
-                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_first_met_at"?: string | null,"call_time_minutes"?: number,"call_time_set_at"?: string | null,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leave_reason"?: string | null,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id"?: string,"reminded_at"?: string | null,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_first_met_at"?: string | null,"call_time_minutes"?: number,"call_time_set_at"?: string | null,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leave_reason"?: string | null,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id"?: string,"reminded_at"?: string | null,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"table_type_id"?: string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
                   }
                   Relationships: [
                     {
@@ -1908,6 +1914,12 @@ isOneToOne: false
       columns: ["table_id","venue_id"]
 isOneToOne: false
       referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "seat_session_table_type_id_venue_id_fkey"
+      columns: ["table_type_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "table_type"
       referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "seat_session_visit_id_fkey"

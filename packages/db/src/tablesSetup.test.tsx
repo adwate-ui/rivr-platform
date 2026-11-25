@@ -64,7 +64,7 @@ describe('tables setup', () => {
   });
 
   it('adds a stake or changes one, with its call time, and says why a table change was refused', async () => {
-    const { result, calls } = renderSetup({ set_game_table: { status: 400, body: { code: 'RVSTD', message: 'Move the players' } } });
+    const { result, calls } = renderSetup({ set_game_table: { status: 400, body: { code: 'RVOCC', message: 'A seat above that is taken' } } });
     let added: unknown;
     await act(async () => {
       added = await result.current.actions.saveStake.mutateAsync({ stakeId: null, name: ' 100/200 ', smallBlind: 10000n, bigBlind: 20000n, straddle: 40000n, callTimeMinutes: 240 });
@@ -83,15 +83,15 @@ describe('tables setup', () => {
     let refused: unknown;
     await act(async () => {
       await result.current.actions.saveTable.mutateAsync({ tableId: null, name: 'Table 9', stakeId: 's1', seats: 8, minBuyIn: 735000n });
-      refused = await result.current.actions.saveTable.mutateAsync({ tableId: 't1', name: 'Table 1', stakeId: 's2', seats: 9, minBuyIn: 1000000n });
+      refused = await result.current.actions.saveTable.mutateAsync({ tableId: 't1', name: 'Table 1', stakeId: 's2', seats: 6, minBuyIn: 1000000n });
     });
     expect(calls.find((call) => call.path === 'add_game_table')?.body).toEqual({
       p_venue_id: VENUE, p_name: 'Table 9', p_table_type_id: 's1', p_seats: 8, p_min_buy_in_paise: 735000,
     });
     expect(calls.find((call) => call.path === 'set_game_table')?.body).toEqual({
-      p_table_id: 't1', p_name: 'Table 1', p_table_type_id: 's2', p_seats: 9, p_min_buy_in_paise: 1000000,
+      p_table_id: 't1', p_name: 'Table 1', p_table_type_id: 's2', p_seats: 6, p_min_buy_in_paise: 1000000,
     });
-    expect(refused).toEqual({ ok: false, error: 'players_seated' });
+    expect(refused).toEqual({ ok: false, error: 'seats_taken' });
   });
 
   it('says a table was given a stake that has no call time yet (redesign RD-16)', async () => {

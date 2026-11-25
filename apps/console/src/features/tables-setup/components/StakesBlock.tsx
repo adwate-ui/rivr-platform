@@ -45,7 +45,10 @@ function StakeActions({ venueId, stake, onChange, onOutcome }: StakeActionsProps
     const done = await removeStake.mutateAsync(stake.id);
     if (done.ok) return onOutcome({ ok: true, text: t('console.tablesSetup.stakeDeleted', { name }) });
     // Said under the list, not beside the row: a stake still in use is named.
-    return onOutcome({ ok: false, text: done.error === 'stake_in_use' ? t('console.tablesSetup.stakeInUse', { name }) : t(`console.tablesSetup.failures.${done.error}`) });
+    if (done.error === 'stake_in_use' || done.error === 'stake_played') {
+      return onOutcome({ ok: false, text: t(done.error === 'stake_in_use' ? 'console.tablesSetup.stakeInUse' : 'console.tablesSetup.stakePlayed', { name }) });
+    }
+    return onOutcome({ ok: false, text: t(`console.tablesSetup.failures.${done.error}`) });
   };
   const isUsed = stake.tables > 0;
   const items: readonly OverflowMenuItem[] = [{

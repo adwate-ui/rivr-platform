@@ -69,11 +69,17 @@ select results_eq($$ select g.seats, t.name, t.small_blind_paise, t.big_blind_pa
 select is((select straddle_paise from public.table_type where id = (select id from ids where name = 'straddle')), null::bigint, 'no straddle once taken off');
 
 -- A table with a player keeps its stake until they move.
+create temp table t3_stake on commit drop as
+select table_type_id as id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3';
+grant select on t3_stake to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select isnt(public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'), 2,
   '9000000211'), null, 'the floor seats Ishaan at Table 3');
-select throws_ok($$ select public.set_game_table((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'),
-                    'Table 3', (select id from ids where name = 'plo'), 9) $$, 'RVSTD', null, 'so Table 3''s stake stays while he plays');
+-- Since the owner's 25 Nov, a stake changes while he plays (605 proves the rest); set back for what follows.
+select lives_ok($$ select public.set_game_table((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'),
+                    'Table 3', (select id from ids where name = 'plo'), 9) $$, 'Table 3''s stake changes while he plays');
+select lives_ok($$ select public.set_game_table((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'),
+                    'Table 3', (select id from t3_stake), 9) $$, 'and back');
 reset role;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000111');

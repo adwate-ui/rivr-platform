@@ -40,16 +40,16 @@ export interface SetupTable {
 
 /**
  * Why a setup change was refused. `players_seated` and `players_waiting` are @rivr/domain's tableRetireRefusal reasons
- * (decision 0466); a stake change refused for players seated or waiting is `players_seated`. `stake_without_call_time` is
- * its stakeTableRefusal (redesign RD-16): a table given a stake that has no call time yet. `stake_in_use`: a stake a table,
- * or a deleted table's history, still uses is not deleted (redesign RD-17).
+ * (decision 0466). `seats_taken`: fewer seats than one taken or called to. `stake_without_call_time` is its stakeTableRefusal
+ * (redesign RD-16): a table given a stake that has no call time yet. `stake_in_use`: a stake a table, or a deleted table's
+ * history, still uses is not deleted (redesign RD-17); `stake_played`: nor one games were played at, which keep it (#1138).
  */
 export type TablesFailure = 'not_allowed' | 'invalid' | 'players_seated' | 'players_waiting' | 'seats_taken' | 'stake_without_call_time' | 'stake_in_use'
-  | 'paused' | 'unavailable';
+  | 'stake_played' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, TablesFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', '23505': 'invalid', '23514': 'invalid', RVSTD: 'players_seated', RVWTG: 'players_waiting',
-  RVOCC: 'seats_taken', RVNCT: 'stake_without_call_time', RVUSE: 'stake_in_use', RVFRZ: 'paused',
+  RVOCC: 'seats_taken', RVNCT: 'stake_without_call_time', RVUSE: 'stake_in_use', RVHST: 'stake_played', RVFRZ: 'paused',
 };
 
 /**
