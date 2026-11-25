@@ -42,23 +42,21 @@ function blindsFrom(draft: StakeDraft): Pick<StakeOrder, 'smallBlind' | 'bigBlin
 
 /**
  * The stake as it would be saved, or null while it does not stand: a name, blinds in whole 50s with the big above the
- * small, any straddle above both, and a call time. Staff who may not set the call time send none: the stake keeps its own.
+ * small, any straddle above both, and a call time, which whoever sets up tables sets (the owner, 25 Nov).
  */
-function orderFrom(draft: StakeDraft, stakeId: string | null, canSetCallTime: boolean): StakeOrder | null {
-  const hasCallTime = !canSetCallTime || (draft.callTime !== null && isStakeCallTime(draft.callTime));
+function orderFrom(draft: StakeDraft, stakeId: string | null): StakeOrder | null {
   const blinds = blindsFrom(draft);
-  if (draft.name.trim() === '' || blinds === null || !hasCallTime) return null;
-  return { stakeId, name: draft.name, ...blinds, callTimeMinutes: canSetCallTime ? draft.callTime : null };
+  if (draft.name.trim() === '' || blinds === null || draft.callTime === null || !isStakeCallTime(draft.callTime)) return null;
+  return { stakeId, name: draft.name, ...blinds, callTimeMinutes: draft.callTime };
 }
 
 interface StakeFieldsProps {
   draft: StakeDraft;
-  canSetCallTime: boolean;
   onChange: (change: Partial<StakeDraft>) => void;
 }
 
-/** The stake's fields: its name, its blinds over their rule, any straddle, and its call time in minutes, or why it is not theirs to set. */
-function StakeFields({ draft, canSetCallTime, onChange }: StakeFieldsProps) {
+/** The stake's fields: its name, its blinds over their rule, any straddle, and its call time in minutes. */
+function StakeFields({ draft, onChange }: StakeFieldsProps) {
   return (
     <>
       <Input label={t('console.tablesSetup.stakeName')} value={draft.name} maxLength={60} onChange={(event) => onChange({ name: event.target.value })} />
@@ -71,9 +69,7 @@ function StakeFields({ draft, canSetCallTime, onChange }: StakeFieldsProps) {
       </Stack>
       <Input label={t('console.tablesSetup.straddleOptional')} value={draft.straddle} inputMode="numeric" maxLength={9}
         onChange={(event) => onChange({ straddle: event.target.value.trim() })} />
-      {canSetCallTime
-        ? <UnitInput label={t('console.tablesSetup.callTime')} unit="minutes" min={1} max={1440} initialValue={draft.callTime} onChange={(callTime) => onChange({ callTime })} />
-        : <Text tone="muted">{t('console.tablesSetup.callTimeNotYours')}</Text>}
+      <UnitInput label={t('console.tablesSetup.callTime')} unit="minutes" min={1} max={1440} initialValue={draft.callTime} onChange={(callTime) => onChange({ callTime })} />
     </>
   );
 }
@@ -82,8 +78,6 @@ interface StakeSheetProps {
   venueId: string;
   /** The stake to change, or null for a new one. */
   stake: SetupStake | null;
-  /** Whether the staff member changes settings (settings.manage): a stake's call time is one, and the database refuses the rest. */
-  canSetCallTime: boolean;
   onClose: () => void;
 }
 
@@ -92,12 +86,12 @@ interface StakeSheetProps {
  * same value Settings shows. No game (decision 0299). Saved, it says so in a toast and closes; refused, it says why until a
  * field is edited. The caller keys it by each opening, so it opens on the stake's own values.
  */
-export function StakeSheet({ venueId, stake, canSetCallTime, onClose }: StakeSheetProps) {
+export function StakeSheet({ venueId, stake, onClose }: StakeSheetProps) {
   const { saveStake } = useTablesSetupActions(venueId);
   const toast = useToast();
   const [draft, setDraft] = useState(() => startFrom(stake));
   const { failure, save, clearFailure } = useSave(async () => {
-    const order = orderFrom(draft, stake?.id ?? null, canSetCallTime);
+    const order = orderFrom(draft, stake?.id ?? null);
     if (order === null) return t('console.tablesSetup.stakeIncomplete');
     const done = await saveStake.mutateAsync(order);
     if (!done.ok) return t(`console.tablesSetup.failures.${done.error}`);
@@ -113,7 +107,7 @@ export function StakeSheet({ venueId, stake, canSetCallTime, onClose }: StakeShe
     <Sheet place="console" isOpen onClose={onClose} footer={<SaveFooter isSaving={saveStake.isPending} onCancel={onClose} onSave={() => void save()} />}
       title={stake === null ? t('console.tablesSetup.newStake') : t('console.tablesSetup.changeStake', { name: stake.name })}>
       <Stack gap={5}>
-        <StakeFields draft={draft} canSetCallTime={canSetCallTime} onChange={set} />
+        <StakeFields draft={draft} onChange={set} />
         {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
       </Stack>
     </Sheet>

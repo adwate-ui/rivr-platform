@@ -17,8 +17,8 @@ const STAKES = [
 // Four tables play 100/200, one the Private Room, none the PLO.
 const TABLES = [table('t1', 'Table 1'), table('t2', 'Table 2'), table('t3', 'Table 3'), table('t4', 'Table 4'), table('t6', 'Private Room', { stakeId: 's2' })];
 
-const renderStakes = (refusals: Record<string, string> = {}, { stakes = STAKES, canSetCallTime = true } = {}) =>
-  renderSetup(<StakesBlock venueId="v1" stakes={stakes} tables={TABLES} canSetCallTime={canSetCallTime} />, refusals);
+const renderStakes = (refusals: Record<string, string> = {}, { stakes = STAKES } = {}) =>
+  renderSetup(<StakesBlock venueId="v1" stakes={stakes} tables={TABLES} />, refusals);
 
 /** Types into a field of the panel. */
 const type = (panel: HTMLElement, field: string | RegExp, value: string) => fireEvent.change(within(panel).getByRole('textbox', { name: field }), { target: { value } });
@@ -160,24 +160,19 @@ describe('the stakes on Tables setup (redesign RD-17)', () => {
     expect(sent.map((call) => call.rpc)).toEqual(['set_table_type']);
   });
 
-  it('says the call time is not theirs to staff who do not change settings, and saves the stake without one', async () => {
-    const sent = renderStakes({}, { canSetCallTime: false });
-    fireEvent.click(screen.getByRole('button', { name: 'New stake' }));
-    const panel = screen.getByRole('dialog', { name: 'New stake' });
-    expect(within(panel).queryByRole('textbox', { name: 'Minimum playing time' })).toBeNull();
-    expect(within(panel).getByText('Minimum playing time: not in your role. Ask an admin.')).toBeDefined();
-    type(panel, 'Stake name', '300/600');
-    type(panel, 'Small blind', '300');
-    type(panel, 'Big blind', '600');
-    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
-    await waitFor(() => expect(sent).toEqual([{ rpc: 'add_table_type', body: { p_venue_id: 'v1', p_name: '300/600', p_small_blind_paise: 30000, p_big_blind_paise: 60000 } }]));
-  });
-
   it('says why the database refused a delete: a deleted table\'s history still uses the stake', async () => {
     renderStakes({ delete_table_type: 'RVUSE' });
     fireEvent.click(screen.getByRole('button', { name: 'More for PLO 200/400' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
     fireEvent.click(screen.getByRole('button', { name: 'Yes, delete PLO 200/400' }));
     await waitFor(() => expect(screen.getByText('PLO 200/400 is still used by a table or its history. Not deleted.')).toBeDefined());
+  });
+
+  it('says a stake games were played at stays', async () => {
+    renderStakes({ delete_table_type: 'RVHST' });
+    fireEvent.click(screen.getByRole('button', { name: 'More for PLO 200/400' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, delete PLO 200/400' }));
+    await waitFor(() => expect(screen.getByText('Games were played at PLO 200/400. Not deleted.')).toBeDefined());
   });
 });

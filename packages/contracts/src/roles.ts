@@ -29,7 +29,7 @@ export const PERMISSIONS = [
   'kyc.in_person', // check a member in person at the desk: hosts and the floor too (decision 0301)
   'tiers.manage', // tiers and the tier x feature matrix
   'floor.manage', // tables, seating, games
-  'tables.manage', // the stakes and tables the club runs, and games history (#642, #643)
+  'tables.manage', // the stakes and tables the club runs, and games history (#642, #643): admins and the floor (the owner, 25 Nov)
   'waitlist.manage',
   'call_time.override', // let a player leave before call time, with a reason
   'hands.log',
@@ -72,11 +72,12 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
     'host_queue.manage', 'fnb.manage', 'fnb.serve', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
     'treasury.manage', 'tables.manage', 'bonus.give', 'top_ups.manage',
   ],
-  // Every super admin module but tables setup, the member list, games history, tournaments and bonus (#644); TVs through a
-  // permission of their own, as devices.manage reaches the cage's computers and the cameras. Bonus chips by hand came later (the owner, 9 Nov).
+  // Every super admin module but the member list, tournaments and bonus (#644); TVs through a permission of their own, as
+  // devices.manage reaches the cage's computers and the cameras. Bonus chips by hand came later (the owner, 9 Nov), and tables
+  // setup with stakes and games history, which tables.manage opens (the owner, 25 Nov).
   floor: [
     'members.read', 'members.phone', 'waitlist.manage', 'floor.manage', 'call_time.override', 'fnb.serve', 'bonus.give', 'kyc.in_person', 'tvs.manage',
-    'members.referrer', 'visits.add',
+    'members.referrer', 'visits.add', 'tables.manage',
   ],
   // The floor's modules less the food and drink orders (#644), beside the cage's (hidden, decision 0284); all of Members to
   // view and the Bonus: added, used, a missed use added and reversed (the owner, 22 Nov; decision 0709).

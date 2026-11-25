@@ -15,9 +15,10 @@ export const table = (id: string, name: string, more: Partial<SetupTable> = {}):
 
 /**
  * Draws a part of Tables setup for a super admin, inside the console's toasts, over a fake API that keeps every RPC sent
- * and answers those in `refusals` with their code.
+ * and answers those in `refusals` with their code. The floor's seats and the seats held for waitlist calls, which a
+ * table's sheet reads, are `seated` and `held` (none by default) and never counted as sent.
  */
-export function renderSetup(ui: ReactElement, refusals: Record<string, string> = {}) {
+export function renderSetup(ui: ReactElement, refusals: Record<string, string> = {}, seated: readonly unknown[] = [], held: readonly unknown[] = []) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000101', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -27,6 +28,8 @@ export function renderSetup(ui: ReactElement, refusals: Record<string, string> =
     const url = String(input instanceof Request ? input.url : input);
     const rpc = url.split('/rpc/')[1]?.split('?')[0];
     if (rpc === undefined) return Response.json([]);
+    if (rpc === 'floor_seats') return Response.json(seated);
+    if (rpc === 'held_seats') return Response.json(held);
     sent.push({ rpc, body: init?.body ? JSON.parse(String(init.body)) : undefined });
     const code = refusals[rpc];
     return code === undefined ? new Response(null, { status: 204 }) : Response.json({ code, message: 'refused' }, { status: 400 });
