@@ -39,6 +39,8 @@ export interface RecordAccess {
   readonly correctBonus: boolean;
   /** The floor and up (members.phone) see every part, to view, where they may not change it (the owner, 22 Nov). */
   readonly viewsAll: boolean;
+  /** The floor and up (members.referrer) set who referred a member until it is paid (the owner, 25 Nov). */
+  readonly setReferrer: boolean;
 }
 
 /** Member number, tier (and a change's last day), KYC and whether they are in the room. */
@@ -108,7 +110,7 @@ function AccountPart({ venueId, record, can }: PartProps) {
 /** One part of the record: visits; bonus chips; sign-up; the tier and a break; or the account's. */
 function PartContent({ part, venueId, record, can }: PartProps & { part: RecordPart }) {
   if (part === 'bonus') return <MemberBonus venueId={venueId} memberId={record.memberId} canGive={can.giveBonus} canCorrect={can.correctBonus} />;
-  if (part === 'signUp') return <MemberSignUp venueId={venueId} memberId={record.memberId} />;
+  if (part === 'signUp') return <MemberSignUp venueId={venueId} memberId={record.memberId} canSetReferrer={can.setReferrer} />;
   if (part === 'membership') return <MembershipPart venueId={venueId} record={record} can={can} />;
   if (part === 'account') return <AccountPart venueId={venueId} record={record} can={can} />;
   return <VisitsPart venueId={venueId} record={record} can={can} />;

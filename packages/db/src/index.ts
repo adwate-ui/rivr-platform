@@ -105,7 +105,9 @@ export type { MemberExportDetails } from './memberDetails.ts';
 export {
   MEMBERS_PAGE, useEveryMember, useMemberChoices, useMembersPage, type MemberChoiceColumn, type MemberChoices, type MembersPage, type MembersView,
 } from './membersList.ts';
-export { useMemberSignUp, type MemberSignUp, type SignUpCampaign } from './memberSignUp.ts';
+export {
+  useMemberSignUp, useSetReferrer, type MemberSignUp, type Referrer, type ReferrerFailure, type ReferrerOutcome, type SignUpCampaign,
+} from './memberSignUp.ts';
 export { parseStaffChangeFields, useMemberStaffHistory, type MemberStaffChange, type MemberStaffChangeField } from './memberStaffHistory.ts';
 export { useResetMemberHours, type ResetHoursFailure } from './memberHours.ts';
 export { useChangeMemberPhone, type PhoneChangeFailure } from './memberPhone.ts';

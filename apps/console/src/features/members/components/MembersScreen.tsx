@@ -45,6 +45,7 @@ export function MembersScreen(props: MembersScreenProps) {
     // Super admins and cashiers reverse a Bonus given and add a use a seat missed (the owner, 22 Nov; decision 0709).
     correctBonus: permissions.includes('bonus.correct'),
     viewsAll: permissions.includes('members.phone'),
+    setReferrer: permissions.includes('members.referrer'),
   };
   // Floor and up open a member's History of changes by staff, as the Door's History (#1073).
   return <Members title={title} venueId={venueId} can={can} seesHistory={permissions.includes('members.phone')} usesFiles={staff.venue.role === 'super_admin'} {...props} />;

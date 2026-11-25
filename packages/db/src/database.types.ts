@@ -3273,7 +3273,7 @@ isOneToOne: false
                            },
 "member_sign_up":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
-              "city": string,"creator_code": string,"first_seen_at": string,"games_played": (string)[],"occupation": string,"play_times": (string)[],"referral_code": string,"signed_up_at": string,"utm_campaign": string,"utm_content": string,"utm_medium": string,"utm_source": string,"utm_term": string
+              "city": string,"creator_code": string,"first_seen_at": string,"games_played": (string)[],"has_sat": boolean,"occupation": string,"play_times": (string)[],"referral_code": string,"referral_completed_at": string,"referrer_member_id": string,"referrer_name": string,"referrer_number": number,"signed_up_at": string,"utm_campaign": string,"utm_content": string,"utm_medium": string,"utm_source": string,"utm_term": string
             }[]
                            },
 "member_staff_history":
@@ -3714,6 +3714,9 @@ isOneToOne: false
                            },
 "set_member_break":
 { Args: { "p_days": number,"p_member_id": string,"p_reason": string }; Returns: string
+                           },
+"set_member_referrer":
+{ Args: { "p_member_id": string,"p_referrer_id": string }; Returns: string
                            },
 "set_member_tier":
 { Args: { "p_member_id": string,"p_reason": string,"p_tier_id": string,"p_until"?: string,"p_venue_id": string }; Returns: string

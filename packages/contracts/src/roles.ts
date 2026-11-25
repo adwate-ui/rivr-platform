@@ -23,6 +23,7 @@ export const PERMISSIONS = [
   'members.erase', // erase one member's personal data on request, super_admin only (decision 0207)
   'members.change_phone', // change a member's phone number, their login, super_admin only (decision 0248)
   'members.phone', // see members' mobile numbers on the Door and Members and open their History: floor and up (decision 0690) and cashiers (decision 0709)
+  'members.referrer', // set the member who referred a member, paid as a code typed at sign-up: floor and up (the owner, 25 Nov)
   'kyc.review',
   'kyc.in_person', // check a member in person at the desk: hosts and the floor too (decision 0301)
   'tiers.manage', // tiers and the tier x feature matrix
@@ -64,7 +65,7 @@ export type Permission = (typeof PERMISSIONS)[number];
 export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>> = {
   super_admin: PERMISSIONS,
   admin: [
-    'settings.manage', 'staff.manage', 'devices.manage', 'tvs.manage', 'members.read', 'members.manage', 'members.phone',
+    'settings.manage', 'staff.manage', 'devices.manage', 'tvs.manage', 'members.read', 'members.manage', 'members.phone', 'members.referrer',
     'kyc.review', 'kyc.in_person', 'tiers.manage', 'floor.manage', 'waitlist.manage', 'call_time.override', 'cage.second_approve',
     'ledger.read', 'tournaments.manage', 'promotions.manage',
     'host_queue.manage', 'fnb.manage', 'fnb.serve', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
@@ -74,6 +75,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
   // permission of their own, as devices.manage reaches the cage's computers and the cameras. Bonus chips by hand came later (the owner, 9 Nov).
   floor: [
     'members.read', 'members.phone', 'waitlist.manage', 'floor.manage', 'call_time.override', 'fnb.serve', 'bonus.give', 'kyc.in_person', 'tvs.manage',
+    'members.referrer',
   ],
   // The floor's modules less the food and drink orders (#644), beside the cage's (hidden, decision 0284); all of Members to
   // view and the Bonus: added, used, a missed use added and reversed (the owner, 22 Nov; decision 0709).
