@@ -5,8 +5,8 @@
 # kinds of lines in the dump are left out, because a new Supabase project refuses them:
 # - grants of server parameters to the platform's own roles, which it has already made itself and only
 #   a superuser could make again;
-# - settings on the platform's own roles, such as production's statement timeout on supabase_admin,
-#   which a new project sets itself and only a superuser could change;
+# - settings on the supabase_* roles, such as production's statement timeout on supabase_admin, which a
+#   new project sets itself and only a superuser could change;
 # - loads into empty tables, which restore nothing. Some of the platform's own tables, such as Storage's
 #   newer ones, refuse even an empty load.
 #

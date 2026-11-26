@@ -22,7 +22,8 @@
 #   scripts/backup/restore-drill.sh --local
 #       backs up the local stack first (pnpm db:start), with a throwaway key: the drill on one computer
 # Add --auth-version <vX.Y.Z> with the Auth version of the project the backup came from, which its
-# <project URL>/auth/v1/health gives. The scratch stack then runs that Auth, as a linked local stack would.
+# <project URL>/auth/v1/health gives. The scratch stack then runs that Auth, through the file supabase link
+# writes for it. Only Auth is pinned: the other services stay at the CLI's own versions.
 # Hosted Auth can be newer than the CLI's own, and an older Auth lacks columns the backup fills: on 26 Nov
 # production's v2.199.0 had auth.one_time_tokens.link_token_hash, the CLI's v2.197.0 did not.
 # Add --dry-run to print the steps without running anything. Needs Docker, age, psql 17, the aws CLI

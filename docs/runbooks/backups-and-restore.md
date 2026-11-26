@@ -97,7 +97,7 @@ You need, on the computer you restore from:
    - The data brings back the buckets and the files' records. The files then go back into the same buckets at the same paths, so each record still finds its file: a member's KYC selfie is where their `kyc_record` points.
    - Files are written only with `--files`, so a shell that still holds a key never writes to another project by accident. Once the restore is checked, revoke that Storage key and `unset STORAGE_S3_ENDPOINT STORAGE_S3_ACCESS_KEY_ID STORAGE_S3_SECRET_ACCESS_KEY`.
    - If the files step stops partway, the database is already loaded: don't run the script again. Copy each bucket's files on their own with the same key, `aws s3 cp <folder>/storage/<bucket> s3://<bucket> --recursive --endpoint-url "$STORAGE_S3_ENDPOINT"`, then load the cron jobs with `psql "<connection string>" -f <folder>/cron.sql`.
-   - It leaves out the few lines a new project refuses: parameter grants to the platform's own roles, and loads into empty tables.
+   - It leaves out the few lines a new project refuses: parameter grants to the platform's own roles, settings on the `supabase_*` roles, and loads into empty tables.
    - The restore drill runs the same script.
 5. **Put the Vault back.** In the new project's Vault, add:
    - `kyc_reference_key`: the escrowed value, exactly;
@@ -131,8 +131,8 @@ You need, on the computer you restore from:
 - On a target's latest backup:
   - set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` (that target's bucket token), `AWS_DEFAULT_REGION=auto`, `BACKUP_S3_ENDPOINT` and `BACKUP_BUCKET`;
   - run `scripts/backup/restore-drill.sh --latest production --key rivr-backup-key.txt --auth-version <version>`.
-  - `<version>` is that project's Auth version. `curl -s <project URL>/auth/v1/health -H "apikey: <publishable key>"` prints it. Without it the scratch stack runs the Supabase CLI's own Auth, which can be older than the project's, and the restore then stops on a column that Auth's older tables lack.
-- On a file already downloaded: `--archive <file> --key <key>`.
+  - `<version>` is that project's Auth version. `curl -s <project URL>/auth/v1/health -H "apikey: <publishable key>"` prints it. Without it the scratch stack runs the Supabase CLI's own Auth, which can be older than the project's, and the restore then stops on a column that Auth's older tables lack. Only Auth is pinned this way. If the restore ever stops on a Storage column instead, Storage needs the same treatment.
+- On a file already downloaded: `--archive <file> --key <key>`, with `--auth-version` as above for a backup of staging or production.
 - On one computer: `--local` backs up the local stack first (`pnpm db:start`), with a throwaway key.
 - `--dry-run` prints the steps without running anything.
 
