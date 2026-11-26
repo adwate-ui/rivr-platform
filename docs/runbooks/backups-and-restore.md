@@ -2,14 +2,14 @@
 
 Tech plan item 27, features "Backups and exports" (#25, decision 0072). The scripted restore drill is #26. Storage's files are in the backup since #386 (decision 0108).
 
-**The nightly backup runs for staging and production since 26 Nov 2026.** The club launched without it (decision 0278, the owner's choice): until then each night skipped with its notice, and the run still showed green. Supabase's own daily backups come with the Pro plan, and PITR with its add-on (setup step 7).
+**The nightly backup runs for staging and production since 26 Nov 2026.** The club launched without it (decision 0278, the owner's choice): until then each night skipped with its notice, and the run still showed green. The org is on Supabase's Pro plan, which keeps 7 daily backups of each project. There is no point-in-time recovery: the owner left it off because of its cost (decision 0713).
 
 ## What is kept
 
 | Backup | Where | Kept for |
 |---|---|---|
 | Supabase daily backup | Supabase, per project | 7 days (Pro plan) |
-| Point-in-time recovery (PITR) | Supabase, production only, once the add-on is on | the window chosen (7 days) |
+| Point-in-time recovery (PITR) | Off, the owner's choice (decision 0713) | none |
 | Nightly logical dump and CSV export | The target's backup bucket, outside Supabase: `<target>/nightly/<date>/` | 35 days |
 | Each month's first good night | The same bucket: `<target>/monthly/<yyyy-mm>/` | 400 days |
 
@@ -68,7 +68,7 @@ Tech plan item 27, features "Backups and exports" (#25, decision 0072). The scri
      - `BACKUP_BUCKET`: that target's bucket;
      - `BACKUP_AGE_RECIPIENT`: the `age1...` public key;
      - `STORAGE_S3_ENDPOINT` and `STORAGE_S3_REGION`: that project's Storage S3 endpoint and region.
-7. **PITR.** In the Supabase dashboard for production, turn on Point in Time Recovery (Add-ons, 7 days).
+7. **PITR.** Left off by the owner because of its cost (decision 0713). To turn it on later: in the Supabase dashboard for production, Add-ons → Point in Time Recovery, 7 days. It needs a compute size above Micro.
 8. **First run.** In Actions → nightly-backup → Run workflow, check that both targets upload a file. Then run the restore drill on it, `scripts/backup/restore-drill.sh --latest production --key rivr-backup-key.txt --auth-version <version>` (see "The restore drill"), and add the result to the drill log below.
 
 **Watching it.**
@@ -91,7 +91,7 @@ You need, on the computer you restore from:
    - Then run `sha256sum -c rivr-production-20261120.tar.gz.age.sha256`.
 2. **Decrypt and unpack:** `age -d -i rivr-backup-key.txt rivr-production-20261120.tar.gz.age | tar -xz`. This makes a folder, `rivr-production-20261120`. Note its full path (`realpath rivr-production-20261120`).
 3. **Create a new Supabase project** in Mumbai to restore into, and take its Session pooler connection string for `postgres`.
-   - Never restore over production. To put a backup back into production, use PITR or the provider's backup ("Restoring production in place").
+   - Never restore over production. To put a backup back into production, use the provider's daily backup ("Restoring production in place").
 4. **Load it** from the checkout of this repository. First make an S3 access key for the new project's Storage (Storage → S3 Connection) and give it as `STORAGE_S3_ENDPOINT`, `STORAGE_S3_REGION`, `STORAGE_S3_ACCESS_KEY_ID` and `STORAGE_S3_SECRET_ACCESS_KEY`. Then run `bash scripts/backup/restore.sh --files <the unpacked folder's full path> "<new project's connection string>"`.
    - It loads as Supabase's guide does: roles, schema, then data with triggers off, in one transaction. Then the files, then the cron jobs.
    - The data brings back the buckets and the files' records. The files then go back into the same buckets at the same paths, so each record still finds its file: a member's KYC selfie is where their `kyc_record` points.
@@ -143,7 +143,7 @@ You need, on the computer you restore from:
 | 20 Oct 2026 | The local stack's seed data (`--local`), as the backup job makes it. Staging's and production's are the owner's first run (setup step 8). | Scratch local stack (550) | PASS: every ledger transaction sums to zero; all 10 account totals match the CSV; row counts match for 70 tables; all 6 cron jobs back |
 | 27 Oct 2026 | The local stack's seed data (`--local`), 152 migrations (#112) | Scratch local stack (550) | First run FAIL: `restore.sh` no longer parsed. Since #409, an apostrophe inside `"${...:?...}"` was read as a quote by bash, so a real restore would have failed too. Fixed, and CI's `check-backup.sh` now parses every backup script. Rerun PASS: every ledger transaction sums to zero; all 100 account totals match the CSV; row counts match for 107 tables; all 13 cron jobs back; the scratch stack removed (99 s) |
 | 3 Nov 2026 | Staging's database alone (no Storage), made by `nightly-backup.sh` through a temporary read-only login: a rehearsal before the nightly job had its settings | Scratch local stack (550) | PASS: every ledger transaction sums to zero; all 102 account totals match the CSV; row counts match for 145 tables; all 27 cron jobs back (182 s) |
-| 26 Nov 2026 | Production's first nightly, `rivr-production-20261126` (180 MB) | Scratch local stack (550) | First run FAIL: `roles.sql` sets a statement timeout on `supabase_admin`, which only a superuser may change, so a restore into any new project stopped there. `restore.sh` now leaves out settings on the platform's own roles. Second run FAIL: `auth.one_time_tokens.link_token_hash` did not exist, because the CLI's Auth (v2.197.0) is older than production's (v2.199.0). The drill now takes `--auth-version`. Rerun with `--auth-version v2.199.0` PASS: every ledger transaction sums to zero; all 245 account totals match the CSV; row counts match for 86 tables; all 26 cron jobs back; the scratch stack removed (151 s) |
+| 26 Nov 2026 | Production's first nightly, `rivr-production-20261126` (180 MB) | Scratch local stack (550) | First run FAIL: `roles.sql` sets a statement timeout on `supabase_admin`, which only a superuser may change, so a restore into any new project stopped there. `restore.sh` now leaves out settings on the `supabase_*` roles. Second run FAIL: `auth.one_time_tokens.link_token_hash` did not exist, because the CLI's Auth (v2.197.0) is older than production's (v2.199.0). The drill now takes `--auth-version`. Rerun with `--auth-version v2.199.0` PASS: every ledger transaction sums to zero; all 245 account totals match the CSV; row counts match for 86 tables; all 26 cron jobs back; the scratch stack removed (151 s) |
 | 26 Nov 2026 | Staging's first nightly, `rivr-staging-20261126` (7.8 MB) | Scratch local stack (550) | With `--auth-version v2.199.0` PASS: every ledger transaction sums to zero; all 105 account totals match the CSV; row counts match for 86 tables; all 26 cron jobs back; the scratch stack removed (83 s) |
 
 **On staging and production (hardening week, by the owner).** The drill needs the backup key's private half, which lives offline with the owner (setup step 3), so no workflow can run it, and none should. The `nightly-backup` workflow makes the backups it restores.
@@ -162,6 +162,6 @@ You need, on the computer you restore from:
 
 ## Restoring production in place
 
-- Use point-in-time recovery for a moment in the last 7 days, or the daily backup.
-- In Supabase go to Database → Backups, choose the time or the backup, and restore. The project is unavailable while it restores, and everything after that moment is lost.
-- Before restoring, list the erasures made after the moment you restore to: `select entity_id from audit_log where action = 'member.erase' and occurred_at >= '<that moment>'`. The restore takes them back. Afterwards, re-apply them as in step 6 above.
+- Use one of the last 7 daily backups. There is no point-in-time recovery (decision 0713), so a restore can't go back to a moment between two backups.
+- In Supabase go to Database → Backups, choose the backup, and restore. The project is unavailable while it restores, and everything after that backup is lost.
+- Before restoring, list the erasures made after the backup you restore: `select entity_id from audit_log where action = 'member.erase' and occurred_at >= '<the backup's time>'`. The restore takes them back. Afterwards, re-apply them as in step 6 above.

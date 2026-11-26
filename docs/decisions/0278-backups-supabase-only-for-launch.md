@@ -10,3 +10,5 @@ Date: 28 Oct 2026. Issue #112; the owner's answers of 28 Oct: "Go Supabase only"
   - set up the nightly backup from `docs/runbooks/backups-and-restore.md`, which needs no code change; or
   - take a manual dump: `pnpm supabase db dump --project-ref <ref>` for the schema, and the same with `--data-only` for the data.
 - **Personal data.** Holding no backups keeps no copies, so the privacy notice's "up to 400 days" is an upper bound the club stays inside.
+
+**Superseded by 0713** (26 Nov 2026): the org is on Pro, with 7 daily backups, and the nightly backup runs for both targets. Point-in-time recovery stays off.
