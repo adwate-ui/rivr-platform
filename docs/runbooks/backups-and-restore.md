@@ -164,4 +164,6 @@ You need, on the computer you restore from:
 
 - Use one of the last 7 daily backups. There is no point-in-time recovery (decision 0713), so a restore can't go back to a moment between two backups.
 - In Supabase go to Database → Backups, choose the backup, and restore. The project is unavailable while it restores, and everything after that backup is lost.
-- Before restoring, list the erasures made after the backup you restore: `select entity_id from audit_log where action = 'member.erase' and occurred_at >= '<the backup's time>'`. The restore takes them back. Afterwards, re-apply them as in step 6 above.
+- Before restoring, list the erasures made since a few hours before that backup, and save the ids outside the project, because the restore takes those rows back: `select entity_id, occurred_at from audit_log where action = 'member.erase' and occurred_at >= '<cut-off>'`.
+  - Write the cut-off with its offset, for example `'2026-11-25 22:00+05:30'`. A time without one is read as UTC, 5.5 hours later than IST. An early cut-off is harmless: re-applying an erasure changes nothing.
+- After restoring, re-apply them as in step 6 above, with the same cut-off as its first argument, before staff or members are let back in.
