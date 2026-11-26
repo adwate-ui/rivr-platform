@@ -2,7 +2,7 @@
 
 Tech plan item 27, features "Backups and exports" (#25, decision 0072). The scripted restore drill is #26. Storage's files are in the backup since #386 (decision 0108).
 
-**The club launches with no backups** (decision 0278, the owner's choice). The org is on Supabase's Free plan, which keeps none, and the nightly backup below is not set up: it skips each night with its notice. Everything below applies once the owner sets it up, or moves the org to Pro for Supabase's own daily backups.
+**The nightly backup runs for staging and production since 26 Nov 2026.** The club launched without it (decision 0278, the owner's choice): until then each night skipped with its notice, and the run still showed green. Supabase's own daily backups come with the Pro plan, and PITR with its add-on (setup step 7).
 
 ## What is kept
 
@@ -69,10 +69,11 @@ Tech plan item 27, features "Backups and exports" (#25, decision 0072). The scri
      - `BACKUP_AGE_RECIPIENT`: the `age1...` public key;
      - `STORAGE_S3_ENDPOINT` and `STORAGE_S3_REGION`: that project's Storage S3 endpoint and region.
 7. **PITR.** In the Supabase dashboard for production, turn on Point in Time Recovery (Add-ons, 7 days).
-8. **First run.** In Actions → nightly-backup → Run workflow, check that both targets upload a file. Then run the restore drill on it, `scripts/backup/restore-drill.sh --latest production --key rivr-backup-key.txt`, and add the result to the drill log below.
+8. **First run.** In Actions → nightly-backup → Run workflow, check that both targets upload a file. Then run the restore drill on it, `scripts/backup/restore-drill.sh --latest production --key rivr-backup-key.txt --auth-version <version>` (see "The restore drill"), and add the result to the drill log below.
 
 **Watching it.**
 - Until the settings exist, each target skips with a notice and the workflow stays green. Once they're set, a failed night fails the workflow.
+- A second run on the same day (IST), such as Run workflow after that night's run, fails at production's upload: the bucket lock refuses to overwrite the night's file, which stays as the first run made it.
 - GitHub emails a failed scheduled run to whoever last changed the workflow's schedule, which is the `adwate-ui` account.
 - The owner, or whoever they name, also checks Actions → nightly-backup every Monday.
 - GitHub pauses scheduled workflows in a repository with no activity for 60 days.
@@ -129,7 +130,8 @@ You need, on the computer you restore from:
 **Running it:** you need Docker, `age`, `psql` from Postgres 17 or later, the AWS CLI for `--latest`, and `pnpm i` in the checkout.
 - On a target's latest backup:
   - set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` (that target's bucket token), `AWS_DEFAULT_REGION=auto`, `BACKUP_S3_ENDPOINT` and `BACKUP_BUCKET`;
-  - run `scripts/backup/restore-drill.sh --latest production --key rivr-backup-key.txt`.
+  - run `scripts/backup/restore-drill.sh --latest production --key rivr-backup-key.txt --auth-version <version>`.
+  - `<version>` is that project's Auth version. `curl -s <project URL>/auth/v1/health -H "apikey: <publishable key>"` prints it. Without it the scratch stack runs the Supabase CLI's own Auth, which can be older than the project's, and the restore then stops on a column that Auth's older tables lack.
 - On a file already downloaded: `--archive <file> --key <key>`.
 - On one computer: `--local` backs up the local stack first (`pnpm db:start`), with a throwaway key.
 - `--dry-run` prints the steps without running anything.
@@ -140,16 +142,20 @@ You need, on the computer you restore from:
 |---|---|---|---|
 | 20 Oct 2026 | The local stack's seed data (`--local`), as the backup job makes it. Staging's and production's are the owner's first run (setup step 8). | Scratch local stack (550) | PASS: every ledger transaction sums to zero; all 10 account totals match the CSV; row counts match for 70 tables; all 6 cron jobs back |
 | 27 Oct 2026 | The local stack's seed data (`--local`), 152 migrations (#112) | Scratch local stack (550) | First run FAIL: `restore.sh` no longer parsed. Since #409, an apostrophe inside `"${...:?...}"` was read as a quote by bash, so a real restore would have failed too. Fixed, and CI's `check-backup.sh` now parses every backup script. Rerun PASS: every ledger transaction sums to zero; all 100 account totals match the CSV; row counts match for 107 tables; all 13 cron jobs back; the scratch stack removed (99 s) |
+| 3 Nov 2026 | Staging's database alone (no Storage), made by `nightly-backup.sh` through a temporary read-only login: a rehearsal before the nightly job had its settings | Scratch local stack (550) | PASS: every ledger transaction sums to zero; all 102 account totals match the CSV; row counts match for 145 tables; all 27 cron jobs back (182 s) |
+| 26 Nov 2026 | Production's first nightly, `rivr-production-20261126` (180 MB) | Scratch local stack (550) | First run FAIL: `roles.sql` sets a statement timeout on `supabase_admin`, which only a superuser may change, so a restore into any new project stopped there. `restore.sh` now leaves out settings on the platform's own roles. Second run FAIL: `auth.one_time_tokens.link_token_hash` did not exist, because the CLI's Auth (v2.197.0) is older than production's (v2.199.0). The drill now takes `--auth-version`. Rerun with `--auth-version v2.199.0` PASS: every ledger transaction sums to zero; all 245 account totals match the CSV; row counts match for 86 tables; all 26 cron jobs back; the scratch stack removed (151 s) |
+| 26 Nov 2026 | Staging's first nightly, `rivr-staging-20261126` (7.8 MB) | Scratch local stack (550) | With `--auth-version v2.199.0` PASS: every ledger transaction sums to zero; all 105 account totals match the CSV; row counts match for 86 tables; all 26 cron jobs back; the scratch stack removed (83 s) |
 
 **On staging and production (hardening week, by the owner).** The drill needs the backup key's private half, which lives offline with the owner (setup step 3), so no workflow can run it, and none should. The `nightly-backup` workflow makes the backups it restores.
-1. Check that Actions → nightly-backup shows a green run for the target in the last day.
+1. Check that Actions → nightly-backup has a run for the target in the last day whose "Upload to the backup bucket" step ran. A target without its settings skips, and its run is green too.
 2. On a computer with Docker, `age`, `psql` 17, the AWS CLI and a checkout of `main` (`pnpm i`), give the shell that target's bucket token. Type the secret at the prompt, so it stays out of the shell's history. Then run:
    ```
    export AWS_ACCESS_KEY_ID=<the target's R2 token id> AWS_DEFAULT_REGION=auto
    read -rs AWS_SECRET_ACCESS_KEY && export AWS_SECRET_ACCESS_KEY
    export BACKUP_S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com BACKUP_BUCKET=rivr-backups-staging
-   bash scripts/backup/restore-drill.sh --latest staging --key rivr-backup-key.txt
+   bash scripts/backup/restore-drill.sh --latest staging --key rivr-backup-key.txt --auth-version <the project's Auth version>
    ```
+   The Auth version is the `version` that `curl -s <project URL>/auth/v1/health -H "apikey: <publishable key>"` prints.
 3. Then do the same for production: `BACKUP_BUCKET=rivr-backups-production` and `--latest production`.
 4. Add each result to the table above: the date, the night's file, and the PASS or FAIL lines.
 5. `unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY` afterwards. The drill restores into a scratch stack on this computer and removes it. Nothing is written to staging or production.
