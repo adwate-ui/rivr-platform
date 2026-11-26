@@ -93,7 +93,7 @@ Every requirement in every specification file mapped to the issues that deliver 
 | T-I24 | Table-side F&B: orders from app or tablet print a KOT; comp or paid posted to the visit | #123 |
 | T-I25 | Cab safety: driver app with a foreground location service, live trip link, drop confirmed by player OTP | #141 |
 | T-I26 | Visit feedback: WhatsApp survey on visit close; 3 or below opens a ticket for the GM | #160 |
-| T-I27 | Backups and restore: provider backups with PITR, nightly logical dump, scripted restore drill | #25, #26 |
+| T-I27 | Backups and restore: provider backups (no PITR, decision 0713), nightly logical dump, scripted restore drill | #25, #26 |
 | T-I28 | Digital membership card with a rotating QR; the door screen scans it to open a visit | #71 |
 | T-I29 | Multi-room ready: venue_id and row-level security on every table | #1 |
 | T-I30 | Accessories store: a hosted store embedded in the website | #142 |
