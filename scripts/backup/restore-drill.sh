@@ -21,16 +21,22 @@
 #       BACKUP_BUCKET for that target
 #   scripts/backup/restore-drill.sh --local
 #       backs up the local stack first (pnpm db:start), with a throwaway key: the drill on one computer
+# Add --auth-version <vX.Y.Z> with the Auth version of the project the backup came from, which its
+# <project URL>/auth/v1/health gives. The scratch stack then runs that Auth, through the file supabase link
+# writes for it. Only Auth is pinned: the other services stay at the CLI's own versions.
+# Hosted Auth can be newer than the CLI's own, and an older Auth lacks columns the backup fills: on 26 Nov
+# production's v2.199.0 had auth.one_time_tokens.link_token_hash, the CLI's v2.197.0 did not.
 # Add --dry-run to print the steps without running anything. Needs Docker, age, psql 17, the aws CLI
 # for --latest, and the repository's packages (pnpm i).
 set -euo pipefail
 
-archive="" key="" latest="" local_backup=false dry_run=false
+archive="" key="" latest="" auth_version="" local_backup=false dry_run=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --archive) archive="$2"; shift 2 ;;
     --key) key="$2"; shift 2 ;;
     --latest) latest="$2"; shift 2 ;;
+    --auth-version) auth_version="$2"; shift 2 ;;
     --local) local_backup=true; shift ;;
     --dry-run) dry_run=true; shift ;;
     *) echo "Unknown option $1. See the usage at the top of $0."; exit 2 ;;
@@ -106,6 +112,8 @@ enabled = false
 [edge_runtime]
 enabled = false
 TOML
+# The file supabase link writes to choose the Auth image.
+[[ -z "$auth_version" ]] || { mkdir -p "$scratch/supabase/.temp" && echo "$auth_version" > "$scratch/supabase/.temp/gotrue-version"; }
 run bash -c "cd '$root' && pnpm -s exec supabase start --workdir '$scratch' >/dev/null"
 
 step "Restore as the runbook does (scripts/backup/restore.sh): roles, schema, data with triggers off; the cron jobs after the checks"
